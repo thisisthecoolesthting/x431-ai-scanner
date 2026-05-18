@@ -12,8 +12,9 @@ import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.ScreenKind
 import com.caseforge.scanner.overlay.compose.Spacing
-import com.caseforge.scanner.overlay.compose.Style
 import com.caseforge.scanner.overlay.compose.TogetherCardShape
+import com.caseforge.scanner.overlay.compose.togetherCardColors
+import com.caseforge.scanner.overlay.compose.togetherCardElevation
 import com.caseforge.scanner.ui.theme.CaseForgeTheme
 
 /**
@@ -56,7 +57,7 @@ fun ErrorScreen(
                 containerColor = MaterialTheme.colorScheme.errorContainer,
                 contentColor = MaterialTheme.colorScheme.onErrorContainer,
             ),
-            elevation = Style.togetherCardElevation(),
+            elevation = togetherCardElevation(),
         ) {
             Row(
                 modifier = Modifier
@@ -144,12 +145,3 @@ private fun ErrorScreenUnknownPreviewDark() {
         }
     }
 }
-
-private val Spacing.Space6
-    get() = 6.dp
-
-private val Spacing.Space20
-    get() = 20.dp
-
-private val Spacing.Space8
-    get() = 8.dp

@@ -61,9 +61,3 @@ private fun ActuationScreenPreview() {
         }
     }
 }
-
-private val Spacing.Space8
-    get() = 8.dp
-
-private val Spacing.Space20
-    get() = 20.dp

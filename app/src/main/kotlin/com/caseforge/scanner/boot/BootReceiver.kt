@@ -81,15 +81,15 @@ class BootReceiver : BroadcastReceiver() {
                 return
             }
 
-            // Log every 2 seconds to avoid spamming logs
-            if (now - lastLogTime >= 2000L) {
-                Log.d(TAG, "Waiting for X431 foreground... (elapsed=${now - startTime}ms, current=$foregroundPkg)")
-                lastLogTime = now
+            val nowMs = System.currentTimeMillis()
+            if (nowMs - lastLogTime > 2000) {
+                Log.d(TAG, "X431 not yet foreground, waiting...")
+                lastLogTime = nowMs
             }
 
             delay(CHECK_INTERVAL_MS)
         }
 
-        Log.w(TAG, "Timeout waiting for X431 foreground after ${maxWaitMs}ms")
+        Log.w(TAG, "Timeout waiting for X431 to come foreground; aborting auto-launch")
     }
 }

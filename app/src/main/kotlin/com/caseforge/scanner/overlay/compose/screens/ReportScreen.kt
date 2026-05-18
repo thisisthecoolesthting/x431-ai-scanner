@@ -15,8 +15,9 @@ import com.caseforge.scanner.engine.Dtc
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.ScreenKind
 import com.caseforge.scanner.overlay.compose.Spacing
-import com.caseforge.scanner.overlay.compose.Style
 import com.caseforge.scanner.overlay.compose.TogetherCardShape
+import com.caseforge.scanner.overlay.compose.togetherCardColors
+import com.caseforge.scanner.overlay.compose.togetherCardElevation
 import com.caseforge.scanner.ui.theme.CaseForgeTheme
 
 /**
@@ -79,8 +80,8 @@ private fun DtcCard(dtc: Dtc) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = TogetherCardShape,
-        colors = Style.togetherCardColors(),
-        elevation = Style.togetherCardElevation(),
+        colors = togetherCardColors(),
+        elevation = togetherCardElevation(),
     ) {
         Column(
             modifier = Modifier
@@ -174,9 +175,3 @@ private fun ReportScreenWithDtcsPreviewDark() {
         }
     }
 }
-
-private val Spacing.Space6
-    get() = 6.dp
-
-private val Spacing.Space14
-    get() = 14.dp

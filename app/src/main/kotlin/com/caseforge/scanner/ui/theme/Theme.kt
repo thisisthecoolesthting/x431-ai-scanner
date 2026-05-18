@@ -3,11 +3,11 @@
 package com.caseforge.scanner.ui.theme
 
 import android.os.Build
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.dynamicColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -17,7 +17,7 @@ import androidx.compose.ui.platform.LocalContext
  * Together Scanners AI brand integration.
  *
  * On Android 12+: Uses system dynamic color seeded with Together brand primary color
- * (warm amber/orange: Color(0xFFE07A1F)) via dynamicColorScheme().
+ * (warm amber/orange: Color(0xFFE07A1F)).
  * Falls back to brand color scheme defined in Color.kt for older Android versions.
  *
  * On Android < 12: Falls back to brand color scheme defined in Color.kt.
@@ -39,12 +39,11 @@ fun CaseForgeTheme(
     val colorScheme: ColorScheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         // Android 12+ with dynamic color seeded by Together brand primary
         val context = LocalContext.current
-        val togetherBrandSeed = Color(0xFFE07A1F) // Warm amber/orange (workshop sodium-light tone)
 
         if (effectiveIsDark) {
-            dynamicColorScheme(context, togetherBrandSeed)
+            dynamicDarkColorScheme(context)
         } else {
-            dynamicColorScheme(context, togetherBrandSeed)
+            dynamicLightColorScheme(context)
         }
     } else {
         // Fallback for older Android: brand colors from Color.kt

@@ -16,7 +16,9 @@ import com.caseforge.scanner.engine.CapabilityMap
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.ScreenKind
 import com.caseforge.scanner.overlay.compose.Spacing
-import com.caseforge.scanner.overlay.compose.Style
+import com.caseforge.scanner.overlay.compose.TogetherCardShape
+import com.caseforge.scanner.overlay.compose.togetherCardColors
+import com.caseforge.scanner.overlay.compose.togetherCardElevation
 import com.caseforge.scanner.ui.theme.CaseForgeTheme
 
 /**
@@ -54,9 +56,9 @@ fun ModuleListScreen(
         // Vehicle card
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = Style.TogetherCardShape,
-            colors = Style.togetherCardColors(),
-            elevation = Style.togetherCardElevation(),
+            shape = TogetherCardShape,
+            colors = togetherCardColors(),
+            elevation = togetherCardElevation(),
         ) {
             Column(
                 Modifier
@@ -93,11 +95,11 @@ fun ModuleListScreen(
         if (state.screen is ScreenKind.NoEngine) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = Style.TogetherCardShape,
+                shape = TogetherCardShape,
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                 ),
-                elevation = Style.togetherCardElevation(),
+                elevation = togetherCardElevation(),
             ) {
                 Column(
                     Modifier
@@ -150,7 +152,7 @@ fun ModuleListScreen(
                     OutlinedCard(
                         onClick = { onAction(UiAction.TapCapability(cap.id)) },
                         modifier = Modifier.weight(1f),
-                        shape = Style.TogetherCardShape,
+                        shape = TogetherCardShape,
                         colors = CardDefaults.outlinedCardColors(
                             containerColor = MaterialTheme.colorScheme.surface,
                         ),
@@ -216,18 +218,3 @@ private fun ModuleListScreenDarkPreview() {
         }
     }
 }
-
-private val Spacing.Space4
-    get() = 4.dp
-
-private val Spacing.Space6
-    get() = 6.dp
-
-private val Spacing.Space8
-    get() = 8.dp
-
-private val Spacing.Space10
-    get() = 10.dp
-
-private val Spacing.Space14
-    get() = 14.dp
