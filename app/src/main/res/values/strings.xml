@@ -24,4 +24,13 @@
     <string name="export_wizard_subtitle">Recommended for offline AI — exports the cnlaunch folder over your shop Wi‑Fi. You can do this later from Settings.</string>
     <string name="export_wizard_action">Open export</string>
     <string name="export_settings_entry">Export tablet data to PC</string>
+    <string name="export_pick_ip">Pick the IP your PC can reach (same Wi‑Fi subnet):</string>
+    <string name="export_state_listening">LISTENING on %1$s:%2$d</string>
+    <string name="export_state_starting">STARTING…</string>
+    <string name="export_state_stopped">STOPPED</string>
+    <string name="export_state_error">ERROR: %1$s</string>
+    <string name="export_self_test">Test from this tablet</string>
+    <string name="export_self_test_fail">FAIL: %1$s</string>
+    <string name="export_firewall_hint">If the PC shows ERR_CONNECTION_TIMED_OUT, allow inbound TCP on the port shown above in Windows Firewall (create an inbound allow rule for that port).</string>
+    <string name="export_ap_isolation_hint">If the tablet self-test passes but the PC cannot connect, your router may have Wi‑Fi client isolation enabled.</string>
 </resources>
