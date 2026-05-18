@@ -452,7 +452,8 @@ class VciSocketClient(
     @SuppressLint("MissingPermission")
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun findBondedVciDevices(): List<BluetoothDevice> {
-        return bluetoothAdapter.bondedDevices
+        val adapter = bluetoothAdapter ?: return emptyList()
+        return adapter.bondedDevices
             .filter { device ->
                 val name = device.name ?: return@filter false
                 VCI_NAME_PREFIXES.any { prefix -> name.startsWith(prefix, ignoreCase = true) }

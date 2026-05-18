@@ -43,6 +43,9 @@ class EngineDriver(
 ) {
 
     companion object {
+        /** Polling interval for live-data PIDs. */
+        const val LIVE_DATA_POLL_MS = 200L
+
         private val _activeOps = MutableStateFlow(0)
         private val _workActive = MutableStateFlow(false)
         val workActive: StateFlow<Boolean> = _workActive.asStateFlow()
@@ -427,12 +430,4 @@ class EngineDriver(
         }
     }
 
-    // ------------------------------------------------------------------
-    // Constants
-    // ------------------------------------------------------------------
-
-    companion object {
-        /** Polling interval for live-data PIDs. */
-        const val LIVE_DATA_POLL_MS = 200L
-    }
 }

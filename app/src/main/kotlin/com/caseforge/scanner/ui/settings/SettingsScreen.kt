@@ -46,6 +46,32 @@ fun SettingsScreen(
     val recordAudioLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         voice = granted; settings.voiceEnabled = granted
     }
+    val btConnectLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { results ->
+        if (results[Manifest.permission.BLUETOOTH_CONNECT] == true) {
+            directVci = true
+            settings.directVciExperimental = true
+        }
+    }
+
+    fun enableDirectVciWithPermissions() {
+        val perms = buildList {
+            add(Manifest.permission.BLUETOOTH_CONNECT)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                add(Manifest.permission.BLUETOOTH_SCAN)
+            }
+        }
+        val missing = perms.any {
+            ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
+        }
+        if (missing) {
+            btConnectLauncher.launch(perms.toTypedArray())
+        } else {
+            directVci = true
+            settings.directVciExperimental = true
+        }
+    }
 
     Column(Modifier.fillMaxSize()) {
         TopAppBar(title = { Text("Settings") }, navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } })
