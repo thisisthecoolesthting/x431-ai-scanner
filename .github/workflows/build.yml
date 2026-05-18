@@ -2,7 +2,7 @@ name: Build APK
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, spike/direct-vci ]
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:

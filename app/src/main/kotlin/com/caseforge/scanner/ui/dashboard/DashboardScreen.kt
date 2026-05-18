@@ -60,6 +60,7 @@ fun DashboardScreen(
     onOpenNotes: () -> Unit,
     onCheckUpdate: () -> Unit,
     onTakeOverX431: () -> Unit = {},
+    directVciStandalone: Boolean = false,
 ) {
     val running by AgentStatus.running.collectAsState()
     val step by AgentStatus.step.collectAsState()
@@ -121,14 +122,27 @@ IconButton(onClick = onOpenNotes) {
             // Vehicle card
             VehicleCard(detectedVin, vehicleSummary, running, step, activity)
 
-            // Take-over-X431 — the headline feature: hide X431 behind our UI
-            Button(
-                onClick = onTakeOverX431,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(Icons.Default.Layers, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text("Take over X431 (custom UI)")
+            // Take-over-X431 or direct VCI standalone overlay
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Button(
+                    onClick = onTakeOverX431,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(Icons.Default.Layers, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        if (directVciStandalone) "Connect to VCI (experimental)"
+                        else "Take over X431 (custom UI)",
+                    )
+                }
+                if (directVciStandalone) {
+                    Text(
+                        "Our UI only—the X431 app will not launch. Grant overlay permission when prompted.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 4.dp),
+                    )
+                }
             }
 
             // Action grid

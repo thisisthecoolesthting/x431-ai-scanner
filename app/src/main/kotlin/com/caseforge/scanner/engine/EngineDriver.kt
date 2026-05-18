@@ -35,6 +35,8 @@ class EngineDriver(
     private val state: MutableStateFlow<EngineState>,
     private val actionLog: AgentActionLog,
     private val interStepDelayMs: Long = 900L,
+    private val dataRoute: EngineDataRoute = EngineDataRoute.OVERLAY,
+    private val vciPort: VciDiagnosticPort? = null,
 ) {
 
     // ------------------------------------------------------------------
@@ -56,6 +58,13 @@ class EngineDriver(
      *   [EngineState], or [Result.failure] wrapping an [EngineException].
      */
     suspend fun runCapability(id: String): Result<JsonObject> {
+        if (dataRoute == EngineDataRoute.DIRECT_VCI) {
+            val port = vciPort ?: return Result.failure(
+                EngineException.StepFailed(id, -1, "Direct VCI not connected"),
+            )
+            return safeRun(id) { port.runCapability(id).getOrThrow() }
+        }
+
         val cap = capabilities.find(id)
             ?: return Result.failure(EngineException.CapabilityNotFound(id))
 
@@ -75,6 +84,13 @@ class EngineDriver(
      * DTCs the scraper surfaced during the scan.
      */
     suspend fun fullScan(): Result<FullScanResult> {
+        if (dataRoute == EngineDataRoute.DIRECT_VCI) {
+            val port = vciPort ?: return Result.failure(
+                EngineException.StepFailed("full_scan", -1, "Direct VCI not connected"),
+            )
+            return safeRun("full_scan") { port.fullScan().getOrThrow() }
+        }
+
         val cap = capabilities.find("full_scan")
             ?: return Result.failure(EngineException.CapabilityNotFound("full_scan"))
 
@@ -115,6 +131,13 @@ class EngineDriver(
      * Read diagnostic trouble codes, optionally filtered to a single [module].
      */
     suspend fun readDtcs(module: String? = null): Result<List<Dtc>> {
+        if (dataRoute == EngineDataRoute.DIRECT_VCI) {
+            val port = vciPort ?: return Result.failure(
+                EngineException.StepFailed("read_dtcs", -1, "Direct VCI not connected"),
+            )
+            return safeRun("read_dtcs") { port.readDtcs(module).getOrThrow() }
+        }
+
         val cap = capabilities.find("read_dtcs")
             ?: return Result.failure(EngineException.CapabilityNotFound("read_dtcs"))
 
@@ -145,6 +168,13 @@ class EngineDriver(
      * confirms "clear successfully", or [Result.failure] on timeout/navigation error.
      */
     suspend fun clearCodes(): Result<Unit> {
+        if (dataRoute == EngineDataRoute.DIRECT_VCI) {
+            val port = vciPort ?: return Result.failure(
+                EngineException.StepFailed("clear_dtcs", -1, "Direct VCI not connected"),
+            )
+            return safeRun("clear_dtcs") { port.clearCodes().getOrThrow() }
+        }
+
         val cap = capabilities.find("clear_dtcs")
             ?: return Result.failure(EngineException.CapabilityNotFound("clear_dtcs"))
 
@@ -164,7 +194,15 @@ class EngineDriver(
      * The flow enters the X431 live-data screen once on first collection, then
      * ticks at [LIVE_DATA_POLL_MS] reading the current [EngineState] values.
      */
-    fun liveData(pids: List<String>): Flow<LiveSample> = flow {
+    fun liveData(pids: List<String>): Flow<LiveSample> {
+        if (dataRoute == EngineDataRoute.DIRECT_VCI) {
+            val port = vciPort ?: return flow { }
+            return port.liveData(pids)
+        }
+        return liveDataOverlay(pids)
+    }
+
+    private fun liveDataOverlay(pids: List<String>): Flow<LiveSample> = flow {
         val cap = capabilities.find("live_data")
         if (cap != null) {
             // Best-effort navigation — ignore errors so the caller still gets data
@@ -210,6 +248,13 @@ class EngineDriver(
     fun notifyUser(message: String) = actionLog.event("sequence.prompt", message.take(500))
 
     suspend fun actuate(testId: String): Result<ActuationResult> {
+        if (dataRoute == EngineDataRoute.DIRECT_VCI) {
+            val port = vciPort ?: return Result.failure(
+                EngineException.StepFailed("actuation", -1, "Direct VCI not connected"),
+            )
+            return safeRun("actuation") { port.actuate(testId).getOrThrow() }
+        }
+
         val cap = capabilities.find("actuation")
             ?: return Result.failure(EngineException.CapabilityNotFound("actuation"))
 

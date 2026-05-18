@@ -80,6 +80,31 @@ class SettingsRepo(context: Context) {
         get() = prefs.getBoolean(K_VOICE, false)
         set(value) { prefs.edit().putBoolean(K_VOICE, value).apply() }
 
+    /** Experimental direct VCI Bluetooth (Phase 2 spike — not for production main until approved). */
+    var directVciExperimental: Boolean
+        get() = prefs.getBoolean(K_DIRECT_VCI, false)
+        set(value) { prefs.edit().putBoolean(K_DIRECT_VCI, value).apply() }
+
+    /** First header byte for VCI framing (default 0x55 — confirm on vehicle via probe). */
+    var vciHeaderByte0: Int
+        get() = prefs.getInt(K_VCI_HDR0, 0x55)
+        set(value) { prefs.edit().putInt(K_VCI_HDR0, value and 0xFF).apply() }
+
+    /** Second header byte for VCI framing (default 0xAA). */
+    var vciHeaderByte1: Int
+        get() = prefs.getInt(K_VCI_HDR1, 0xAA)
+        set(value) { prefs.edit().putInt(K_VCI_HDR1, value and 0xFF).apply() }
+
+    /** When true, SPP transport uses hex-ASCII lines instead of raw binary. */
+    var vciUseHexEncoding: Boolean
+        get() = prefs.getBoolean(K_VCI_HEX, false)
+        set(value) { prefs.edit().putBoolean(K_VCI_HEX, value).apply() }
+
+    /** Set after tablet probe sweep locks header + transport. */
+    var vciProtocolConfirmed: Boolean
+        get() = prefs.getBoolean(K_VCI_PROTO_OK, false)
+        set(value) { prefs.edit().putBoolean(K_VCI_PROTO_OK, value).apply() }
+
     /** Whether the first-launch setup wizard has been completed. */
     var wizardComplete: Boolean
         get() = prefs.getBoolean(K_WIZARD, false)
@@ -174,6 +199,11 @@ class SettingsRepo(context: Context) {
         private const val K_REQUIRE_APPROVAL = "require_approval"
         private const val K_SPEAK = "speak_enabled"
         private const val K_VOICE = "voice_enabled"
+        private const val K_DIRECT_VCI = "direct_vci_experimental"
+        private const val K_VCI_HDR0 = "vci_header_byte0"
+        private const val K_VCI_HDR1 = "vci_header_byte1"
+        private const val K_VCI_HEX = "vci_use_hex_encoding"
+        private const val K_VCI_PROTO_OK = "vci_protocol_confirmed"
         private const val K_NOTES = "agent_notes"
         private const val K_THEME = "theme_mode"
         private const val K_WIZARD = "wizard_complete"
