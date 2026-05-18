@@ -33,6 +33,7 @@ import com.caseforge.scanner.overlay.compose.screens.ReportScreen
 import com.caseforge.scanner.overlay.compose.screens.SequenceRunnerScreen
 import com.caseforge.scanner.overlay.compose.screens.UiAction
 import com.caseforge.scanner.ui.theme.CaseForgeTheme
+import com.caseforge.scanner.voice.VoiceMode
 
 /**
  * Root composable rendered inside the full-screen overlay window. This is what the
@@ -66,6 +67,11 @@ fun OverlayRoot(
     },
     onEmergencyDismiss: () -> Unit,
     healthState: HealthState? = null,
+    voiceEnabled: Boolean = false,
+    voiceState: VoiceMode.State = VoiceMode.State.IDLE,
+    voiceLastPhrase: String = "",
+    onVoicePressStart: () -> Unit = {},
+    onVoicePressEnd: () -> Unit = {},
 ) {
     // C2: Gate onboarding on first launch
     if (!settingsRepo.overlayOnboardingSeen) {
@@ -124,6 +130,19 @@ fun OverlayRoot(
                         state = engineState,
                         onAction = onUiAction,
                     )
+                    if (voiceEnabled) {
+                        VoiceIndicator(
+                            state = voiceState,
+                            lastPhrase = voiceLastPhrase,
+                            modifier = Modifier.align(Alignment.BottomStart).padding(start = Spacing.Space8, bottom = Spacing.Space32),
+                        )
+                        VoiceFab(
+                            enabled = true,
+                            onPressStart = onVoicePressStart,
+                            onPressEnd = onVoicePressEnd,
+                            modifier = Modifier.align(Alignment.BottomEnd).padding(Spacing.Space16),
+                        )
+                    }
                 }
             }
         }

@@ -50,6 +50,11 @@ import com.caseforge.scanner.engine.EngineScraper
 import com.caseforge.scanner.engine.EngineHealthMonitor
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.overlay.compose.OverlayRoot
+import com.caseforge.scanner.voice.VoiceCommander
+import com.caseforge.scanner.voice.VoiceMode
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -147,6 +152,9 @@ class FullScreenOverlayService : Service(),
     private var lastPostScanSignature: String? = null
     private var sequenceJob: Job? = null
     private var advancePrompt: CompletableDeferred<Unit>? = null
+    private val voiceUiState = mutableStateOf(VoiceMode.State.IDLE)
+    private val voiceLastPhrase = mutableStateOf("")
+    private var voiceCommander: VoiceCommander? = null
 
     // A3: health monitor — created in onCreate, started/stopped alongside the service.
     private lateinit var monitor: EngineHealthMonitor
@@ -203,6 +211,7 @@ class FullScreenOverlayService : Service(),
         isRunning = true
         startForeground(NOTIFICATION_ID, buildNotification())
         if (rootView == null) attachOverlay()
+        syncVoiceCommander()
         startScraperLoop()
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
         return START_STICKY
@@ -216,6 +225,9 @@ class FullScreenOverlayService : Service(),
         // A3: stop the health monitor before cancelling the scope it runs on.
         monitor.stop()
         Log.i(TAG, "EngineHealthMonitor stopped")
+
+        voiceCommander?.stop()
+        voiceCommander = null
 
         scraperJob?.cancel()
         sequenceJob?.cancel()
@@ -251,6 +263,11 @@ class FullScreenOverlayService : Service(),
                     onUiAction = { handleUiAction(it) },
                     onEmergencyDismiss = { requestEmergencyDismiss() },
                     healthState  = healthState,
+                    voiceEnabled = settingsRepo.voiceEnabled && hasRecordAudioPermission(),
+                    voiceState = voiceUiState.value,
+                    voiceLastPhrase = voiceLastPhrase.value,
+                    onVoicePressStart = { voiceCommander?.startPushToTalk() },
+                    onVoicePressEnd = { voiceCommander?.stopPushToTalk() },
                 )
             }
         }
@@ -529,6 +546,39 @@ class FullScreenOverlayService : Service(),
     }
 
     // ---------- user-triggered capability execution ----------
+
+    private fun hasRecordAudioPermission(): Boolean =
+        ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) ==
+            PackageManager.PERMISSION_GRANTED
+
+    private fun syncVoiceCommander() {
+        if (!settingsRepo.voiceEnabled || !hasRecordAudioPermission()) {
+            voiceCommander?.stop()
+            voiceCommander = null
+            voiceUiState.value = VoiceMode.State.IDLE
+            return
+        }
+        if (voiceCommander != null) return
+        val app = application as App
+        voiceCommander = VoiceCommander(
+            context = applicationContext,
+            engineCallback = object : VoiceCommander.EngineCallback {
+                override fun onReadCodes() = dispatchCapability("read_dtcs")
+                override fun onClearCodes() = dispatchCapability("clear_dtcs")
+                override fun onGraphPid(pidLabel: String) {
+                    app.tts.speak("Graphing $pidLabel")
+                    dispatchCapability("live_data")
+                }
+                override fun onRunCapability(capabilityId: String) = dispatchCapability(capabilityId)
+                override fun onDismiss() = stopSelf()
+                override fun onPeek() = togglePeek()
+                override fun onHelp() = app.tts.speak("Say read codes, clear codes, or full scan.")
+                override fun onVoiceStateChanged(state: VoiceMode.State) { voiceUiState.value = state }
+                override fun onLastPhraseChanged(phrase: String) { voiceLastPhrase.value = phrase }
+            },
+        )
+        voiceCommander?.start()
+    }
 
     private fun dispatchCapability(capabilityId: String) {
         val a11y = ScannerAccessibilityService.instance() ?: run {
