@@ -53,3 +53,10 @@ Use `org.nanohttpd:nanohttpd:2.3.1` for the embedded HTTP server (small, well-te
 ## Done
 
 Move this prompt to `cursor-dispatch/done/` when the PR merges.
+
+# Notes from Cursor
+
+- Merged via PR https://github.com/thisisthecoolesthting/x431-ai-scanner/pull/6 (squash `113e346` on main).
+- CI green: run 26060005753 (`assembleDebug`).
+- Tablet smoke (Wi‑Fi download + zip verify) still for operator on X431 hardware.
+- Unblocks Phase 2 Stream E: PC can receive `cnlaunch-bundle.zip` without USB/ADB.
