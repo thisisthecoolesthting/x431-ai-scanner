@@ -6,7 +6,10 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.JsonObject
@@ -38,6 +41,22 @@ class EngineDriver(
     private val dataRoute: EngineDataRoute = EngineDataRoute.OVERLAY,
     private val vciPort: VciDiagnosticPort? = null,
 ) {
+
+    companion object {
+        private val _activeOps = MutableStateFlow(0)
+        private val _workActive = MutableStateFlow(false)
+        val workActive: StateFlow<Boolean> = _workActive.asStateFlow()
+
+        private fun enterWork() {
+            _activeOps.update { it + 1 }
+            _workActive.value = true
+        }
+
+        private fun exitWork() {
+            _activeOps.update { (it - 1).coerceAtLeast(0) }
+            _workActive.value = _activeOps.value > 0
+        }
+    }
 
     // ------------------------------------------------------------------
     // Public API
@@ -285,13 +304,12 @@ class EngineDriver(
      * known exception type — never a raw [Throwable].
      */
     private suspend fun <T> safeRun(capId: String, block: suspend () -> T): Result<T> {
+        enterWork()
         return try {
             Result.success(block())
         } catch (e: EngineException) {
             Result.failure(e)
         } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-            // withTimeout throws TimeoutCancellationException; surface as EngineException.Timeout
-            // We don't know the step index here — use -1 as sentinel.
             Result.failure(EngineException.StepFailed(capId, -1, "coroutine timeout: ${e.message}"))
         } catch (e: Exception) {
             Result.failure(
@@ -301,6 +319,8 @@ class EngineDriver(
                     reason = e.message ?: e::class.simpleName ?: "unknown",
                 )
             )
+        } finally {
+            exitWork()
         }
     }
 

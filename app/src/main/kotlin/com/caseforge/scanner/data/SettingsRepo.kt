@@ -85,6 +85,22 @@ class SettingsRepo(context: Context) {
         get() = prefs.getBoolean(K_DIRECT_VCI, false)
         set(value) { prefs.edit().putBoolean(K_DIRECT_VCI, value).apply() }
 
+    val directVciExperimentalFlow: Flow<Boolean> = callbackFlow {
+        trySend(directVciExperimental)
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == K_DIRECT_VCI) trySend(directVciExperimental)
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.distinctUntilChanged()
+
+    /** User-picked bonded device when name does not match [VciSocketClient.VCI_NAME_PREFIXES]. */
+    var vciSelectedBtAddress: String?
+        get() = prefs.getString(K_VCI_BT_ADDRESS, null)?.takeIf { it.isNotBlank() }
+        set(value) {
+            prefs.edit().putString(K_VCI_BT_ADDRESS, value?.trim()).apply()
+        }
+
     /** First header byte for VCI framing (default 0x55 — confirm on vehicle via probe). */
     var vciHeaderByte0: Int
         get() = prefs.getInt(K_VCI_HDR0, 0x55)
@@ -200,6 +216,7 @@ class SettingsRepo(context: Context) {
         private const val K_SPEAK = "speak_enabled"
         private const val K_VOICE = "voice_enabled"
         private const val K_DIRECT_VCI = "direct_vci_experimental"
+        private const val K_VCI_BT_ADDRESS = "vci_bt_address"
         private const val K_VCI_HDR0 = "vci_header_byte0"
         private const val K_VCI_HDR1 = "vci_header_byte1"
         private const val K_VCI_HEX = "vci_use_hex_encoding"

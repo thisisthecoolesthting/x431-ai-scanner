@@ -646,7 +646,9 @@ class FullScreenOverlayService : Service(),
             val connected = session.ensureConnected()
             withContext(Dispatchers.Main) {
                 if (connected.isFailure) {
-                    val msg = connected.exceptionOrNull()?.message ?: "Direct VCI connect failed"
+                    val msg = session.lastConnectError()
+                        ?: connected.exceptionOrNull()?.message
+                        ?: "Direct VCI connect failed"
                     engineState.value = engineState.value.copy(
                         screen = ScreenKind.HomeMenu,
                         busy = false,

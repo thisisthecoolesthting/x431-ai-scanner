@@ -120,7 +120,7 @@ class MainActivity : ComponentActivity() {
                             "dashboard" -> DashboardScreen(
                                 detectedVin = latestDetectedVin ?: lastVin,
                                 vehicleSummary = lastVehicleSummary,
-                                directVciStandalone = app.settings.directVciExperimental,
+                                settings = app.settings,
                                 speakEnabled = app.settings.speakEnabled,
                                 onSpeakToggle = { app.settings.speakEnabled = it },
                                 onAgentStart = { symptom ->
@@ -217,6 +217,14 @@ class MainActivity : ComponentActivity() {
                                 } else {
                                     null
                                 },
+                                onOpenVciDiagnostics = if (app.settings.directVciExperimental) {
+                                    { route = "vci_diagnostics" }
+                                } else {
+                                    null
+                                },
+                            )
+                            "vci_diagnostics" -> com.caseforge.scanner.ui.diag.VciDiagnosticsScreen(
+                                onBack = { route = "settings" },
                             )
                             "export_data" -> com.caseforge.scanner.ui.transfer.ExportDataScreen(
                                 actionLog = app.actionLog,

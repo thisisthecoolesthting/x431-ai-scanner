@@ -29,6 +29,7 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onOpenDataExport: (() -> Unit)? = null,
     onOpenDirectVciProbe: (() -> Unit)? = null,
+    onOpenVciDiagnostics: (() -> Unit)? = null,
 ) {
     var apiKey by remember { mutableStateOf(settings.claudeApiKey) }
     var keyVisible by remember { mutableStateOf(false) }
@@ -78,8 +79,24 @@ fun SettingsScreen(
                     ListItem(
                         headlineContent = { Text("Direct VCI (experimental)") },
                         supportingContent = { Text("Bypass X431; generic OBD-II over Bluetooth dongle.") },
-                        trailingContent = { Switch(checked = directVci, onCheckedChange = { directVci = it; settings.directVciExperimental = it }) },
+                        trailingContent = {
+                            Switch(
+                                checked = directVci,
+                                onCheckedChange = { on ->
+                                    if (on) enableDirectVciWithPermissions()
+                                    else {
+                                        directVci = false
+                                        settings.directVciExperimental = false
+                                    }
+                                },
+                            )
+                        },
                     )
+                    if (directVci && onOpenVciDiagnostics != null) {
+                        OutlinedButton(onClick = onOpenVciDiagnostics, modifier = Modifier.fillMaxWidth()) {
+                            Text("Direct VCI connection diagnostics")
+                        }
+                    }
                     if (directVci && onOpenDirectVciProbe != null) {
                         OutlinedButton(onClick = onOpenDirectVciProbe, modifier = Modifier.fillMaxWidth()) {
                             Text("Open Direct VCI probe")
