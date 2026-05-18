@@ -72,6 +72,7 @@ fun OverlayRoot(
     voiceLastPhrase: String = "",
     onVoicePressStart: () -> Unit = {},
     onVoicePressEnd: () -> Unit = {},
+    evidenceCaptureEnabled: Boolean = true,
 ) {
     // C2: Gate onboarding on first launch
     if (!settingsRepo.overlayOnboardingSeen) {
@@ -130,6 +131,15 @@ fun OverlayRoot(
                         state = engineState,
                         onAction = onUiAction,
                     )
+                    if (evidenceCaptureEnabled && engineState.screen !is ScreenKind.NoEngine) {
+                        EvidenceCaptureFab(
+                            engineState = engineState,
+                            onBookmark = { type, label ->
+                                onUiAction(UiAction.BookmarkEvidence(type, label))
+                            },
+                            modifier = Modifier.align(Alignment.BottomStart),
+                        )
+                    }
                     if (voiceEnabled) {
                         VoiceIndicator(
                             state = voiceState,

@@ -38,8 +38,12 @@ import com.caseforge.scanner.agent.NextTestSuggester
 import com.caseforge.scanner.agent.RecallFlagger
 import com.caseforge.scanner.agent.ScannerAccessibilityService
 import com.caseforge.scanner.ai.ClaudeClient
+import com.caseforge.scanner.data.AppDatabase
 import com.caseforge.scanner.engine.CapabilityMap
+import com.caseforge.scanner.engine.DtcCorrelator
 import com.caseforge.scanner.engine.ScreenKind
+import com.caseforge.scanner.evidence.EvidenceCapture
+import com.caseforge.scanner.evidence.EvidenceType
 import com.caseforge.scanner.engine.SequenceDefinitions
 import com.caseforge.scanner.engine.sequences.DiagnosticSequenceExecutor
 import com.caseforge.scanner.overlay.compose.screens.UiAction
@@ -150,6 +154,7 @@ class FullScreenOverlayService : Service(),
     private val recallFlagger = RecallFlagger()
     private var lastRecallSignature: String? = null
     private var lastPostScanSignature: String? = null
+    private var lastCorrelateSignature: String? = null
     private var sequenceJob: Job? = null
     private var advancePrompt: CompletableDeferred<Unit>? = null
     private val voiceUiState = mutableStateOf(VoiceMode.State.IDLE)
@@ -372,9 +377,11 @@ class FullScreenOverlayService : Service(),
                         if (newState.screen is ScreenKind.FullScanResults) {
                             maybeRunPostScanAnalysis(prev, newState)
                             maybeFetchRecalls(prev, newState)
+                            maybeCorrelateDtcs(prev, newState)
                         } else {
                             lastPostScanSignature = null
                             lastRecallSignature = null
+                            lastCorrelateSignature = null
                         }
 
                         if (newState.screen != prev.screen) {
@@ -400,6 +407,15 @@ class FullScreenOverlayService : Service(),
                 engineState.value = engineState.value.copy(recallMatches = matches)
             }
         }
+    }
+
+    private fun maybeCorrelateDtcs(prev: EngineState, newState: EngineState) {
+        if (newState.dtcs.isEmpty()) return
+        val signature = newState.dtcs.joinToString("|") { "${it.code}:${it.module}" }
+        if (signature == lastCorrelateSignature && newState.rootCauseHypothesis != null) return
+        lastCorrelateSignature = signature
+        val hypothesis = DtcCorrelator.correlate(newState.dtcs) ?: return
+        engineState.value = engineState.value.copy(rootCauseHypothesis = hypothesis)
     }
 
     private fun maybeRunPostScanAnalysis(prev: EngineState, newState: EngineState) {
@@ -447,6 +463,20 @@ class FullScreenOverlayService : Service(),
             }
             UiAction.DeclineSuggestedTest -> {
                 engineState.value = engineState.value.copy(suggestedNextTest = null)
+            }
+            is UiAction.BookmarkEvidence -> bookmarkEvidence(action.type, action.label)
+        }
+    }
+
+    private fun bookmarkEvidence(type: EvidenceType, label: String) {
+        val state = engineState.value
+        val ticketId = state.vehicleVin ?: "overlay-session"
+        scope.launch(Dispatchers.IO) {
+            val app = applicationContext as App
+            val capture = EvidenceCapture(app, AppDatabase.get(app))
+            capture.bookmark(state, ticketId, type, label)
+            ui.post {
+                Toast.makeText(this@FullScreenOverlayService, "Evidence saved: $label", Toast.LENGTH_SHORT).show()
             }
         }
     }

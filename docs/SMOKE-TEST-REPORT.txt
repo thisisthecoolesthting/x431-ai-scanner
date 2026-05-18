@@ -1,0 +1,46 @@
+Together Scanners AI — Smoke Test Report
+Date: 2026-05-18
+Build: pending CI after Phase 1 integration commit
+Tester: Cursor agent (code/CI verification) + Ricky (tablet hardware pending)
+
+Legend: PASS = verified in repo/CI | PENDING = needs physical tablet | FAIL = blocked
+
+## Phase 1 features (this build)
+
+F2 Cross-module correlator
+- PASS  Static DtcCorrelator.kt with rules table; RootCauseCard on ReportScreen
+- PASS  Post-scan correlation wired in FullScreenOverlayService
+- PENDING  Live multi-module scan on tablet shows plausible root-cause card
+
+F3 Evidence capture
+- PASS  Room Evidence entity + DAO (DB v4)
+- PASS  EvidenceCaptureFab on overlay; bookmark saves JSON snapshot
+- PASS  PdfReportBuilder accepts evidencePhotoPaths list
+- PENDING  Camera photo attach on tablet (requires hardware)
+
+F8 Recall/TSB — PASS prior integration (#68 lineage)
+F1 Next-test — PASS prior integration
+F5 Voice — PASS prior integration (RECORD_AUDIO permission flow)
+F7 Sequences — PASS prior integration
+
+OEM capabilities (task 008)
+- PASS  capabilities.json synced from OEM-FIX draft (242 entries)
+- PENDING  Spot-check corrected menu paths on tablet
+
+## TESTING.md subset (automated / static)
+
+A4 ScreenKind renderers — PASS (ScreenRouter covers all kinds)
+B2-B9 capabilities count — PASS (242 entries in assets)
+CI assembleDebug — PENDING (poll GitHub Actions after push)
+
+## Blockers for full tablet sign-off
+
+1. Install latest APK from releases/latest on X431 tablet
+2. Walk TESTING.md sections C–F with overlay on live vehicle or bench ECU
+3. File cursor-dispatch/outbox/011+ for any line-item failures
+
+## Phase 2 (spike/direct-vci branch — not on main)
+
+- VCI scaffold copied to app/src/main/kotlin/com/caseforge/scanner/vci/
+- Frida script at scripts/frida-vci-intercept.js
+- Verdict: RUNTIME VALIDATION PENDING — header magic and hex-vs-binary transport require Frida capture on tablet; do not merge to main without Ricky approval

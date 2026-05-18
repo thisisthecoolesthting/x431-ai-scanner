@@ -71,6 +71,13 @@ fun ReportScreen(
             onDecline = { onAction(UiAction.DeclineSuggestedTest) },
         )
 
+        state.rootCauseHypothesis?.let { hypothesis ->
+            RootCauseCard(
+                hypothesis = hypothesis,
+                onRunCapability = { onAction(UiAction.TapCapability(it)) },
+            )
+        }
+
         if (state.dtcs.isEmpty()) {
             Text(
                 "No diagnostic trouble codes stored. Clean scan.",

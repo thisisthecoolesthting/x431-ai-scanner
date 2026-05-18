@@ -1,5 +1,7 @@
 package com.caseforge.scanner.overlay.compose.screens
 
+import com.caseforge.scanner.evidence.EvidenceType
+
 /**
  * Sealed class of user actions emitted by screen composables.
  *
@@ -21,4 +23,6 @@ sealed class UiAction {
     data object AcceptSuggestedTest : UiAction()
 
     data object DeclineSuggestedTest : UiAction()
+
+    data class BookmarkEvidence(val type: EvidenceType, val label: String) : UiAction()
 }

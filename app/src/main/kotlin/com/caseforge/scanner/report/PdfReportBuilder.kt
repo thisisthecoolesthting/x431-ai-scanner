@@ -88,6 +88,7 @@ class PdfReportBuilder {
         rootCause: String?,
         recommendedRepair: String?,
         dtcs: List<DtcRow>,
+        evidencePhotoPaths: List<String> = emptyList(),
         technicianName: String = "Ricky",
         shopName: String = "CaseForge"
     ): File {
@@ -112,6 +113,12 @@ class PdfReportBuilder {
         drawParagraph(ctx, recommendedRepair ?: "Not provided.")
         drawSectionHeading(ctx, "Diagnostic Trouble Codes")
         drawDtcTable(ctx, dtcs)
+        if (evidencePhotoPaths.isNotEmpty()) {
+            drawSectionHeading(ctx, "Repair Evidence Photos")
+            evidencePhotoPaths.forEachIndexed { index, path ->
+                drawParagraph(ctx, "Photo ${index + 1}: $path")
+            }
+        }
         drawSignatureBlock(ctx, technicianName)
         finalize(ctx, out)
         return out

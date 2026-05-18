@@ -149,9 +149,8 @@
       "label": "Oil Change Service Reset",
       "category": "Service",
       "path": [
-        "special_functions",
-        "ford",
         "service",
+        "maintenance",
         "oil_reset"
       ],
       "done_when": "oil service interval reset",
@@ -167,9 +166,8 @@
       "label": "Electronic Parking Brake Service Reset",
       "category": "Service",
       "path": [
-        "special_functions",
-        "ford",
         "service",
+        "brake",
         "epb_reset"
       ],
       "done_when": "epb service reset complete",
@@ -185,10 +183,9 @@
       "label": "Throttle Position Relearn",
       "category": "Service",
       "path": [
-        "special_functions",
-        "ford",
         "service",
-        "throttle_relearn"
+        "engine",
+        "throttle_adaptation"
       ],
       "done_when": "throttle relearn successful",
       "timeout_sec": 120,
@@ -203,10 +200,9 @@
       "label": "TPMS Sensor Reset and Relearn",
       "category": "Service",
       "path": [
-        "special_functions",
-        "ford",
         "service",
-        "tpms_reset"
+        "tires",
+        "tpms_relearn"
       ],
       "done_when": "tpms sensors learned",
       "timeout_sec": 120,
@@ -221,9 +217,8 @@
       "label": "Battery Charge State Registration",
       "category": "Service",
       "path": [
-        "special_functions",
-        "ford",
         "service",
+        "battery",
         "battery_registration"
       ],
       "done_when": "battery registered",
@@ -239,10 +234,9 @@
       "label": "Steering Angle Calibration",
       "category": "Service",
       "path": [
-        "special_functions",
-        "ford",
         "service",
-        "steering_angle_reset"
+        "suspension",
+        "steering_angle_calib"
       ],
       "done_when": "steering angle calibrated",
       "timeout_sec": 120,
@@ -641,9 +635,8 @@
       "label": "Tire Pressure Sensor Relearn",
       "category": "Service",
       "path": [
-        "gm",
-        "x431",
         "service",
+        "tires",
         "tpms_relearn"
       ],
       "done_when": "TPMS Relearn Complete",
@@ -1889,9 +1882,9 @@
       "label": "Monitor Hybrid Battery Health & Voltage",
       "category": "LiveData",
       "path": [
-        "diagnose",
         "livedata",
-        "hybrid_battery"
+        "measuring_blocks",
+        "hybrid"
       ],
       "done_when": "HV battery voltage, SOC, temperature, fan status displayed",
       "timeout_sec": 60,
@@ -1907,8 +1900,8 @@
       "label": "Monitor ABS and Brake System Data",
       "category": "LiveData",
       "path": [
-        "diagnose",
         "livedata",
+        "measuring_blocks",
         "abs"
       ],
       "done_when": "Wheel speeds, brake pressure, solenoid status, ABS activation displayed",
@@ -2355,9 +2348,9 @@
       "label": "VSA/ABS Live Data",
       "category": "LiveData",
       "path": [
-        "monitor",
-        "chassis",
-        "vsa_abs"
+        "livedata",
+        "measuring_blocks",
+        "abs"
       ],
       "done_when": "VSA module parameters displaying",
       "timeout_sec": 300,
@@ -2372,8 +2365,8 @@
       "label": "Transmission Live Data",
       "category": "LiveData",
       "path": [
-        "monitor",
-        "powertrain",
+        "livedata",
+        "measuring_blocks",
         "transmission"
       ],
       "done_when": "Gear selection and torque data streaming",
@@ -3044,7 +3037,7 @@
         "porsche",
         "bentley"
       ],
-      "note": "Electronic throttle learns full open/close range. Required after throttle replacement or major sensor work. Prerequisites: no DTCs, battery 11.5V+, coolant 5-95\u00b0C"
+      "note": "Electronic throttle learns full open/close range. Required after throttle replacement or major sensor work. Prerequisites: no DTCs, battery 11.5V+, coolant 5-95°C"
     },
     {
       "id": "vag_tpms_storage",
@@ -3053,7 +3046,7 @@
       "path": [
         "service",
         "tires",
-        "tpms_storage"
+        "tpms_relearn"
       ],
       "done_when": "Tire pressures stored - System armed",
       "timeout_sec": 60,
@@ -3077,7 +3070,7 @@
         "suspension",
         "steering_g85_calib"
       ],
-      "done_when": "G85 calibration complete - Value within -1.5 to +1.5\u00b0",
+      "done_when": "G85 calibration complete - Value within -1.5 to +1.5°",
       "timeout_sec": 90,
       "oem_scope": [
         "vag",
@@ -3108,7 +3101,7 @@
         "skoda",
         "seat"
       ],
-      "note": "Force DPF active regeneration. Prerequisites: fuel >1/4 tank, coolant >85\u00b0C, gear P/N, parking brake on, no DTCs. Monitors soot burn at 1000-1200\u00b0F"
+      "note": "Force DPF active regeneration. Prerequisites: fuel >1/4 tank, coolant >85°C, gear P/N, parking brake on, no DTCs. Monitors soot burn at 1000-1200°F"
     },
     {
       "id": "vag_dsg_transmission_reset",
@@ -3682,7 +3675,8 @@
       "category": "Service",
       "path": [
         "service",
-        "oil_cbs_reset"
+        "maintenance",
+        "oil_reset"
       ],
       "done_when": "Oil service and CBS inspection interval reset confirmed",
       "timeout_sec": 90,
@@ -3750,6 +3744,7 @@
       "category": "Service",
       "path": [
         "service",
+        "battery",
         "battery_registration"
       ],
       "done_when": "Battery registered, age/capacity/chemistry confirmed in BMS",
@@ -4582,8 +4577,8 @@
       "category": "Service",
       "path": [
         "service",
-        "electrical",
-        "battery_same"
+        "battery",
+        "battery_registration"
       ],
       "done_when": "Battery registered and system adaptation complete",
       "timeout_sec": 90,
@@ -4602,8 +4597,8 @@
       "category": "Service",
       "path": [
         "service",
-        "electrical",
-        "battery_capacity"
+        "battery",
+        "battery_registration"
       ],
       "done_when": "Battery capacity difference registered and charging adjusted",
       "timeout_sec": 90,
@@ -4622,8 +4617,8 @@
       "category": "Service",
       "path": [
         "service",
-        "electrical",
-        "battery_type"
+        "battery",
+        "battery_registration"
       ],
       "done_when": "Different battery type registered and systems recalibrated",
       "timeout_sec": 90,

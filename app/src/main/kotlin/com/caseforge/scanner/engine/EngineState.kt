@@ -28,6 +28,7 @@ data class EngineState(
     val errorBanner: String? = null,
     val suggestedNextTest: NextTestSuggestion? = null,
     val nextTestLoading: Boolean = false,
+    val rootCauseHypothesis: DtcCorrelator.RootCauseHypothesis? = null,
     val updatedAtMs: Long = 0L,
     val raw: ScreenSnapshot? = null,
 ) {

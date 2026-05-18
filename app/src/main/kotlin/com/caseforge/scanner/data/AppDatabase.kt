@@ -4,14 +4,25 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import com.caseforge.scanner.evidence.Evidence
 
 @Database(
-    entities = [SessionEntity::class, DtcEntity::class, ActionEntity::class, CustomerEntity::class, RepairOrderEntity::class],
-    version = 3,
+    entities = [
+        SessionEntity::class,
+        DtcEntity::class,
+        ActionEntity::class,
+        CustomerEntity::class,
+        RepairOrderEntity::class,
+        Evidence::class,
+    ],
+    version = 4,
     exportSchema = false,
 )
+@TypeConverters(EvidenceConverters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun sessionDao(): SessionDao
+    abstract fun evidenceDao(): EvidenceDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null
