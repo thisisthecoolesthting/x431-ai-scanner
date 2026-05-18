@@ -102,6 +102,14 @@
         </service>
 
         <service
+            android:name=".overlay.FullScreenOverlayService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Full-screen Launch AI overlay hiding the X431 engine app" />
+        </service>
+
+        <service
             android:name=".overlay.ScreenCaptureService"
             android:exported="false"
             android:foregroundServiceType="mediaProjection" />

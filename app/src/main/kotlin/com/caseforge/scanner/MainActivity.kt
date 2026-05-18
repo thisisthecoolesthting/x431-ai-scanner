@@ -22,6 +22,7 @@ import com.caseforge.scanner.agent.AgentRunner
 import com.caseforge.scanner.agent.ScannerAccessibilityService
 import com.caseforge.scanner.ai.ClaudeClient
 import com.caseforge.scanner.ai.Prompts
+import com.caseforge.scanner.overlay.FullScreenOverlayService
 import com.caseforge.scanner.overlay.OverlayService
 import com.caseforge.scanner.overlay.ScreenCaptureService
 import com.caseforge.scanner.data.DtcEntity
@@ -149,6 +150,17 @@ class MainActivity : ComponentActivity() {
                                 onOpenHistory = { route = "history" },
                                 onOpenLog = { route = "log" },
                                 onOpenNotes = { route = "notes" },
+                                onTakeOverX431 = {
+                                    if (!Settings.canDrawOverlays(this@MainActivity)) {
+                                        startActivity(Intent(
+                                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                            android.net.Uri.parse("package:$packageName")
+                                        ))
+                                    } else {
+                                        ScannerAccessibilityService.instance()?.bringX431ToFront()
+                                        FullScreenOverlayService.start(this@MainActivity)
+                                    }
+                                },
                                 onCheckUpdate = {
                                     lifecycleScope.launch(Dispatchers.IO) {
                                         try {

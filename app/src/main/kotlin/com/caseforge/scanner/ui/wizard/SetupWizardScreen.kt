@@ -78,9 +78,30 @@ fun SetupWizardScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                "Quick setup. Each step turns green when granted. The first three are required.",
+                "Quick setup. Each step turns green when granted. Only the first three are required.",
                 style = MaterialTheme.typography.bodyMedium,
             )
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                ),
+            ) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        "How Launch AI works",
+                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        "You live here, in Launch AI. When you tap Full Scan or Start Agent, " +
+                            "Launch AI opens the X431 app in the background and drives it for you " +
+                            "via accessibility — you'll see X431 on screen while the agent works, " +
+                            "then results come back here. The X431 app is the agent's hands; " +
+                            "Launch AI is your dashboard.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
 
             WizStep(
                 done = keyOk,
@@ -139,10 +160,13 @@ fun SetupWizardScreen(
 
             WizStep(
                 done = x431Pkg != null,
-                title = "Launch X431 app",
-                subtitle = x431Pkg?.let { "Detected: $it" } ?: "Not detected. Install your X431 diagnostic app first.",
+                title = "X431 diagnostic app installed",
+                subtitle = x431Pkg?.let { "Installed: $it (Launch AI will drive this for you)." }
+                    ?: "Install Launch's X431 PRO/PROS/V+ diagnostic app from your tablet's app store. " +
+                        "Launch AI cannot operate the VCI without it.",
                 actionLabel = "Re-check",
                 onAction = { x431Pkg = detectX431(ctx) },
+                optional = true,
             )
 
             Spacer(Modifier.height(8.dp))
@@ -150,9 +174,14 @@ fun SetupWizardScreen(
                 Button(
                     onClick = { if (overlayOk) onStartBubble(); onFinish() },
                     enabled = readyToContinue,
-                ) { Text("Continue to dashboard") }
-                OutlinedButton(onClick = onFinish) { Text("Skip for now") }
+                ) { Text("Open Launch AI dashboard") }
+                OutlinedButton(onClick = onFinish) { Text("Skip wizard") }
             }
+            Text(
+                "You won't see this wizard again. Re-open it from Setup if you need to.",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.outline,
+            )
             Text(
                 BuildConfig.BUILD_INFO,
                 style = MaterialTheme.typography.labelSmall,

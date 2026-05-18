@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.*
@@ -58,6 +59,7 @@ fun DashboardScreen(
     onOpenLog: () -> Unit,
     onOpenNotes: () -> Unit,
     onCheckUpdate: () -> Unit,
+    onTakeOverX431: () -> Unit = {},
 ) {
     val running by AgentStatus.running.collectAsState()
     val step by AgentStatus.step.collectAsState()
@@ -118,6 +120,16 @@ IconButton(onClick = onOpenNotes) {
         ) {
             // Vehicle card
             VehicleCard(detectedVin, vehicleSummary, running, step, activity)
+
+            // Take-over-X431 — the headline feature: hide X431 behind our UI
+            Button(
+                onClick = onTakeOverX431,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(Icons.Default.Layers, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Take over X431 (custom UI)")
+            }
 
             // Action grid
             Text("Quick actions", style = MaterialTheme.typography.titleMedium)

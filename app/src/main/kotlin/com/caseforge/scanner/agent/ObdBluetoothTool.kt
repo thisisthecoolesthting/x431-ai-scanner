@@ -106,6 +106,18 @@ object ObdBluetoothTool {
         formatPid(pid, bytes)
     }
 
+    /** Clear stored DTCs (SAE Mode 04). Engine should be off and KOEO. */
+    suspend fun clearCodes(): String = withContext(Dispatchers.IO) {
+        if (socket == null) return@withContext "Error: not connected. Call connect first."
+        val raw = try { sendRaw("04") } catch (e: Exception) { return@withContext "Error: Mode 04 failed: ${e.message}" }
+        if (raw.contains("44", ignoreCase = true)) "OK: stored codes cleared (Mode 04 acknowledged)"
+        else "Unclear response: $raw"
+    }
+
+    /** Whether we currently have an open RFCOMM socket to a dongle. */
+    fun isConnected(): Boolean = socket != null
+    fun connectedDeviceName(): String? = deviceName
+
     suspend fun readDtcs(): String = withContext(Dispatchers.IO) {
         if (socket == null) return@withContext "Error: not connected. Call connect first."
         val stored = try { sendRaw("03") } catch (e: Exception) { return@withContext "Error: Mode 03 failed: ${e.message}" }
