@@ -148,6 +148,7 @@ private fun ScreenRouter(
         is ScreenKind.DtcDetail        -> ReportScreen(state, onAction)
         is ScreenKind.LiveDataView     -> LiveDataScreen(state, onAction)
         is ScreenKind.ActuationTest    -> ActuationScreen(state, onAction)
+        is ScreenKind.SequenceRunner   -> SequenceRunnerScreen(state, onAction)
         is ScreenKind.Settings         -> ModuleListScreen(state, onAction)
         is ScreenKind.Dialog           -> ErrorScreen(state, onAction, errorText = k.text)
         is ScreenKind.Unknown          -> ErrorScreen(state, onAction, errorText = k.hint, isUnknown = true)

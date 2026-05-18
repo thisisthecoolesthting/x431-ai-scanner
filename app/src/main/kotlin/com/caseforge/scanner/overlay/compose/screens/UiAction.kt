@@ -16,6 +16,8 @@ sealed class UiAction {
 
     data class RunSequence(val sequenceId: String) : UiAction()
 
+    data class AdvanceSequence(val sequenceId: String) : UiAction()
+
     data object AcceptSuggestedTest : UiAction()
 
     data object DeclineSuggestedTest : UiAction()

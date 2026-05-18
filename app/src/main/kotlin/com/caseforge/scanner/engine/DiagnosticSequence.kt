@@ -6,7 +6,7 @@ data class DiagnosticSequence(
     val steps: List<SequenceStep>,
     val totalDurationMinutes: Int,
     val sequenceId: String,
-    val sequenceCategory: CapabilityMap.Category = CapabilityMap.Category.Bidirectional,
+    val sequenceCategory: CapabilityMap.Category = CapabilityMap.Category.Sequences,
     val sequencePath: List<String> = emptyList(),
     val sequenceDoneWhen: String? = null,
     val sequenceTimeoutSec: Int = totalDurationMinutes * 60,

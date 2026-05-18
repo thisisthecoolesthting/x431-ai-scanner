@@ -38,8 +38,13 @@ import com.caseforge.scanner.agent.NextTestSuggester
 import com.caseforge.scanner.agent.RecallFlagger
 import com.caseforge.scanner.agent.ScannerAccessibilityService
 import com.caseforge.scanner.ai.ClaudeClient
+import com.caseforge.scanner.engine.CapabilityMap
 import com.caseforge.scanner.engine.ScreenKind
+import com.caseforge.scanner.engine.SequenceDefinitions
+import com.caseforge.scanner.engine.sequences.DiagnosticSequenceExecutor
 import com.caseforge.scanner.overlay.compose.screens.UiAction
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.withContext
 import com.caseforge.scanner.data.SettingsRepo
 import com.caseforge.scanner.engine.EngineScraper
 import com.caseforge.scanner.engine.EngineHealthMonitor
@@ -140,6 +145,8 @@ class FullScreenOverlayService : Service(),
     private val recallFlagger = RecallFlagger()
     private var lastRecallSignature: String? = null
     private var lastPostScanSignature: String? = null
+    private var sequenceJob: Job? = null
+    private var advancePrompt: CompletableDeferred<Unit>? = null
 
     // A3: health monitor — created in onCreate, started/stopped alongside the service.
     private lateinit var monitor: EngineHealthMonitor
@@ -211,6 +218,7 @@ class FullScreenOverlayService : Service(),
         Log.i(TAG, "EngineHealthMonitor stopped")
 
         scraperJob?.cancel()
+        sequenceJob?.cancel()
         scope.cancel()
         rootView?.let { runCatching { wm.removeView(it) } }
         rootView = null
@@ -332,7 +340,16 @@ class FullScreenOverlayService : Service(),
                         // evaluate X431 foreground state without any manifest permissions.
                         monitor.notifyForegroundPackage(snap.pkg)
                         val prev = engineState.value
-                        val newState = EngineScraper.scrape(snap)
+                        val scraped = EngineScraper.scrape(snap)
+                        val newState = if (prev.screen is ScreenKind.SequenceRunner) {
+                            scraped.copy(
+                                screen = prev.screen,
+                                busy = prev.busy,
+                                errorBanner = prev.errorBanner,
+                            )
+                        } else {
+                            scraped
+                        }
                         engineState.value = newState
 
                         if (newState.screen is ScreenKind.FullScanResults) {
@@ -398,6 +415,11 @@ class FullScreenOverlayService : Service(),
     private fun handleUiAction(action: UiAction) {
         when (action) {
             is UiAction.TapCapability -> dispatchCapability(action.capabilityId)
+            is UiAction.RunSequence -> launchSequence(action.sequenceId)
+            is UiAction.AdvanceSequence -> {
+                advancePrompt?.complete(Unit)
+                advancePrompt = null
+            }
             UiAction.AcceptSuggestedTest -> {
                 val capId = engineState.value.suggestedNextTest?.capabilityId ?: "live_data"
                 engineState.value = engineState.value.copy(
@@ -409,6 +431,100 @@ class FullScreenOverlayService : Service(),
             UiAction.DeclineSuggestedTest -> {
                 engineState.value = engineState.value.copy(suggestedNextTest = null)
             }
+        }
+    }
+
+    // ---------- multi-step diagnostic sequences ----------
+
+    private fun launchSequence(sequenceId: String) {
+        val sequence = SequenceDefinitions.ALL.firstOrNull { it.id == sequenceId } ?: return
+        sequenceJob?.cancel()
+        val app = applicationContext as App
+        app.actionLog.event("sequence.start", sequenceId)
+
+        sequenceJob = scope.launch(Dispatchers.IO) {
+            val a11y = ScannerAccessibilityService.instance() ?: run {
+                withContext(Dispatchers.Main) {
+                    engineState.value = engineState.value.copy(
+                        errorBanner = "Accessibility service not running. Enable in Setup.",
+                    )
+                }
+                return@launch
+            }
+            a11y.bringX431ToFront()
+
+            fun publishProgress(stepIndex: Int, totalSteps: Int, title: String, awaitingPrompt: Boolean) {
+                ui.post {
+                    engineState.value = engineState.value.copy(
+                        screen = ScreenKind.SequenceRunner(
+                            sequenceId = sequenceId,
+                            stepIndex = stepIndex,
+                            totalSteps = totalSteps,
+                            title = title,
+                            awaitingPrompt = awaitingPrompt,
+                        ),
+                        busy = !awaitingPrompt,
+                    )
+                }
+            }
+
+            val executor = DiagnosticSequenceExecutor(
+                runCapability = { id -> runSequenceCapabilityStep(a11y, id) },
+                actuate = { testId ->
+                    app.actionLog.event("sequence.actuate", testId)
+                    runSequenceCapabilityStep(a11y, "actuation")
+                },
+                readLiveData = { pids ->
+                    app.actionLog.event("sequence.live_data", pids.joinToString())
+                    runSequenceCapabilityStep(a11y, "live_data")
+                },
+                notify = { msg -> app.actionLog.event("sequence.prompt", msg.take(500)) },
+                onProgress = ::publishProgress,
+                awaitUser = {
+                    val gate = CompletableDeferred<Unit>()
+                    advancePrompt = gate
+                    gate.await()
+                },
+                logStep = { detail -> app.actionLog.event("sequence.step", detail) },
+            )
+
+            publishProgress(0, sequence.steps.size, sequence.steps.firstOrNull()?.title ?: sequence.name, false)
+            val ok = try {
+                executor.run(sequence)
+            } catch (t: Throwable) {
+                app.actionLog.event("sequence.error", "${sequenceId}: ${t.message}")
+                false
+            }
+            app.actionLog.event("sequence.complete", "$sequenceId ok=$ok")
+            ui.post {
+                engineState.value = engineState.value.copy(
+                    screen = ScreenKind.HomeMenu,
+                    busy = false,
+                )
+            }
+        }
+    }
+
+    private suspend fun runSequenceCapabilityStep(
+        a11y: ScannerAccessibilityService,
+        capabilityId: String,
+    ): Boolean {
+        val cap = CapabilityMap.byId(capabilityId) ?: return false
+        val app = applicationContext as App
+        return try {
+            for (step in cap.path) {
+                val ok = a11y.tapByText(step, exact = false)
+                app.actionLog.event("sequence.tap", "cap=$capabilityId step=$step ok=$ok")
+                if (!ok) return false
+                delay(900)
+            }
+            cap.doneWhen?.let { marker ->
+                a11y.waitFor(marker, timeoutMs = cap.timeoutSec * 1000L)
+            }
+            true
+        } catch (t: Throwable) {
+            app.actionLog.event("sequence.capability.error", "${cap.id}: ${t.message}")
+            false
         }
     }
 
