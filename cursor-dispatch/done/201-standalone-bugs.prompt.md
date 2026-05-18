@@ -58,3 +58,11 @@ CREATE:
 
 ## Done
 Move to `cursor-dispatch/done/`. This bug fix unblocks Phase 2 actually being useful — top priority above any new feature work.
+
+# Notes from Cursor
+
+- Merged PR #8 (`b292266`) on `fix/standalone-bugs` — CI green.
+- Bug 1: `directVciExperimentalFlow` + dashboard **Connect to VCI**; X431 skip when flag on.
+- Bug 2: `LiveActivityTicker` in overlay; `AgentStatus.lastAction` from action log tail.
+- Bug 3: runtime BT permissions, `VciDiagnosticsScreen`, SPP logging, BLE GATT probe, device picker (`vciSelectedBtAddress`).
+- Tablet: run **Settings → Direct VCI connection diagnostics** before scan; force-stop X431 if SPP step fails.
