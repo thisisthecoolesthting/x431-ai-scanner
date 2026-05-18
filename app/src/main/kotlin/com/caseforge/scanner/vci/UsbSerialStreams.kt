@@ -39,8 +39,6 @@ internal class UsbSerialOutputStream(
     override fun write(b: ByteArray, off: Int, len: Int) {
         if (len <= 0) return
         val chunk = b.copyOfRange(off, off + len)
-        @Suppress("UNUSED_VARIABLE")
-        val written = port.write(chunk, writeTimeoutMs)
-        if (written == 0 && chunk.isNotEmpty()) throw IOException("USB write returned 0 bytes")
+        port.write(chunk, writeTimeoutMs)
     }
 }
