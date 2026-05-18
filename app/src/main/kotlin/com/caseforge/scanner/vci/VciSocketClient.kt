@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
@@ -179,7 +180,6 @@ class VciSocketClient(
             withTimeout(socketTimeoutMs.toLong()) {
                 sock.connect()
             }
-            sock.receiveBufferSize = receiveBufferSize
 
             socket = sock
             outputStream = sock.outputStream
@@ -298,7 +298,7 @@ class VciSocketClient(
      */
     private suspend fun receiveHexLines(sock: BluetoothSocket) {
         val reader = BufferedReader(InputStreamReader(sock.inputStream), receiveBufferSize)
-        while (isActive && sock.isConnected) {
+        while (coroutineContext.isActive && sock.isConnected) {
             try {
                 val line = reader.readLine() ?: break   // null = EOF = disconnected
                 when (val result = VciFrame.decodeHex(line)) {
@@ -334,7 +334,7 @@ class VciSocketClient(
         val headerBuf = ByteArray(VciFrame.HEADER_SIZE + VciFrame.OPCODE_SIZE + VciFrame.LENGTH_SIZE)  // 6 bytes
         val tempPayload = ByteArray(receiveBufferSize)
 
-        while (isActive && sock.isConnected) {
+        while (coroutineContext.isActive && sock.isConnected) {
             try {
                 // Read fixed 6-byte prefix: header(2) + opcode(2) + length(2)
                 var bytesRead = 0

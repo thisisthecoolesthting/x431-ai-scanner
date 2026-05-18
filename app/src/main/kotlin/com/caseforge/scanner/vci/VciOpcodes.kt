@@ -195,10 +195,8 @@ enum class KnownOpcode(val value: Int, val direction: Direction, val notes: Stri
         fun fromValue(value: Int): KnownOpcode? = entries.firstOrNull { it.value == value }
 
         /** True if this opcode's value is confirmed from decompile evidence. */
-        fun isConfirmed(opcode: KnownOpcode): Boolean = opcode in setOf(
-            // Currently nothing is 100% confirmed from Java layer — all require packet capture.
-            // Add entries here as we verify them.
-        )
+        fun isConfirmed(opcode: KnownOpcode): Boolean = opcode in emptySet<KnownOpcode>()
+            // Add verified opcodes to the set as packet capture confirms them.
     }
 }
 
