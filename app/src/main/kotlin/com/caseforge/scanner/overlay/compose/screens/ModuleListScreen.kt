@@ -43,8 +43,11 @@ import com.caseforge.scanner.ui.theme.CaseForgeTheme
 fun ModuleListScreen(
     state: EngineState,
     onAction: (UiAction) -> Unit,
+    initialCategory: CapabilityMap.Category? = null,
 ) {
-    var selectedCategory by remember { mutableStateOf(CapabilityMap.Category.Scan) }
+    var selectedCategory by remember(initialCategory) {
+        mutableStateOf(initialCategory ?: CapabilityMap.Category.Scan)
+    }
 
     Column(
         Modifier

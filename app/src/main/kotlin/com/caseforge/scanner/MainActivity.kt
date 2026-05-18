@@ -2,43 +2,52 @@
 
 package com.caseforge.scanner
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.caseforge.scanner.agent.AgentRunner
+import com.caseforge.scanner.agent.AgentStatus
 import com.caseforge.scanner.agent.ScannerAccessibilityService
 import com.caseforge.scanner.ai.ClaudeClient
 import com.caseforge.scanner.ai.Prompts
-import com.caseforge.scanner.overlay.FullScreenOverlayService
-import com.caseforge.scanner.overlay.OverlayService
-import com.caseforge.scanner.overlay.ScreenCaptureService
 import com.caseforge.scanner.data.DtcEntity
 import com.caseforge.scanner.data.SessionEntity
-import com.caseforge.scanner.ui.fullscan.FullScanResultsScreen
+import com.caseforge.scanner.engine.CapabilityMap
+import com.caseforge.scanner.engine.ScreenKind
+import com.caseforge.scanner.overlay.ScreenCaptureService
+import com.caseforge.scanner.overlay.compose.screens.ActuationScreen
+import com.caseforge.scanner.overlay.compose.screens.LiveDataScreen
+import com.caseforge.scanner.overlay.compose.screens.ModuleListScreen
+import com.caseforge.scanner.overlay.compose.screens.ReportScreen
 import com.caseforge.scanner.ui.history.HistoryScreen
-import com.caseforge.scanner.ui.notes.AgentNotesScreen
 import com.caseforge.scanner.ui.log.ActionLogScreen
-import com.caseforge.scanner.ui.home.HomeScreen
-import com.caseforge.scanner.ui.dashboard.DashboardScreen
-import com.caseforge.scanner.ui.pending.PendingApprovalsScreen
+import com.caseforge.scanner.ui.main.MainScreen
+import com.caseforge.scanner.ui.main.RecallsScreen
+import com.caseforge.scanner.ui.main.StandaloneVciController
+import com.caseforge.scanner.ui.notes.AgentNotesScreen
 import com.caseforge.scanner.ui.settings.SettingsScreen
 import com.caseforge.scanner.ui.theme.CaseForgeTheme
-import com.caseforge.scanner.ui.talk.TalkToAgentScreen
 import com.caseforge.scanner.ui.triage.TriageScreen
-import com.caseforge.scanner.ui.wizard.SetupWizardScreen
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -85,209 +94,194 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             CaseForgeTheme(mode = app.settings.themeMode) {
-                val initialRoute = when {
-                    sharedReport != null -> "triage"
-                    !app.settings.wizardComplete -> "wizard"
-                    else -> "dashboard"
+                val vci = remember { StandaloneVciController(this@MainActivity, app.settings) }
+                val engineState by vci.engineState
+                val context = LocalContext.current
+                val btPermissionLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.RequestMultiplePermissions(),
+                ) { results ->
+                    if (results[Manifest.permission.BLUETOOTH_CONNECT] == true) {
+                        lifecycleScope.launch {
+                            AgentStatus.setActivity("Connecting VCI…")
+                            vci.connect()
+                        }
+                    }
                 }
+                fun requestBtAndConnect() {
+                    val perms = buildList {
+                        add(Manifest.permission.BLUETOOTH_CONNECT)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            add(Manifest.permission.BLUETOOTH_SCAN)
+                        }
+                    }
+                    val missing = perms.any {
+                        ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
+                    }
+                    if (missing) {
+                        btPermissionLauncher.launch(perms.toTypedArray())
+                    } else {
+                        lifecycleScope.launch {
+                            AgentStatus.setActivity("Connecting VCI…")
+                            vci.connect()
+                        }
+                    }
+                }
+
+                val initialRoute = if (sharedReport != null) "triage" else "main"
                 var route by remember { mutableStateOf(initialRoute) }
                 var triageInput by remember { mutableStateOf(sharedReport.orEmpty()) }
                 var triageOutput by remember { mutableStateOf("") }
                 var busy by remember { mutableStateOf(false) }
-                var lastVin by remember { mutableStateOf<String?>(null) }
-                var lastVehicleSummary by remember { mutableStateOf<String?>(null) }
 
-                Scaffold(topBar = { TopAppBar(title = { Text("Launch AI") }) }) { pad ->
-                    Box(Modifier.padding(pad).fillMaxSize()) {
-                        when (route) {
-                            "wizard" -> SetupWizardScreen(
-                                settings = app.settings,
-                                onOpenA11y = { openAccessibilitySettings() },
-                                onGrantOverlay = {
-                                    if (!Settings.canDrawOverlays(this@MainActivity)) {
-                                        startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                                            android.net.Uri.parse("package:$packageName")))
-                                    }
-                                },
-                                onGrantCapture = { requestProjection() },
-                                onStartBubble = { startBubble() },
-                                onOpenDataExport = { route = "export_data" },
-                                onFinish = {
-                                    app.settings.wizardComplete = true
-                                    route = "dashboard"
-                                },
-                            )
-                            "dashboard" -> DashboardScreen(
-                                detectedVin = latestDetectedVin ?: lastVin,
-                                vehicleSummary = lastVehicleSummary,
-                                settings = app.settings,
-                                speakEnabled = app.settings.speakEnabled,
-                                onSpeakToggle = { app.settings.speakEnabled = it },
-                                onAgentStart = { symptom ->
-                                    lifecycleScope.launch {
-                                        runAgent(vin = latestDetectedVin, symptom = symptom)
-                                    }
-                                },
-                                onAgentStop = {
-                                    // The agent runner observes the parent Job;
-                                    // for now route them to the kill switch.
-                                    app.settings.killSwitch = true
-                                    app.settings.killSwitch = false
-                                },
-                                onFullScan = {
-                                    lifecycleScope.launch {
-                                        runFullScan(vin = latestDetectedVin)
-                                        route = "fullscan_results"
-                                    }
-                                },
-                                onQuickProcedure = { id, label ->
-                                    val symptom = "Perform the \"$label\" procedure on this vehicle. " +
-                                        "Use the X431 app's matching menu. Walk through any prompts. " +
-                                        "Procedure id: $id."
-                                    lifecycleScope.launch {
-                                        runAgent(vin = latestDetectedVin, symptom = symptom)
-                                    }
-                                },
-                                onOpenSetup = { route = "home" },
-                                onOpenHistory = { route = "history" },
-                                onOpenLog = { route = "log" },
-                                onOpenNotes = { route = "notes" },
-                                onTakeOverX431 = {
-                                    if (!Settings.canDrawOverlays(this@MainActivity)) {
-                                        startActivity(Intent(
-                                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                                            android.net.Uri.parse("package:$packageName")
-                                        ))
-                                    } else {
-                                        if (!app.settings.directVciExperimental) {
-                                            ScannerAccessibilityService.instance()?.bringX431ToFront()
-                                        }
-                                        FullScreenOverlayService.start(this@MainActivity)
-                                    }
-                                },
-                                onCheckUpdate = {
-                                    lifecycleScope.launch(Dispatchers.IO) {
-                                        try {
-                                            com.caseforge.scanner.agent.AgentStatus.setActivity("Checking for update...")
-                                            val info = com.caseforge.scanner.agent.Updater.checkLatest()
-                                            if (com.caseforge.scanner.agent.Updater.isNewer(info)) {
-                                                com.caseforge.scanner.agent.AgentStatus.setActivity("New build ${info.sha} available — downloading...")
-                                                com.caseforge.scanner.agent.Updater.downloadAndInstall(applicationContext) { msg ->
-                                                    com.caseforge.scanner.agent.AgentStatus.setActivity(msg)
-                                                }
-                                            } else {
-                                                com.caseforge.scanner.agent.AgentStatus.setActivity("Already on latest (${info.sha})")
-                                            }
-                                        } catch (t: Throwable) {
-                                            com.caseforge.scanner.agent.AgentStatus.setActivity("Update check failed: ${t.message?.take(120) ?: t.javaClass.simpleName}")
-                                        }
-                                    }
-                                },
-                            )
-                            "home" -> HomeScreen(
-                                onOpenSettings = { route = "settings" },
-                                onStartBubble = { startBubble() },
-                                onGrantCapture = { requestProjection() },
-                                onOpenA11y = { openAccessibilitySettings() },
-                                onManualTriage = {
-                                    route = "triage"
-                                    triageInput = ""; triageOutput = ""
-                                },
-                                onRunAgentNow = {
-                                    lifecycleScope.launch { runAgent(vin = null, symptom = null) }
-                                },
-                                onRunFullScan = {
-                                    lifecycleScope.launch {
-                                        runFullScan(vin = null)
-                                        route = "fullscan_results"
-                                    }
-                                },
-                                onOpenHistory = { route = "history" },
-                                onOpenApprovals = { route = "approvals" },
-                                onTalkToAgent = { route = "talk" },
-                                onOpenLog = { route = "log" },
-                                onBack = { route = "dashboard" },
-                            )
-                            "settings" -> SettingsScreen(
-                                settings = app.settings,
-                                onBack = { route = "home" },
-                                onOpenDataExport = { route = "export_data" },
-                                onOpenDirectVciProbe = if (app.settings.directVciExperimental) {
-                                    { route = "direct_vci" }
-                                } else {
-                                    null
-                                },
-                                onOpenVciDiagnostics = if (app.settings.directVciExperimental) {
-                                    { route = "vci_diagnostics" }
-                                } else {
-                                    null
-                                },
-                            )
-                            "vci_diagnostics" -> com.caseforge.scanner.ui.diag.VciDiagnosticsScreen(
-                                onBack = { route = "settings" },
-                            )
-                            "export_data" -> com.caseforge.scanner.ui.transfer.ExportDataScreen(
-                                actionLog = app.actionLog,
-                                onBack = { route = if (app.settings.wizardComplete) "home" else "wizard" },
-                            )
-                            "direct_vci" -> com.caseforge.scanner.ui.obd.DirectVciProbeScreen(
-                                onBack = { route = "settings" },
-                            )
-                            "history" -> HistoryScreen(db = app.db, onBack = { route = "home" })
-                            "log" -> ActionLogScreen(actionLog = app.actionLog, onBack = { route = "home" })
-                            "notes" -> AgentNotesScreen(settings = app.settings, onBack = { route = "dashboard" })
-                            "approvals" -> PendingApprovalsScreen(onBack = { route = "home" })
-                            "talk" -> TalkToAgentScreen(
-                                onSend = { symptom ->
-                                    lifecycleScope.launch {
-                                        runAgent(vin = null, symptom = symptom.ifBlank { null })
-                                    }
-                                    route = "home"
-                                },
-                                onBack = { route = "home" },
-                            )
-                            "fullscan_results" -> FullScanResultsScreen(
-                                db = app.db,
-                                onBack = { route = "home" },
-                            )
-                            "triage" -> TriageScreen(
-                                initialText = triageInput,
-                                output = triageOutput,
-                                busy = busy,
-                                onRun = { text ->
-                                    busy = true
-                                    lifecycleScope.launch {
-                                        val out = runReportTriage(text)
-                                        triageOutput = out
-                                        busy = false
-                                    }
-                                },
-                                onBack = { route = "home" },
+                Box(Modifier.fillMaxSize()) {
+                    when (route) {
+                        "main" -> MainScreen(
+                            vciConnected = vci.isConnected,
+                            vin = engineState.vehicleVin,
+                            engineBusy = engineState.busy,
+                            engineState = engineState,
+                            onConnectClick = { requestBtAndConnect() },
+                            onDisconnect = { vci.disconnect() },
+                            onScan = {
+                                vci.runFullScan(lifecycleScope) { ok ->
+                                    if (ok) route = "report"
+                                }
+                            },
+                            onLiveData = {
+                                vci.startLiveData(lifecycleScope)
+                                route = "live_data"
+                            },
+                            onService = { route = "service" },
+                            onBidirectional = { route = "bidirectional" },
+                            onRecalls = { route = "recalls" },
+                            onHistory = { route = "history" },
+                            onNotes = { route = "notes" },
+                            onSettings = { route = "settings" },
+                            onDiagnostics = { route = "vci_diagnostics" },
+                            onAiPrompt = { symptom ->
+                                lifecycleScope.launch {
+                                    runStandaloneAgent(
+                                        vin = engineState.vehicleVin,
+                                        symptom = symptom,
+                                        dtcs = engineState.dtcs,
+                                    )
+                                }
+                            },
+                        )
+                        "report" -> SubScreenScaffold(
+                            title = "Scan results",
+                            onBack = { route = "main" },
+                        ) {
+                            ReportScreen(state = engineState, onAction = {})
+                        }
+                        "live_data" -> SubScreenScaffold(
+                            title = "Live data",
+                            onBack = {
+                                vci.stopLiveData()
+                                route = "main"
+                            },
+                        ) {
+                            LiveDataScreen(state = engineState, onAction = {})
+                        }
+                        "service" -> SubScreenScaffold(
+                            title = "Service",
+                            onBack = { route = "main" },
+                        ) {
+                            ModuleListScreen(
+                                state = engineState.copy(screen = ScreenKind.HomeMenu),
+                                onAction = {},
+                                initialCategory = CapabilityMap.Category.Service,
                             )
                         }
+                        "bidirectional" -> SubScreenScaffold(
+                            title = "Bidirectional",
+                            onBack = { route = "main" },
+                        ) {
+                            ActuationScreen(
+                                state = engineState.copy(screen = ScreenKind.ActuationTest),
+                                onAction = {},
+                            )
+                        }
+                        "recalls" -> RecallsScreen(
+                            vin = engineState.vehicleVin,
+                            onBack = { route = "main" },
+                        )
+                        "settings" -> SettingsScreen(
+                            settings = app.settings,
+                            onBack = { route = "main" },
+                            onOpenDataExport = { route = "export_data" },
+                            onOpenDirectVciProbe = { route = "direct_vci" },
+                            onOpenVciDiagnostics = { route = "vci_diagnostics" },
+                        )
+                        "vci_diagnostics" -> com.caseforge.scanner.ui.diag.VciDiagnosticsScreen(
+                            onBack = { route = "settings" },
+                        )
+                        "export_data" -> com.caseforge.scanner.ui.transfer.ExportDataScreen(
+                            actionLog = app.actionLog,
+                            onBack = { route = "main" },
+                        )
+                        "direct_vci" -> com.caseforge.scanner.ui.obd.DirectVciProbeScreen(
+                            onBack = { route = "settings" },
+                        )
+                        "history" -> HistoryScreen(db = app.db, onBack = { route = "main" })
+                        "log" -> ActionLogScreen(actionLog = app.actionLog, onBack = { route = "main" })
+                        "notes" -> AgentNotesScreen(settings = app.settings, onBack = { route = "main" })
+                        "triage" -> TriageScreen(
+                            initialText = triageInput,
+                            output = triageOutput,
+                            busy = busy,
+                            onRun = { text ->
+                                busy = true
+                                lifecycleScope.launch {
+                                    val out = runReportTriage(text)
+                                    triageOutput = out
+                                    busy = false
+                                }
+                            },
+                            onBack = { route = "main" },
+                        )
                     }
                 }
             }
         }
     }
 
-    private fun startBubble() {
-        val canDraw = Settings.canDrawOverlays(this)
-        if (!canDraw) {
-            startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, android.net.Uri.parse("package:$packageName")))
+    private suspend fun runStandaloneAgent(
+        vin: String?,
+        symptom: String?,
+        dtcs: List<com.caseforge.scanner.engine.ScrapedDtc>,
+    ) {
+        val key = app.settings.claudeApiKey
+        if (key.isBlank()) {
+            toast("Set a Claude API key in Settings first.")
             return
         }
-        val svc = Intent(this, OverlayService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(svc) else startService(svc)
-    }
-
-    private fun requestProjection() {
-        val mpm = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-        mediaProjectionLauncher.launch(mpm.createScreenCaptureIntent())
-    }
-
-    private fun openAccessibilitySettings() {
-        startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+        AgentStatus.setActivity("Asking Together…")
+        val userText = buildString {
+            if (!vin.isNullOrBlank()) appendLine("VIN: $vin")
+            if (dtcs.isNotEmpty()) {
+                appendLine("DTCs from last scan:")
+                dtcs.forEach { d -> appendLine("  ${d.code} ${d.module.orEmpty()} ${d.description.orEmpty()}") }
+            }
+            appendLine(
+                symptom?.ifBlank { null } ?: "What should I check next on this vehicle?",
+            )
+        }
+        val reply = withContext(Dispatchers.IO) {
+            try {
+                val client = ClaudeClient(apiKey = key, model = app.settings.model)
+                val resp = client.sendMessages(
+                    system = Prompts.DTC_TRIAGE_FROM_REPORT,
+                    messages = listOf(ClaudeClient.userText(userText)),
+                    maxTokens = 2048,
+                )
+                resp.firstText().orEmpty()
+            } catch (t: Throwable) {
+                "Error: ${t.message}"
+            }
+        }
+        AgentStatus.setActivity(reply.take(220))
+        toast(reply.take(120).ifBlank { "Together replied — see ticker." })
     }
 
     private suspend fun runReportTriage(reportText: String): String {
@@ -408,6 +402,27 @@ class MainActivity : ComponentActivity() {
                 description = (obj["description"] as? JsonPrimitive)?.contentOrNullSafe,
                 status = (obj["status"] as? JsonPrimitive)?.contentOrNullSafe,
             )
+        }
+    }
+}
+
+@Composable
+private fun SubScreenScaffold(
+    title: String,
+    onBack: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    Column(Modifier.fillMaxSize()) {
+        TopAppBar(
+            title = { Text(title) },
+            navigationIcon = {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                }
+            },
+        )
+        Box(Modifier.weight(1f).fillMaxWidth()) {
+            content()
         }
     }
 }

@@ -81,8 +81,9 @@ class SettingsRepo(context: Context) {
         set(value) { prefs.edit().putBoolean(K_VOICE, value).apply() }
 
     /** Experimental direct VCI Bluetooth (Phase 2 spike — not for production main until approved). */
+    /** Detached product: Direct VCI is the default path (not experimental). */
     var directVciExperimental: Boolean
-        get() = prefs.getBoolean(K_DIRECT_VCI, false)
+        get() = prefs.getBoolean(K_DIRECT_VCI, true)
         set(value) { prefs.edit().putBoolean(K_DIRECT_VCI, value).apply() }
 
     val directVciExperimentalFlow: Flow<Boolean> = callbackFlow {
@@ -123,7 +124,7 @@ class SettingsRepo(context: Context) {
 
     /** Whether the first-launch setup wizard has been completed. */
     var wizardComplete: Boolean
-        get() = prefs.getBoolean(K_WIZARD, false)
+        get() = prefs.getBoolean(K_WIZARD, true)
         set(value) { prefs.edit().putBoolean(K_WIZARD, value).apply() }
 
     /** Theme mode: "system" | "light" | "dark". Default follows the device. */
