@@ -132,9 +132,11 @@
                 android:resource="@xml/accessibility_service_config" />
         </service>
 
+        <!-- D2: BootReceiver for persistent state restoration after crash/reboot -->
         <receiver
             android:name=".boot.BootReceiver"
-            android:exported="false">
+            android:enabled="true"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>

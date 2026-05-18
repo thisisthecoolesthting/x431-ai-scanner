@@ -17,6 +17,8 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.Lifecycle
@@ -33,6 +35,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.caseforge.scanner.App
 import com.caseforge.scanner.agent.ScannerAccessibilityService
 import com.caseforge.scanner.engine.EngineScraper
+import com.caseforge.scanner.engine.EngineHealthMonitor
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.overlay.compose.OverlayRoot
 import kotlinx.coroutines.CoroutineScope
@@ -54,6 +57,19 @@ import kotlinx.coroutines.launch
  *   - EngineScraper polls the accessibility tree → EngineState → our Compose UI reacts
  *   - User taps in our UI → ScannerAccessibilityService dispatches the corresponding X431 taps
  *
+ * ## A3 additions
+ *   - [EngineHealthMonitor] is created in [onCreate], started immediately, and stopped in [onDestroy].
+ *   - The scraper loop calls [EngineHealthMonitor.notifyForegroundPackage] on every tick
+ *     so the monitor receives zero-permission foreground data from the running a11y service.
+ *   - [OverlayRoot] receives `healthState` from [monitor.state.collectAsState()` so the
+ *     error banner re-renders reactively on each poll tick without any additional wiring.
+ *
+ * ## D2 additions
+ *   - On every screen transition, state is persisted to cacheDir/overlay_state.json via [OverlayStatePersistence].
+ *   - On [onCreate], if state file exists, it is restored into [engineState].
+ *   - On [onDestroy] (graceful shutdown), the state file is cleared.
+ *   - Crashes or OS kills lose the state file naturally (BootReceiver + SettingsRepo handle re-launch).
+ *
  * Escape hatches:
  *   - "Peek" button fades overlay to 30% opacity so the tech can verify X431 underneath
  *   - "Minimize" collapses the overlay to a bubble (legacy OverlayService bubble)
@@ -70,8 +86,15 @@ class FullScreenOverlayService : Service(),
         private const val NOTIFICATION_ID = 1003
 
         const val ACTION_START = "com.caseforge.scanner.overlay.START_FULLSCREEN"
-        const val ACTION_STOP = "com.caseforge.scanner.overlay.STOP_FULLSCREEN"
-        const val ACTION_PEEK = "com.caseforge.scanner.overlay.PEEK"
+        const val ACTION_STOP  = "com.caseforge.scanner.overlay.STOP_FULLSCREEN"
+        const val ACTION_PEEK  = "com.caseforge.scanner.overlay.PEEK"
+
+        /**
+         * Idempotency guard consumed by the A6 ScannerAccessibilityService auto-launch path.
+         * Set to true in [onStartCommand] and false in [onDestroy].
+         */
+        @Volatile var isRunning: Boolean = false
+            private set
 
         fun start(ctx: Context) {
             val i = Intent(ctx, FullScreenOverlayService::class.java).setAction(ACTION_START)
@@ -100,8 +123,11 @@ class FullScreenOverlayService : Service(),
     private var scraperJob: Job? = null
 
     private val ui = Handler(Looper.getMainLooper())
-    private val engineState = mutableStateOf(EngineState.EMPTY)
-    private val peekModeAlpha = mutableStateOf(1.0f) // 1.0 = fully opaque, 0.3 = peek
+    private val engineState   = mutableStateOf(EngineState.EMPTY)
+    private val peekModeAlpha = mutableStateOf(1.0f) // 1.0 = fully opaque, 0.0 = peek
+
+    // A3: health monitor — created in onCreate, started/stopped alongside the service.
+    private lateinit var monitor: EngineHealthMonitor
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -111,6 +137,25 @@ class FullScreenOverlayService : Service(),
         savedStateController.performRestore(null)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
         wm = getSystemService(WINDOW_SERVICE) as WindowManager
+
+        // D2: restore persisted state if available
+        val restoredState = OverlayStatePersistence.load(applicationContext)
+        if (restoredState != null) {
+            engineState.value = restoredState
+            Log.i(TAG, "Restored persisted state: screen=${restoredState.screen}")
+        }
+
+        // A3: instantiate and start the health monitor.
+        // a11yLiveness delegates to the ScannerAccessibilityService companion accessor —
+        // no additional import or reflection needed.
+        monitor = EngineHealthMonitor(
+            context      = applicationContext,
+            a11yLiveness = { ScannerAccessibilityService.instance() != null },
+            scope        = scope,
+            pollMs       = 1500L,
+        )
+        monitor.start()
+        Log.i(TAG, "EngineHealthMonitor started")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -127,6 +172,7 @@ class FullScreenOverlayService : Service(),
             }
         }
 
+        isRunning = true
         startForeground(NOTIFICATION_ID, buildNotification())
         if (rootView == null) attachOverlay()
         startScraperLoop()
@@ -135,11 +181,20 @@ class FullScreenOverlayService : Service(),
     }
 
     override fun onDestroy() {
+        // D2: clear persisted state on graceful shutdown
+        OverlayStatePersistence.clear(applicationContext)
+        Log.i(TAG, "Persisted state cleared on shutdown")
+
+        // A3: stop the health monitor before cancelling the scope it runs on.
+        monitor.stop()
+        Log.i(TAG, "EngineHealthMonitor stopped")
+
         scraperJob?.cancel()
         scope.cancel()
         rootView?.let { runCatching { wm.removeView(it) } }
         rootView = null
         params = null
+        isRunning = false
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         super.onDestroy()
     }
@@ -153,13 +208,17 @@ class FullScreenOverlayService : Service(),
             setViewTreeSavedStateRegistryOwner(this@FullScreenOverlayService)
             setBackgroundColor(Color.argb(245, 12, 14, 18)) // near-black, slightly translucent
             setContent {
+                // A3: collect health state reactively so the banner updates on each poll tick.
+                val healthState by monitor.state.collectAsState()
+
                 OverlayRoot(
-                    engineState = engineState.value,
-                    alpha = peekModeAlpha.value,
-                    onMinimize = { minimizeToBubble() },
-                    onDismiss = { stopSelf() },
-                    onPeek = { togglePeek() },
+                    engineState  = engineState.value,
+                    alpha        = peekModeAlpha.value,
+                    onMinimize   = { minimizeToBubble() },
+                    onDismiss    = { stopSelf() },
+                    onPeek       = { togglePeek() },
                     onCapability = { id -> dispatchCapability(id) },
+                    healthState  = healthState,
                 )
             }
         }
@@ -191,8 +250,7 @@ class FullScreenOverlayService : Service(),
     }
 
     private fun applyAlpha() {
-        rootView?.let { v ->
-            v.alpha = peekModeAlpha.value
+        rootView?.let { v ->\n            v.alpha = peekModeAlpha.value
             // When fully transparent, also disable touches so X431 receives them.
             params?.let { p ->
                 if (peekModeAlpha.value < 0.05f) {
@@ -228,7 +286,16 @@ class FullScreenOverlayService : Service(),
                 if (a11y != null) {
                     runCatching {
                         val snap = a11y.readScreen()
-                        engineState.value = EngineScraper.scrape(snap)
+                        // A3: feed the foreground package to the health monitor so it can
+                        // evaluate X431 foreground state without any manifest permissions.
+                        monitor.notifyForegroundPackage(snap.pkg)
+                        val newState = EngineScraper.scrape(snap)
+                        engineState.value = newState
+
+                        // D2: persist state on every screen transition
+                        if (newState.screen != engineState.value.screen) {
+                            OverlayStatePersistence.save(applicationContext, newState)
+                        }
                     }
                 }
                 delay(750)
@@ -250,7 +317,7 @@ class FullScreenOverlayService : Service(),
 
         val cap = com.caseforge.scanner.engine.CapabilityMap.byId(capabilityId) ?: return
         val app = applicationContext as App
-        app.actionLog.event("overlay.capability", "id=$capabilityId path=${cap.path.joinToString(">")}")
+        app.actionLog.event("overlay.capability", "id=$capabilityId path=${cap.path.joinToString(">")}\"")
 
         scope.launch(Dispatchers.IO) {
             try {
