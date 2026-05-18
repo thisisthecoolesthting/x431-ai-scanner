@@ -4,6 +4,9 @@ package com.caseforge.scanner.overlay.compose
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
@@ -12,9 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.PagerState
 
 /**
  * First-launch onboarding overlay pager. Shows 3-4 steps introducing Together Scanners AI
@@ -28,12 +28,11 @@ import com.google.accompanist.pager.PagerState
  * "Got it" button on the final step persists the flag and dismisses.
  * "Don't show again" checkbox on every step for early exit.
  */
-@OptIn(ExperimentalPagerApi::class)
 @Composable
 fun OverlayOnboarding(
     onComplete: (dontShowAgain: Boolean) -> Unit,
 ) {
-    val pagerState = remember { PagerState(initialPage = 0) }
+    val pagerState = rememberPagerState(initialPage = 0) { 4 }
     var dontShowAgain by remember { mutableStateOf(false) }
 
     Surface(
@@ -49,7 +48,6 @@ fun OverlayOnboarding(
         ) {
             // Pager with all steps
             HorizontalPager(
-                count = 4,
                 state = pagerState,
                 modifier = Modifier
                     .weight(1f)

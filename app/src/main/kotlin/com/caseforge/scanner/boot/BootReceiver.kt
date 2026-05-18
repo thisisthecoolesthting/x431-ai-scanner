@@ -35,7 +35,7 @@ class BootReceiver : BroadcastReceiver() {
 
         Log.i(TAG, "Boot completed broadcast received")
         val settings = SettingsRepo(context)
-        if (!settings.overlayOnX431) {
+        if (settings.overlayOnX431 != true) {
             Log.i(TAG, "overlayOnX431 is false; skipping auto-launch")
             return
         }

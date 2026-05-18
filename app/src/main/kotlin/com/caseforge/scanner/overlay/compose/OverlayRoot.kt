@@ -2,6 +2,9 @@
 
 package com.caseforge.scanner.overlay.compose
 
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitLongPressOrCancellation
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -14,8 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.awaitFirstDown
-import androidx.compose.ui.input.pointer.awaitLongPressOrCancellation
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -83,17 +84,15 @@ fun OverlayRoot(
                     // D1: 3-second press-and-hold on dead space dismisses the overlay.
                     // Buttons and interactive elements consume press events first (pointerEventPass = Main),
                     // so this only fires on non-interactive areas (gaps, empty space).
-                    awaitPointerEventScope {
-                        while (true) {
-                            val down = awaitFirstDown(pass = PointerEventPass.Main)
-                            val longPress = awaitLongPressOrCancellation(
-                                down.id,
-                                timeoutMillis = 3000
-                            )
-                            if (longPress != null) {
-                                // 3-second hold completed without cancellation or drag.
-                                onEmergencyDismiss()
-                            }
+                    awaitEachGesture {
+                        val down = awaitFirstDown(pass = PointerEventPass.Main)
+                        val longPress = awaitLongPressOrCancellation(
+                            down.id,
+                            timeoutMillis = 3000
+                        )
+                        if (longPress != null) {
+                            // 3-second hold completed without cancellation or drag.
+                            onEmergencyDismiss()
                         }
                     }
                 },
