@@ -4,11 +4,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.ScreenKind
+import com.caseforge.scanner.overlay.compose.Spacing
 import com.caseforge.scanner.ui.theme.CaseForgeTheme
 
 /**
@@ -30,10 +29,15 @@ fun ActuationScreen(
     onAction: (UiAction) -> Unit,
 ) {
     Column(
-        Modifier.fillMaxSize().padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        Modifier
+            .fillMaxSize()
+            .padding(Spacing.Space20),
+        verticalArrangement = Arrangement.spacedBy(Spacing.Space8),
     ) {
-        Text("Actuation test", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+        Text(
+            "Actuation test",
+            style = MaterialTheme.typography.headlineSmall,
+        )
         Text(
             "Bidirectional control is active. Watch the vehicle for the expected response. " +
                 "If anything looks wrong, dismiss the overlay and use X431 directly.",
@@ -57,3 +61,9 @@ private fun ActuationScreenPreview() {
         }
     }
 }
+
+private val Spacing.Space8
+    get() = 8.dp
+
+private val Spacing.Space20
+    get() = 20.dp

@@ -10,15 +10,17 @@ import androidx.compose.ui.graphics.Color
  * Brand fallback colors for Material3 ColorScheme.
  * Used on Android versions < 12 that don't support dynamic color.
  *
- * Palette: restrained, single accent + neutrals.
- * Dynamic color (Android 12+) will override these via dynamicLightColorScheme() / dynamicDarkColorScheme().
+ * Palette: Together Scanners AI brand with warm amber/orange accent
+ * (workshop sodium-light tone).
+ * Dynamic color (Android 12+) will override these via dynamicLightColorScheme() / dynamicDarkColorScheme()
+ * with the Together brand seed color.
  */
 
-// Brand colors (compact, accent-focused)
-val BrandPrimary = Color(0xFF1F7A4D)           // Forest green
+// Brand colors: Together Scanners AI with warm amber/orange primary
+val BrandPrimary = Color(0xFFE07A1F)           // Warm amber/orange (Together brand seed)
 val BrandOnPrimary = Color(0xFFFFFFFF)         // White
-val BrandPrimaryContainer = Color(0xFFA8E6C7) // Light green
-val BrandOnPrimaryContainer = Color(0xFF0A3B1F) // Dark green
+val BrandPrimaryContainer = Color(0xFFFCD5B2) // Light warm tone
+val BrandOnPrimaryContainer = Color(0xFF3E2416) // Dark brown
 
 val BrandSecondary = Color(0xFF5A6A6B)       // Slate gray
 val BrandOnSecondary = Color(0xFFFFFFFF)     // White

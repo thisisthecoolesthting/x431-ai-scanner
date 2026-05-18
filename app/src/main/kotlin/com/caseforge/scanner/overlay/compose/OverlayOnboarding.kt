@@ -4,17 +4,16 @@ package com.caseforge.scanner.overlay.compose
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.PagerState
 
 /**
  * First-launch onboarding overlay pager. Shows 3-4 steps introducing Together Scanners AI
@@ -25,14 +24,20 @@ import androidx.compose.ui.unit.dp
  * - Step 3: Emergency dismiss — "Hold any empty area for 3 seconds to dismiss the overlay"
  * - Step 4 (optional): Peek mode — "Tap the eye icon to peek at X431 directly"
  *
- * "Got it" button on the final step persists the flag and dismisses.
- * "Don't show again" checkbox on every step for early exit.
+ * Polish improvements:
+ * - Top progress indicator (dot-style) showing current step / total
+ * - Title in headlineSmall
+ * - Body in bodyLarge with comfortable line-height for tablet reading
+ * - Persistent "Skip" link bottom-left with proper insets
+ * - Persistent "Next/Got it" button bottom-right with proper insets (never overlaps system gestures)
+ * - "Don't show again" checkbox on every step for early exit.
  */
+@OptIn(ExperimentalPagerApi::class)
 @Composable
 fun OverlayOnboarding(
     onComplete: (dontShowAgain: Boolean) -> Unit,
 ) {
-    val pagerState = rememberPagerState(initialPage = 0) { 4 }
+    val pagerState = remember { PagerState(initialPage = 0) }
     var dontShowAgain by remember { mutableStateOf(false) }
 
     Surface(
@@ -40,30 +45,15 @@ fun OverlayOnboarding(
         color = MaterialTheme.colorScheme.scrim.copy(alpha = 0.9f),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
         ) {
-            // Pager with all steps
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) { page ->
-                OnboardingStep(page = page)
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Page indicators (dots)
+            // Top progress indicator (3-4 dots)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight(),
+                    .padding(top = Spacing.Space24)
+                    .padding(horizontal = Spacing.Space16),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -80,86 +70,108 @@ fun OverlayOnboarding(
                                 shape = MaterialTheme.shapes.small,
                             ),
                     )
-                    if (index < 3) Spacer(modifier = Modifier.width(8.dp))
+                    if (index < 3) Spacer(modifier = Modifier.width(Spacing.Space8))
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(Spacing.Space32))
 
-            // "Don't show again" checkbox
-            Row(
+            // Pager with all steps
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start,
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center,
             ) {
-                Checkbox(
-                    checked = dontShowAgain,
-                    onCheckedChange = { dontShowAgain = it },
-                    modifier = Modifier.size(24.dp),
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Don't show again",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
+                HorizontalPager(
+                    count = 4,
+                    state = pagerState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = Spacing.Space16),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) { page ->
+                    OnboardingStep(page = page)
+                }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Spacing.Space32))
 
-            // Navigation buttons
-            Row(
+            // Bottom control area with safe insets
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                    .padding(
+                        start = Spacing.Space16,
+                        end = Spacing.Space16,
+                        bottom = Spacing.Space24,
+                    ),
             ) {
-                // Back button (hidden on first page)
-                if (pagerState.currentPage > 0) {
-                    Button(
-                        onClick = {
-                            // Navigate to previous page
-                            // Note: In a real impl, use scope.launch { pagerState.animateScrollToPage(...) }
-                            // For now, synchronous is acceptable in tests; in production, wrap in LaunchedEffect
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.outlinedButtonColors(),
-                    ) {
-                        Text("Back")
-                    }
-                } else {
-                    Spacer(modifier = Modifier.weight(1f))
-                }
-
-                // Next or Got it button
-                Button(
-                    onClick = {
-                        if (pagerState.currentPage < 3) {
-                            // Move to next page (should be driven by scope.launch { pagerState.animateScrollToPage(...) })
-                        } else {
-                            // Final page: complete onboarding
-                            onComplete(dontShowAgain)
-                        }
-                    },
-                    modifier = Modifier.weight(1f),
+                // "Don't show again" checkbox
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = Spacing.Space16),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start,
                 ) {
+                    Checkbox(
+                        checked = dontShowAgain,
+                        onCheckedChange = { dontShowAgain = it },
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Spacer(modifier = Modifier.width(Spacing.Space8))
                     Text(
-                        if (pagerState.currentPage < 3) "Next" else "Got it",
-                        fontWeight = FontWeight.Bold,
+                        text = "Don't show again",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                // Navigation buttons: "Skip" (left) and "Next/Got it" (right)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.Space12),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    // "Skip" link (persistent, bottom-left)
+                    TextButton(
+                        onClick = { onComplete(dontShowAgain) },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(
+                            "Skip",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+
+                    // "Next/Got it" button (persistent, bottom-right)
+                    Button(
+                        onClick = {
+                            if (pagerState.currentPage < 3) {
+                                // Move to next page (should be driven by scope.launch { pagerState.animateScrollToPage(...) })
+                            } else {
+                                // Final page: complete onboarding
+                                onComplete(dontShowAgain)
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(
+                            if (pagerState.currentPage < 3) "Next" else "Got it",
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
 /**
  * Individual onboarding step content. Each page shows a title and description.
+ * Title in headlineSmall, body in bodyLarge.
  */
 @Composable
 private fun OnboardingStep(page: Int) {
@@ -175,11 +187,10 @@ private fun OnboardingStep(page: Int) {
                 // Step 1: Intro
                 Text(
                     text = "Together Scanners AI",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.primary,
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Spacing.Space16))
                 Text(
                     text = "is now driving X431 underneath this UI",
                     style = MaterialTheme.typography.bodyLarge,
@@ -192,14 +203,13 @@ private fun OnboardingStep(page: Int) {
                 // Step 2: How to drive
                 Text(
                     text = "How to Drive It",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.primary,
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Spacing.Space16))
                 Column(
                     modifier = Modifier.fillMaxWidth(0.85f),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.Space12),
                 ) {
                     BulletPoint("Tap categories")
                     BulletPoint("Tap capability cards")
@@ -211,11 +221,10 @@ private fun OnboardingStep(page: Int) {
                 // Step 3: Emergency dismiss
                 Text(
                     text = "Emergency Dismiss",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.primary,
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Spacing.Space16))
                 Text(
                     text = "Hold any empty area for 3 seconds to dismiss the overlay",
                     style = MaterialTheme.typography.bodyLarge,
@@ -232,14 +241,13 @@ private fun OnboardingStep(page: Int) {
                     modifier = Modifier.size(64.dp),
                     tint = MaterialTheme.colorScheme.primary,
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Spacing.Space16))
                 Text(
                     text = "Peek Mode",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.primary,
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Spacing.Space16))
                 Text(
                     text = "Tap the eye icon to peek at X431 directly",
                     style = MaterialTheme.typography.bodyLarge,
@@ -259,13 +267,12 @@ private fun BulletPoint(text: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.Space12),
     ) {
         Text(
             text = "•",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold,
         )
         Text(
             text = text,

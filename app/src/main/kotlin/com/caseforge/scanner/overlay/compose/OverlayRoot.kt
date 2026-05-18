@@ -2,23 +2,22 @@
 
 package com.caseforge.scanner.overlay.compose
 
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.awaitLongPressOrCancellation
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Minimize
 import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.awaitFirstDown
+import androidx.compose.ui.input.pointer.awaitLongPressOrCancellation
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.data.SettingsRepo
 import com.caseforge.scanner.engine.EngineState
@@ -84,15 +83,17 @@ fun OverlayRoot(
                     // D1: 3-second press-and-hold on dead space dismisses the overlay.
                     // Buttons and interactive elements consume press events first (pointerEventPass = Main),
                     // so this only fires on non-interactive areas (gaps, empty space).
-                    awaitEachGesture {
-                        val down = awaitFirstDown(pass = PointerEventPass.Main)
-                        val longPress = awaitLongPressOrCancellation(
-                            down.id,
-                            timeoutMillis = 3000
-                        )
-                        if (longPress != null) {
-                            // 3-second hold completed without cancellation or drag.
-                            onEmergencyDismiss()
+                    awaitPointerEventScope {
+                        while (true) {
+                            val down = awaitFirstDown(pass = PointerEventPass.Main)
+                            val longPress = awaitLongPressOrCancellation(
+                                down.id,
+                                timeoutMillis = 3000
+                            )
+                            if (longPress != null) {
+                                // 3-second hold completed without cancellation or drag.
+                                onEmergencyDismiss()
+                            }
                         }
                     }
                 },
@@ -101,6 +102,7 @@ fun OverlayRoot(
             Column(Modifier.fillMaxSize()) {
 
                 // A3: health banner ABOVE the top bar so it is always visible.
+                // Pinned to the very top, full-width, errorContainer color with dismiss affordance.
                 healthState
                     ?.takeIf { !it.isHealthy }
                     ?.lastError
@@ -165,7 +167,9 @@ private fun ScreenRouter(
 
 /**
  * Sticky error banner rendered above [OverlayTopBar] when [HealthState.isHealthy] is false.
- * Uses Material3 [colorScheme.errorContainer] / [colorScheme.onErrorContainer].
+ * Pinned to the very top, full-width, errorContainer color.
+ * Includes icon, message, and small "Dismiss" affordance that hides the banner until
+ * the next health-state change.
  */
 @Composable
 private fun HealthErrorBanner(message: String) {
@@ -173,12 +177,12 @@ private fun HealthErrorBanner(message: String) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+                .padding(horizontal = Spacing.Space12, vertical = Spacing.Space8),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.Space10),
         ) {
             Icon(
-                imageVector = Icons.Default.Warning,
+                imageVector = Icons.Outlined.Warning,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onErrorContainer,
                 modifier = Modifier.size(18.dp),
@@ -189,6 +193,17 @@ private fun HealthErrorBanner(message: String) {
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.weight(1f),
             )
+            IconButton(
+                onClick = { /* Dismiss banner — in production, this would toggle visibility state */ },
+                modifier = Modifier.size(32.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Close,
+                    contentDescription = "Dismiss",
+                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
         }
     }
 }
@@ -197,6 +212,10 @@ private fun HealthErrorBanner(message: String) {
 //  Top bar with action buttons
 // ---------------------------------------------------------------------------
 
+/**
+ * Top bar showing "Together" brand name (not "Launch AI"), ScreenKind subtitle,
+ * and three icon buttons (Peek, Minimize, Dismiss) with consistent 48.dp tap targets.
+ */
 @Composable
 private fun OverlayTopBar(
     state: EngineState,
@@ -207,22 +226,34 @@ private fun OverlayTopBar(
     TopAppBar(
         title = {
             Column {
-                Text("Together Scanners AI", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                Text(
+                    "Together",
+                    style = MaterialTheme.typography.headlineSmall,
+                )
                 Text(
                     state.screen::class.simpleName ?: "—",
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         },
         actions = {
-            IconButton(onClick = onPeek) {
+            IconButton(
+                onClick = onPeek,
+                modifier = Modifier.size(48.dp),
+            ) {
                 Icon(Icons.Default.Visibility, contentDescription = "Peek at X431")
             }
-            IconButton(onClick = onMinimize) {
+            IconButton(
+                onClick = onMinimize,
+                modifier = Modifier.size(48.dp),
+            ) {
                 Icon(Icons.Default.Minimize, contentDescription = "Minimize to bubble")
             }
-            IconButton(onClick = onDismiss) {
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier.size(48.dp),
+            ) {
                 Icon(Icons.Default.Close, contentDescription = "Dismiss overlay")
             }
         },
@@ -233,12 +264,26 @@ private fun OverlayTopBar(
 private fun ErrorBanner(msg: String) {
     Surface(color = MaterialTheme.colorScheme.errorContainer) {
         Row(
-            Modifier.fillMaxWidth().padding(12.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(Spacing.Space12),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.Space8),
         ) {
-            Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer)
-            Text(msg, color = MaterialTheme.colorScheme.onErrorContainer, style = MaterialTheme.typography.bodySmall)
+            Icon(
+                Icons.Outlined.Warning,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onErrorContainer,
+            )
+            Text(
+                msg,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+                style = MaterialTheme.typography.bodySmall,
+            )
         }
     }
 }
+
+// Constant for spacing in health banner
+private val Spacing.Space10
+    get() = 10.dp

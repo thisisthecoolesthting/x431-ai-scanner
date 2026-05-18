@@ -10,12 +10,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.engine.CapabilityMap
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.ScreenKind
+import com.caseforge.scanner.overlay.compose.Spacing
+import com.caseforge.scanner.overlay.compose.Style
 import com.caseforge.scanner.ui.theme.CaseForgeTheme
 
 /**
@@ -23,6 +24,11 @@ import com.caseforge.scanner.ui.theme.CaseForgeTheme
  *
  * This screen is shown for ScreenKind.NoEngine (hint to start engine),
  * ScreenKind.HomeMenu (main menu), and other menu-like states.
+ *
+ * Polish improvements:
+ * - All Cards use TogetherCardShape and consistent elevation
+ * - Spacing tokens throughout (no raw .dp)
+ * - Typography hierarchy: titles use titleMedium, descriptions use bodySmall
  *
  * Displays:
  * - Vehicle info card (VIN, summary, busy indicator)
@@ -41,22 +47,31 @@ fun ModuleListScreen(
     Column(
         Modifier
             .fillMaxSize()
-            .padding(12.dp)
+            .padding(Spacing.Space12)
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(Spacing.Space12),
     ) {
         // Vehicle card
-        Card(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = Style.TogetherCardShape,
+            colors = Style.togetherCardColors(),
+            elevation = Style.togetherCardElevation(),
+        ) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(Spacing.Space14),
+                verticalArrangement = Arrangement.spacedBy(Spacing.Space6),
+            ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.Space10),
                 ) {
                     Icon(Icons.Default.DirectionsCar, contentDescription = null)
                     Column(Modifier.weight(1f)) {
                         Text(
                             state.vehicleVin?.let { "VIN: $it" } ?: "No vehicle detected yet",
-                            fontWeight = FontWeight.SemiBold,
                             style = MaterialTheme.typography.titleMedium,
                         )
                         Text(
@@ -78,14 +93,27 @@ fun ModuleListScreen(
         if (state.screen is ScreenKind.NoEngine) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
+                shape = Style.TogetherCardShape,
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                 ),
+                elevation = Style.togetherCardElevation(),
             ) {
-                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(Spacing.Space14),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.Space8),
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.Space10),
+                    ) {
                         Icon(Icons.Default.Build, contentDescription = null)
-                        Text("X431 engine not running", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            "X431 engine not running",
+                            style = MaterialTheme.typography.titleMedium,
+                        )
                     }
                     Text(
                         "Tap any capability below and Launch AI will start the X431 engine for you. " +
@@ -114,14 +142,29 @@ fun ModuleListScreen(
         // Capability cards
         val caps = CapabilityMap.byCategory(selectedCategory)
         caps.chunked(2).forEach { pair ->
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(Spacing.Space8),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
                 pair.forEach { cap ->
                     OutlinedCard(
                         onClick = { onAction(UiAction.TapCapability(cap.id)) },
                         modifier = Modifier.weight(1f),
+                        shape = Style.TogetherCardShape,
+                        colors = CardDefaults.outlinedCardColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                        ),
                     ) {
-                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(cap.label, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleSmall)
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(Spacing.Space12),
+                            verticalArrangement = Arrangement.spacedBy(Spacing.Space4),
+                        ) {
+                            Text(
+                                cap.label,
+                                style = MaterialTheme.typography.titleSmall,
+                            )
                             Text(
                                 cap.note ?: cap.path.joinToString(" › "),
                                 style = MaterialTheme.typography.labelSmall,
@@ -173,3 +216,18 @@ private fun ModuleListScreenDarkPreview() {
         }
     }
 }
+
+private val Spacing.Space4
+    get() = 4.dp
+
+private val Spacing.Space6
+    get() = 6.dp
+
+private val Spacing.Space8
+    get() = 8.dp
+
+private val Spacing.Space10
+    get() = 10.dp
+
+private val Spacing.Space14
+    get() = 14.dp

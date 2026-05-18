@@ -11,9 +11,10 @@ import androidx.compose.ui.unit.sp
  *
  * Tuned for the overlay screen size constraints and technician-facing use:
  * - headlineSmall: screen titles (e.g. "Live data", "Scan complete")
- * - titleLarge: prominent section headers
- * - bodyMedium: body text in cards and descriptions
- * - labelLarge: small labels and secondary text
+ * - titleMedium: prominent section headers (e.g. vehicle info, action labels)
+ * - bodyLarge: body text in cards and descriptions (good for tablet reading)
+ * - bodySmall: secondary text and hints
+ * - labelSmall: captions, timestamps, and small labels
  *
  * No raw .sp or TextStyle literals in screen code — all text uses these tokens.
  */

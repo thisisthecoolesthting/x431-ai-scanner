@@ -8,11 +8,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.ScreenKind
+import com.caseforge.scanner.overlay.compose.Spacing
 import com.caseforge.scanner.ui.theme.CaseForgeTheme
 
 /**
@@ -33,11 +33,14 @@ fun LiveDataScreen(
     Column(
         Modifier
             .fillMaxSize()
-            .padding(14.dp)
+            .padding(Spacing.Space14)
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(Spacing.Space6),
     ) {
-        Text("Live data", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+        Text(
+            "Live data",
+            style = MaterialTheme.typography.headlineSmall,
+        )
         if (state.liveData.isEmpty()) {
             Text(
                 "Waiting for PIDs from the engine…",
@@ -49,11 +52,21 @@ fun LiveDataScreen(
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(6.dp))
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                        .background(
+                            MaterialTheme.colorScheme.surfaceVariant,
+                            RoundedCornerShape(Spacing.Space6),
+                        )
+                        .padding(horizontal = Spacing.Space10, vertical = Spacing.Space6),
                 ) {
-                    Text(k, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
-                    Text("%.2f".format(v), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        k,
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    Text(
+                        "%.2f".format(v),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                 }
             }
         }
@@ -98,3 +111,12 @@ private fun LiveDataScreenWithDataPreviewDark() {
         }
     }
 }
+
+private val Spacing.Space6
+    get() = 6.dp
+
+private val Spacing.Space10
+    get() = 10.dp
+
+private val Spacing.Space14
+    get() = 14.dp

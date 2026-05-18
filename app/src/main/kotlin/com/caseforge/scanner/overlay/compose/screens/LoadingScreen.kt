@@ -9,16 +9,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.ScreenKind
+import com.caseforge.scanner.overlay.compose.Spacing
 import com.caseforge.scanner.ui.theme.CaseForgeTheme
 
 /**
  * Renders a loading/progress screen while the X431 engine is performing a long operation
  * (e.g. a full system scan).
  *
- * Shows:
- * - Large circular progress indicator
- * - Title describing the operation
- * - Subtitle with current menu path or status
+ * Polish improvements:
+ * - CircularProgressIndicator centered
+ * - "Working..." label below in titleMedium
+ * - Fading "current step" subtitle in bodySmall showing EngineState.currentMenuPath if present
  *
  * All text and colors routed through MaterialTheme (C1 requirement).
  */
@@ -28,18 +29,27 @@ fun LoadingScreen(
     onAction: (UiAction) -> Unit,
 ) {
     Column(
-        Modifier.fillMaxSize().padding(20.dp),
+        Modifier
+            .fillMaxSize()
+            .padding(Spacing.Space20),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         CircularProgressIndicator(modifier = Modifier.size(64.dp))
-        Spacer(Modifier.height(20.dp))
-        Text("Full scan in progress…", style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(6.dp))
+
+        Spacer(Modifier.height(Spacing.Space20))
+
+        Text(
+            "Working...",
+            style = MaterialTheme.typography.titleMedium,
+        )
+
+        Spacer(Modifier.height(Spacing.Space6))
+
         Text(
             state.currentMenuPath.joinToString(" › ").ifBlank { "Talking to every module" },
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
         )
     }
 }
@@ -59,3 +69,9 @@ private fun LoadingScreenPreview() {
         }
     }
 }
+
+private val Spacing.Space6
+    get() = 6.dp
+
+private val Spacing.Space20
+    get() = 20.dp

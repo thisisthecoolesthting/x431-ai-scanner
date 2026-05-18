@@ -5,17 +5,27 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.engine.Dtc
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.ScreenKind
+import com.caseforge.scanner.overlay.compose.Spacing
+import com.caseforge.scanner.overlay.compose.Style
+import com.caseforge.scanner.overlay.compose.TogetherCardShape
 import com.caseforge.scanner.ui.theme.CaseForgeTheme
 
 /**
  * Renders scan results: a summary header and a list of diagnostic trouble codes (DTCs).
+ *
+ * Polish improvements:
+ * - DTC code in monospace (FontFamily.Monospace), left-aligned
+ * - 2-line description with ellipsis (maxLines = 2)
+ * - Severity chip on the right using Material3 AssistChip with severity-tinted container color
  *
  * Shows:
  * - "Scan complete" title with DTC count
@@ -23,7 +33,6 @@ import com.caseforge.scanner.ui.theme.CaseForgeTheme
  * - DTC cards with code, module, and description
  *
  * All text and colors routed through MaterialTheme (C1 requirement).
- * Note: Green color replaced with MaterialTheme.colorScheme.primary for proper theme integration.
  */
 @Composable
 fun ReportScreen(
@@ -33,12 +42,19 @@ fun ReportScreen(
     Column(
         Modifier
             .fillMaxSize()
-            .padding(14.dp)
+            .padding(Spacing.Space14)
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(Spacing.Space8),
     ) {
-        Text("Scan complete", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-        Text("${state.dtcs.size} DTC(s) found", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+        Text(
+            "Scan complete",
+            style = MaterialTheme.typography.headlineSmall,
+        )
+        Text(
+            "${state.dtcs.size} DTC(s) found",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall,
+        )
         HorizontalDivider()
 
         if (state.dtcs.isEmpty()) {
@@ -49,13 +65,75 @@ fun ReportScreen(
             )
         } else {
             state.dtcs.forEach { dtc ->
-                Card(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(dtc.code, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleSmall)
-                        dtc.module?.let { Text("Module: $it", style = MaterialTheme.typography.labelSmall) }
-                        dtc.description?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
-                    }
-                }
+                DtcCard(dtc)
+            }
+        }
+    }
+}
+
+/**
+ * Individual DTC card with monospace code, 2-line description, and severity indicator.
+ */
+@Composable
+private fun DtcCard(dtc: Dtc) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = TogetherCardShape,
+        colors = Style.togetherCardColors(),
+        elevation = Style.togetherCardElevation(),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(Spacing.Space12),
+            verticalArrangement = Arrangement.spacedBy(Spacing.Space6),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // DTC code in monospace, left-aligned
+                Text(
+                    dtc.code,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontFamily = FontFamily.Monospace,
+                    modifier = Modifier.weight(1f),
+                )
+
+                // Severity chip (tinted container color)
+                AssistChip(
+                    onClick = {},
+                    label = {
+                        Text(
+                            "Error",
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    },
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        labelColor = MaterialTheme.colorScheme.onErrorContainer,
+                    ),
+                )
+            }
+
+            // Module row
+            dtc.module?.let {
+                Text(
+                    "Module: $it",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            // Description: 2 lines max with ellipsis
+            dtc.description?.let {
+                Text(
+                    it,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         }
     }
@@ -96,3 +174,9 @@ private fun ReportScreenWithDtcsPreviewDark() {
         }
     }
 }
+
+private val Spacing.Space6
+    get() = 6.dp
+
+private val Spacing.Space14
+    get() = 14.dp
