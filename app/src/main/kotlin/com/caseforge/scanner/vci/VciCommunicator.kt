@@ -37,17 +37,16 @@ import kotlin.time.Duration.Companion.seconds
  *
  * THREADING:
  *   All public methods are suspend functions and safe to call from any coroutine context.
- *   The [VciSocketClient.frames] flow is consumed internally; callers should not also
+ *   The transport [frames] flow is consumed internally; callers should not also
  *   collect it directly while communicator operations are in flight.
  *
  * USAGE EXAMPLE:
- *   val client = VciSocketClient(context)
- *   client.connect("AA:BB:CC:DD:EE:FF")
- *   val comm = VciCommunicator(client)
+ *   val transport = VciConnector.connect(context, settings).getOrThrow().transport
+ *   val comm = VciCommunicator(transport)
  *   val dtcs = comm.readDtcs().getOrThrow()
  */
 class VciCommunicator(
-    private val client: VciSocketClient,
+    private val transport: VciTransport,
     /** Timeout for a single request-response exchange. Mirrors LocalSocketClient.timeout. */
     private val requestTimeoutMs: Long = 20_000L,
     /** Polling interval for live PID streaming. */
@@ -116,7 +115,7 @@ class VciCommunicator(
      */
     suspend fun readDtcs(): Result<List<Dtc>> = safeRequest("readDtcs") {
         // Send Mode 03 request (no PID needed)
-        client.send(KnownOpcode.OBD_MODE03_DTC_REQ)
+        transport.send(KnownOpcode.OBD_MODE03_DTC_REQ)
 
         // Wait for a DTC response frame
         val responseFrame = awaitResponse(KnownOpcode.OBD_MODE03_DTC_RESP)
@@ -143,7 +142,7 @@ class VciCommunicator(
      * @return [Result.success] of [Unit] on confirmation, or [Result.failure].
      */
     suspend fun clearCodes(): Result<Unit> = safeRequest("clearCodes") {
-        client.send(KnownOpcode.OBD_MODE04_CLEAR_DTC)
+        transport.send(KnownOpcode.OBD_MODE04_CLEAR_DTC)
 
         val ack = awaitResponse(KnownOpcode.OBD_MODE04_CLEAR_RESP)
             ?: return@safeRequest Result.failure(
@@ -254,7 +253,7 @@ class VciCommunicator(
 
         // Encode testId as ASCII bytes in payload (best guess)
         val payload = testId.toByteArray(Charsets.US_ASCII)
-        client.send(KnownOpcode.PROPRIETARY_ACTIVE_TEST, payload)
+        transport.send(KnownOpcode.PROPRIETARY_ACTIVE_TEST, payload)
 
         // No reliable response opcode known — just wait for any frame
         val response = awaitAnyFrame(timeoutMs = requestTimeoutMs)
@@ -285,7 +284,7 @@ class VciCommunicator(
      */
     suspend fun readVin(): Result<String> = safeRequest("readVin") {
         val payload = byteArrayOf(0x02.toByte())  // Info type 0x02 = VIN
-        client.send(KnownOpcode.OBD_MODE09_VEH_INFO_REQ, payload)
+        transport.send(KnownOpcode.OBD_MODE09_VEH_INFO_REQ, payload)
 
         val response = awaitResponse(KnownOpcode.OBD_MODE09_VEH_INFO_RESP)
             ?: return@safeRequest Result.failure(
@@ -309,7 +308,7 @@ class VciCommunicator(
         // For the spike we reuse OBD_MODE03_DTC_REQ with a payload byte override
         // FIXME: define a proper PENDING_DTC opcode once wire format is confirmed
         val pending = byteArrayOf(OBD_MODE_PENDING_DTC.toByte())
-        client.sendRaw(KnownOpcode.OBD_MODE03_DTC_REQ.value, pending)
+        transport.sendRaw(KnownOpcode.OBD_MODE03_DTC_REQ.value, pending)
 
         val response = awaitResponse(KnownOpcode.OBD_MODE03_DTC_RESP)
         val dtcs = response?.let { parseDtcPayload(it.payload) } ?: emptyList()
@@ -322,7 +321,7 @@ class VciCommunicator(
 
     private suspend fun requestLivePid(pid: Int): LiveSample? {
         return try {
-            client.send(KnownOpcode.OBD_MODE01_PID_REQ, byteArrayOf(pid.toByte()))
+            transport.send(KnownOpcode.OBD_MODE01_PID_REQ, byteArrayOf(pid.toByte()))
             val response = awaitResponse(KnownOpcode.OBD_MODE01_PID_RESP)
             response?.let { parsePidResponse(pid, it.payload) }
         } catch (e: VciException) {
@@ -342,7 +341,7 @@ class VciCommunicator(
     private suspend fun awaitResponse(expectedOpcode: KnownOpcode): VciFrame? {
         return try {
             withTimeout(requestTimeoutMs) {
-                client.frames
+                transport.frames
                     .filter { it.opcode == expectedOpcode.value }
                     .firstOrNull()
             }
@@ -356,7 +355,7 @@ class VciCommunicator(
     private suspend fun awaitAnyFrame(timeoutMs: Long): VciFrame? {
         return try {
             withTimeout(timeoutMs) {
-                client.frames.firstOrNull()
+                transport.frames.firstOrNull()
             }
         } catch (_: kotlinx.coroutines.TimeoutCancellationException) {
             null
@@ -573,7 +572,7 @@ class VciCommunicator(
 
     private suspend fun <T> safeRequest(tag: String, block: suspend () -> Result<T>): Result<T> {
         return try {
-            if (client.connectionState.value != VciSocketClient.ConnectionState.CONNECTED) {
+            if (transport.connectionState.value != VciTransport.ConnectionState.CONNECTED) {
                 return Result.failure(VciException.NotConnected("Cannot execute '$tag' — VCI not connected"))
             }
             block()

@@ -95,6 +95,11 @@ class SettingsRepo(context: Context) {
         awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
     }.distinctUntilChanged()
 
+    /** VCI link: `auto` (USB first), `usb`, or `bluetooth`. */
+    var vciTransportMode: String
+        get() = prefs.getString(K_VCI_TRANSPORT, "auto") ?: "auto"
+        set(value) { prefs.edit().putString(K_VCI_TRANSPORT, value.lowercase()).apply() }
+
     /** User-picked bonded device when name does not match [VciSocketClient.VCI_NAME_PREFIXES]. */
     var vciSelectedBtAddress: String?
         get() = prefs.getString(K_VCI_BT_ADDRESS, null)?.takeIf { it.isNotBlank() }
@@ -217,6 +222,7 @@ class SettingsRepo(context: Context) {
         private const val K_SPEAK = "speak_enabled"
         private const val K_VOICE = "voice_enabled"
         private const val K_DIRECT_VCI = "direct_vci_experimental"
+        private const val K_VCI_TRANSPORT = "vci_transport_mode"
         private const val K_VCI_BT_ADDRESS = "vci_bt_address"
         private const val K_VCI_HDR0 = "vci_header_byte0"
         private const val K_VCI_HDR1 = "vci_header_byte1"
