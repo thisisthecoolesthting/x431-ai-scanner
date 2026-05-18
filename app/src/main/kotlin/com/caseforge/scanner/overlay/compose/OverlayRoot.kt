@@ -30,6 +30,7 @@ import com.caseforge.scanner.overlay.compose.screens.LiveDataScreen
 import com.caseforge.scanner.overlay.compose.screens.LoadingScreen
 import com.caseforge.scanner.overlay.compose.screens.ModuleListScreen
 import com.caseforge.scanner.overlay.compose.screens.ReportScreen
+import com.caseforge.scanner.overlay.compose.screens.SequenceRunnerScreen
 import com.caseforge.scanner.overlay.compose.screens.UiAction
 import com.caseforge.scanner.ui.theme.CaseForgeTheme
 

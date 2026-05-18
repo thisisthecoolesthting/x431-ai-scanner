@@ -21,13 +21,13 @@ class DiagnosticSequenceExecutor(
         if (steps.isEmpty()) return true
 
         steps.forEachIndexed { index, step ->
-            onProgress(index, steps.size, step.title, awaitingPrompt = false)
+            onProgress(index, steps.size, step.title, false)
             logStep("${index + 1}/${steps.size} ${step.title}")
 
             when (val action = step.action) {
                 is SequenceAction.Prompt -> {
                     notify(step.instruction)
-                    onProgress(index, steps.size, step.title, awaitingPrompt = true)
+                    onProgress(index, steps.size, step.title, true)
                     awaitUser()
                 }
                 is SequenceAction.Wait -> delay(action.seconds * 1000L)
