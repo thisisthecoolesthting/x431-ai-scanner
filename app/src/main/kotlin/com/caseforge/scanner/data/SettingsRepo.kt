@@ -80,6 +80,11 @@ class SettingsRepo(context: Context) {
         get() = prefs.getBoolean(K_VOICE, false)
         set(value) { prefs.edit().putBoolean(K_VOICE, value).apply() }
 
+    /** Experimental direct VCI Bluetooth (Phase 2 spike — not for production main until approved). */
+    var directVciExperimental: Boolean
+        get() = prefs.getBoolean(K_DIRECT_VCI, false)
+        set(value) { prefs.edit().putBoolean(K_DIRECT_VCI, value).apply() }
+
     /** Whether the first-launch setup wizard has been completed. */
     var wizardComplete: Boolean
         get() = prefs.getBoolean(K_WIZARD, false)
@@ -174,6 +179,7 @@ class SettingsRepo(context: Context) {
         private const val K_REQUIRE_APPROVAL = "require_approval"
         private const val K_SPEAK = "speak_enabled"
         private const val K_VOICE = "voice_enabled"
+        private const val K_DIRECT_VCI = "direct_vci_experimental"
         private const val K_NOTES = "agent_notes"
         private const val K_THEME = "theme_mode"
         private const val K_WIZARD = "wizard_complete"
