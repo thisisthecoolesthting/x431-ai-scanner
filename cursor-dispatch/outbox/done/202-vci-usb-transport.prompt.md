@@ -40,3 +40,10 @@ MODIFY:
 ## Done
 
 Branch `feat/vci-usb-transport`, self-merge on CI green. Move this prompt to `cursor-dispatch/done/`. Update the autonomy law in CLAUDE.md if relevant changes touch it (likely not).
+
+# Notes from Cursor
+
+- **PR #12** squash-merged to `main` at `0e24825` (CI green).
+- Shipped: `VciTransport`, `VciUsbClient`, `VciConnector` (Auto = USB first → Bluetooth), `VciFramePump`, USB attach/permission in `MainActivity`, diagnostics transport chips, `SettingsRepo.vciTransportMode` default `auto`.
+- Follow-up **206** filed: `cursor-dispatch/outbox/206-connection-drawer-usb-transport-ui.prompt.md` (Connection drawer still BT-only copy until 206).
+- Tablet smoke on real OTG VCI still operator-owned.
