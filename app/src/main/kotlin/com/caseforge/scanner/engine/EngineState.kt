@@ -1,5 +1,6 @@
 package com.caseforge.scanner.engine
 
+import com.caseforge.scanner.agent.NextTestSuggestion
 import com.caseforge.scanner.agent.ScreenSnapshot
 import com.caseforge.scanner.ai.RecallMatch
 import kotlinx.serialization.Serializable
@@ -25,6 +26,8 @@ data class EngineState(
     val liveData: Map<String, Double> = emptyMap(),
     val busy: Boolean = false,
     val errorBanner: String? = null,
+    val suggestedNextTest: NextTestSuggestion? = null,
+    val nextTestLoading: Boolean = false,
     val updatedAtMs: Long = 0L,
     val raw: ScreenSnapshot? = null,
 ) {
@@ -47,6 +50,7 @@ sealed class ScreenKind {
     @Serializable object DtcDetail : ScreenKind()
     @Serializable object LiveDataView : ScreenKind()
     @Serializable object ActuationTest : ScreenKind()
+    @Serializable data class SequenceRunner(val sequenceId: String) : ScreenKind()
     @Serializable object Settings : ScreenKind()
     @Serializable data class Dialog(val text: String) : ScreenKind()
     @Serializable data class Unknown(val hint: String) : ScreenKind()
