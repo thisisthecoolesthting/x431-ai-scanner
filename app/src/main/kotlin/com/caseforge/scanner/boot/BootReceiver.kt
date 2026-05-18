@@ -12,7 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
+import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.launch
 
 /**
@@ -65,7 +65,7 @@ class BootReceiver : BroadcastReceiver() {
         var lastLogTime = startTime
 
         while (System.currentTimeMillis() - startTime < maxWaitMs) {
-            if (!isActive) return
+            if (!coroutineContext.isActive) return@launch
 
             val now = System.currentTimeMillis()
             val stats = usm.queryUsageStats(
