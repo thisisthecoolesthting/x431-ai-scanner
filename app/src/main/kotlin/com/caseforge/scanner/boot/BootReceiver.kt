@@ -1,6 +1,6 @@
 package com.caseforge.scanner.boot
 
-import android.app.UsageStatsManager
+import android.app.usage.UsageStatsManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent

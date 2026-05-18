@@ -14,15 +14,9 @@ import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-// ---------------------------------------------------------------------------
-// Data model
-// ---------------------------------------------------------------------------
-
 /**
  * A single diagnostic capability entry as stored in capabilities.json.
- *
- * All fields that appear in the OEM files are represented here. Unknown keys
- * in the JSON are silently ignored (coerceInputValues + ignoreUnknownKeys).
+ * Renamed from earlier B1 "CapabilityEntry" — same structure, namespace-safe.
  */
 @Serializable
 data class CapabilityEntry(
@@ -37,14 +31,16 @@ data class CapabilityEntry(
 )
 
 /**
- * Root wrapper that matches the `{ "capabilities": [...] }` structure used
- * by both the bundled baseline asset and the remote hot-patch.
+ * Root wrapper that matches the `{ "capabilities": [...] }` structure used by
+ * both the bundled baseline asset and the remote hot-patch.
+ *
+ * Named CapabilityCatalog (not CapabilityMap) to avoid collision with the
+ * foundation singleton `object CapabilityMap` in CapabilityMap.kt.
  */
 @Serializable
-data class CapabilityMap(
+data class CapabilityCatalog(
     val capabilities: List<CapabilityEntry> = emptyList(),
 ) {
-    /** Convenience: look up a capability by its [id]. O(1) after first call. */
     private val index: Map<String, CapabilityEntry> by lazy {
         capabilities.associateBy { it.id }
     }
@@ -52,33 +48,22 @@ data class CapabilityMap(
     fun find(id: String): CapabilityEntry? = index[id]
 
     companion object {
-        val EMPTY = CapabilityMap(emptyList())
+        val EMPTY = CapabilityCatalog(emptyList())
     }
 }
 
-// ---------------------------------------------------------------------------
-// Registry
-// ---------------------------------------------------------------------------
-
 /**
- * Typed registry that merges a bundled baseline
- * (`assets/capabilities/capabilities.json`) with a hot-patch fetched from
- * [remoteUrl].
+ * Typed registry that merges a bundled baseline (assets/capabilities/capabilities.json)
+ * with a hot-patch fetched from [remoteUrl].
  *
- * ### Load strategy (called by [load])
- * 1. Cache file exists **and** is younger than [cacheTtlMs] → return cache.
- * 2. Otherwise attempt remote fetch (timeout = [timeoutMs] ms).
- * 3. On remote success: merge remote + baseline (remote wins on id collision),
- *    persist cache, return merged map.
- * 4. On remote failure: return stale cache if one exists; else baseline only.
- *
- * ### Refresh ([refresh])
- * Forces a remote fetch regardless of cache age. On failure the existing
- * cache is left untouched and the error is returned as [Result.failure].
- *
- * All errors are logged via [Log.w]; this class never throws.
+ * NOTE: this is the IMPLEMENTATION class for the JSON catalog. The
+ * `CapabilityRegistry` interface in Types.kt (used by EngineDriver) is a
+ * separate, narrower abstraction that returns `CapabilityMap.Capability` items.
+ * If you need the interface-shaped accessor on top of this store, call
+ * [asRegistry] to get an adapter that maps catalog entries to the foundation
+ * capability type by id.
  */
-class CapabilityRegistry(
+class CapabilityCatalogStore(
     private val context: Context,
     private val cacheDir: File,
     private val http: OkHttpClient,
@@ -90,7 +75,7 @@ class CapabilityRegistry(
         const val REMOTE_URL =
             "https://raw.githubusercontent.com/thisisthecoolesthting/x431-ai-scanner/main/capabilities/capabilities.json"
 
-        private const val TAG = "CapabilityRegistry"
+        private const val TAG = "CapabilityCatalogStore"
         private const val CACHE_FILENAME = "capabilities_cache.json"
     }
 
@@ -101,80 +86,46 @@ class CapabilityRegistry(
 
     private val cacheFile: File get() = File(cacheDir, CACHE_FILENAME)
 
-    // ------------------------------------------------------------------
-    // Public API
-    // ------------------------------------------------------------------
-
-    /**
-     * Returns the best available [CapabilityMap] following the four-step
-     * strategy described in the class KDoc.
-     *
-     * Always returns a non-null map; worst case it is the bundled baseline.
-     */
-    suspend fun load(): CapabilityMap = withContext(Dispatchers.IO) {
-        // 1. Cache hit
+    suspend fun load(): CapabilityCatalog = withContext(Dispatchers.IO) {
         val cached = readCache()
         if (cached != null && isCacheFresh()) {
-            Log.d(TAG, "load: cache hit (${cached.capabilities.size} entries)")
+            Log.d(TAG, "load: cache hit (" + cached.capabilities.size + " entries)")
             return@withContext cached
         }
-
-        // 2-3. Attempt remote fetch + merge
         val remoteResult = fetchRemote()
         if (remoteResult.isSuccess) {
             val remote = remoteResult.getOrThrow()
             val baseline = loadBaseline()
             val merged = merge(remote, baseline)
             writeCache(merged)
-            Log.d(TAG, "load: remote OK – merged ${merged.capabilities.size} entries")
+            Log.d(TAG, "load: remote OK – merged " + merged.capabilities.size + " entries")
             return@withContext merged
         }
-
-        // 4. Remote failed → stale cache or baseline
         if (cached != null) {
-            Log.w(TAG, "load: remote failed, using stale cache (${cached.capabilities.size} entries)")
+            Log.w(TAG, "load: remote failed, using stale cache (" + cached.capabilities.size + " entries)")
             return@withContext cached
         }
-
         val baseline = loadBaseline()
-        Log.w(TAG, "load: remote failed and no cache – baseline only (${baseline.capabilities.size} entries)")
+        Log.w(TAG, "load: remote failed and no cache – baseline only (" + baseline.capabilities.size + " entries)")
         baseline
     }
 
-    /**
-     * Forces a remote fetch regardless of cache age.
-     *
-     * On success the cache is updated and the merged map is returned as
-     * [Result.success]. On failure the cache is left untouched and a
-     * [Result.failure] is returned with the underlying exception.
-     */
-    suspend fun refresh(): Result<CapabilityMap> = withContext(Dispatchers.IO) {
+    suspend fun refresh(): Result<CapabilityCatalog> = withContext(Dispatchers.IO) {
         val remoteResult = fetchRemote()
         if (remoteResult.isFailure) {
             val ex = remoteResult.exceptionOrNull()
             Log.w(TAG, "refresh: remote fetch failed – cache preserved", ex)
             return@withContext Result.failure(ex ?: IOException("Unknown fetch error"))
         }
-
         val remote = remoteResult.getOrThrow()
         val baseline = loadBaseline()
         val merged = merge(remote, baseline)
         writeCache(merged)
-        Log.d(TAG, "refresh: success – ${merged.capabilities.size} entries")
+        Log.d(TAG, "refresh: success – " + merged.capabilities.size + " entries")
         Result.success(merged)
     }
 
-    // ------------------------------------------------------------------
-    // Internal helpers
-    // ------------------------------------------------------------------
-
-    /**
-     * Merges [remote] and [baseline] so that remote entries win on id
-     * collision and baseline fills any id absent from remote.
-     */
-    private fun merge(remote: CapabilityMap, baseline: CapabilityMap): CapabilityMap {
-        // Start with a mutable map keyed by id; remote entries are inserted first
-        // so they win on collision when baseline entries are added next.
+    private fun merge(remote: CapabilityCatalog, baseline: CapabilityCatalog): CapabilityCatalog {
         val merged: MutableMap<String, CapabilityEntry> = LinkedHashMap()
         for (entry in remote.capabilities) {
             merged[entry.id] = entry
@@ -182,57 +133,43 @@ class CapabilityRegistry(
         for (entry in baseline.capabilities) {
             merged.putIfAbsent(entry.id, entry)
         }
-        return CapabilityMap(merged.values.toList())
+        return CapabilityCatalog(merged.values.toList())
     }
 
-    /**
-     * Loads and parses the bundled asset at
-     * `assets/capabilities/capabilities.json`.
-     *
-     * Returns [CapabilityMap.EMPTY] on any error (asset missing, malformed JSON).
-     */
-    private fun loadBaseline(): CapabilityMap {
+    private fun loadBaseline(): CapabilityCatalog {
         return try {
             val text = context.assets.open("capabilities/capabilities.json")
                 .bufferedReader()
                 .use { it.readText() }
-            json.decodeFromString(CapabilityMap.serializer(), text)
+            json.decodeFromString(CapabilityCatalog.serializer(), text)
         } catch (e: IOException) {
             Log.w(TAG, "loadBaseline: asset open failed", e)
-            CapabilityMap.EMPTY
+            CapabilityCatalog.EMPTY
         } catch (e: SerializationException) {
             Log.w(TAG, "loadBaseline: JSON parse failed", e)
-            CapabilityMap.EMPTY
+            CapabilityCatalog.EMPTY
         }
     }
 
-    /**
-     * Performs the HTTP GET against [remoteUrl] with a [timeoutMs] timeout.
-     *
-     * Returns [Result.success] with the parsed [CapabilityMap] or
-     * [Result.failure] on network error, non-200 status, or malformed JSON.
-     */
-    private fun fetchRemote(): Result<CapabilityMap> {
+    private fun fetchRemote(): Result<CapabilityCatalog> {
         val client = http.newBuilder()
             .callTimeout(timeoutMs, TimeUnit.MILLISECONDS)
             .build()
-
         val request = Request.Builder()
             .url(remoteUrl)
             .get()
             .build()
-
         return try {
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    val msg = "HTTP ${response.code} from $remoteUrl"
-                    Log.w(TAG, "fetchRemote: $msg")
+                    val msg = "HTTP " + response.code + " from " + remoteUrl
+                    Log.w(TAG, "fetchRemote: " + msg)
                     return Result.failure(IOException(msg))
                 }
                 val body = response.body?.string()
                     ?: return Result.failure(IOException("Empty response body"))
                 try {
-                    Result.success(json.decodeFromString(CapabilityMap.serializer(), body))
+                    Result.success(json.decodeFromString(CapabilityCatalog.serializer(), body))
                 } catch (e: SerializationException) {
                     Log.w(TAG, "fetchRemote: malformed JSON from remote", e)
                     Result.failure(e)
@@ -244,16 +181,11 @@ class CapabilityRegistry(
         }
     }
 
-    /**
-     * Reads and parses the on-disk cache file.
-     *
-     * Returns `null` if the file does not exist or cannot be parsed.
-     */
-    private fun readCache(): CapabilityMap? {
+    private fun readCache(): CapabilityCatalog? {
         if (!cacheFile.exists()) return null
         return try {
             val text = cacheFile.readText()
-            json.decodeFromString(CapabilityMap.serializer(), text)
+            json.decodeFromString(CapabilityCatalog.serializer(), text)
         } catch (e: IOException) {
             Log.w(TAG, "readCache: read failed", e)
             null
@@ -263,25 +195,16 @@ class CapabilityRegistry(
         }
     }
 
-    /**
-     * Writes [map] to the cache file, creating parent directories as needed.
-     *
-     * Silently logs and ignores any [IOException].
-     */
-    private fun writeCache(map: CapabilityMap) {
+    private fun writeCache(map: CapabilityCatalog) {
         try {
             cacheDir.mkdirs()
-            val text = json.encodeToString(CapabilityMap.serializer(), map)
+            val text = json.encodeToString(CapabilityCatalog.serializer(), map)
             cacheFile.writeText(text)
         } catch (e: IOException) {
             Log.w(TAG, "writeCache: failed to write cache", e)
         }
     }
 
-    /**
-     * Returns `true` if the cache file exists and its last-modified timestamp
-     * is within the [cacheTtlMs] window.
-     */
     private fun isCacheFresh(): Boolean {
         if (!cacheFile.exists()) return false
         val ageMs = System.currentTimeMillis() - cacheFile.lastModified()
