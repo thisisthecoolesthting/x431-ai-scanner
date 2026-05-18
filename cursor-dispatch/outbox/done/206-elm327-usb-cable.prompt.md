@@ -53,3 +53,11 @@ Then SAE J1979 modes: `03` (DTCs), `04` (clear), `01 XX` (live PID), `09 02` (VI
 ## Done
 
 Move to `cursor-dispatch/done/`. After 206 lands, Together connects via any combination of (Launch VCI / generic ELM327) × (USB / Bluetooth). Four transports. Tech picks what they have.
+
+# Notes from Cursor
+
+- **PR #13** squash-merged to `main` at `2a49ef5` (CI green).
+- Shipped: `UsbSerialTransport`, `ObdElmEngine`, `ObdUsbTool`, `ObdEngineDriver`, `DiagnosticConnector` (Auto = ELM327 USB → Launch USB → optional BT).
+- Connection drawer: USB primary, transport chips, Bluetooth opt-in toggle → pairing dialog → `ACTION_BLUETOOTH_SETTINGS`.
+- `bluetoothTransportEnabled` defaults **false** — no BT scan/connect until toggled.
+- Tablet smoke on real ELM327 USB cable still operator-owned.
