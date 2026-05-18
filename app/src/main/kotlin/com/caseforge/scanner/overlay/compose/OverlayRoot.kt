@@ -58,6 +58,7 @@ fun OverlayRoot(
     engineState: EngineState,
     alpha: Float,
     settingsRepo: SettingsRepo,
+    standaloneMode: Boolean = false,
     onMinimize: () -> Unit,
     onDismiss: () -> Unit,
     onPeek: () -> Unit,
@@ -74,8 +75,8 @@ fun OverlayRoot(
     onVoicePressEnd: () -> Unit = {},
     evidenceCaptureEnabled: Boolean = true,
 ) {
-    // C2: Gate onboarding on first launch
-    if (!settingsRepo.overlayOnboardingSeen) {
+    // C2: Gate onboarding on first launch (overlay-over-X431 only)
+    if (!standaloneMode && !settingsRepo.overlayOnboardingSeen) {
         OverlayOnboarding(
             onComplete = { dontShowAgain ->
                 // Persist the flag; "Don't show again" and "Got it" both trigger this
@@ -107,6 +108,17 @@ fun OverlayRoot(
         ) {
             Column(Modifier.fillMaxSize()) {
 
+                if (standaloneMode) {
+                    Surface(color = MaterialTheme.colorScheme.tertiaryContainer) {
+                        Text(
+                            "Direct VCI (experimental) — X431 is not running. Generic OBD-II only.",
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        )
+                    }
+                }
+
                 // A3: health banner ABOVE the top bar so it is always visible.
                 // Pinned to the very top, full-width, errorContainer color with dismiss affordance.
                 healthState
@@ -116,6 +128,7 @@ fun OverlayRoot(
 
                 OverlayTopBar(
                     state = engineState,
+                    showPeek = !standaloneMode,
                     onMinimize = onMinimize,
                     onPeek = onPeek,
                     onDismiss = onDismiss,
@@ -243,6 +256,7 @@ private fun HealthErrorBanner(message: String) {
 @Composable
 private fun OverlayTopBar(
     state: EngineState,
+    showPeek: Boolean = true,
     onMinimize: () -> Unit,
     onPeek: () -> Unit,
     onDismiss: () -> Unit,
@@ -262,11 +276,13 @@ private fun OverlayTopBar(
             }
         },
         actions = {
-            IconButton(
-                onClick = onPeek,
-                modifier = Modifier.size(48.dp),
-            ) {
-                Icon(Icons.Default.Visibility, contentDescription = "Peek at X431")
+            if (showPeek) {
+                IconButton(
+                    onClick = onPeek,
+                    modifier = Modifier.size(48.dp),
+                ) {
+                    Icon(Icons.Default.Visibility, contentDescription = "Peek at X431")
+                }
             }
             IconButton(
                 onClick = onMinimize,

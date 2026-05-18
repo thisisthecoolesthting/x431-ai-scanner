@@ -130,6 +130,9 @@ data class VciFrame(
          */
         val DEFAULT_HEADER = byteArrayOf(0x55.toByte(), 0xAA.toByte())
 
+        /** Common Launch/CNLaunch header candidates — swept on tablet via Direct VCI probe. */
+        val HEADER_CANDIDATES: List<ByteArray> = VciProtocolConfig.HEADER_CANDIDATES
+
         // ------------------------------------------------------------------
         // decode
         // ------------------------------------------------------------------
@@ -215,9 +218,13 @@ data class VciFrame(
          * Build a frame with the default header magic.
          * Checksum is computed automatically.
          */
-        fun build(opcode: Int, payload: ByteArray = ByteArray(0)): VciFrame {
+        fun build(
+            opcode: Int,
+            payload: ByteArray = ByteArray(0),
+            header: ByteArray = VciProtocolConfig.header,
+        ): VciFrame {
             return VciFrame(
-                header   = DEFAULT_HEADER.copyOf(),
+                header   = header.copyOf(),
                 opcode   = opcode,
                 payload  = payload,
                 checksum = computeChecksum(opcode, payload),

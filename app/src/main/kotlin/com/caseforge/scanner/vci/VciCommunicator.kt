@@ -65,9 +65,28 @@ class VciCommunicator(
         const val PID_INTAKE_MAP         = 0x0B
         const val PID_MAF_RATE           = 0x10
         const val PID_O2_VOLTAGE_B1S1    = 0x14
+        const val PID_O2_VOLTAGE_B1S2    = 0x15
+        const val PID_O2_VOLTAGE_B2S1    = 0x16
+        const val PID_O2_VOLTAGE_B2S2    = 0x17
+        const val PID_O2_TRIM_B1S1       = 0x18
+        const val PID_O2_TRIM_B1S2       = 0x19
+        const val PID_O2_TRIM_B2S1       = 0x1A
+        const val PID_O2_TRIM_B2S2       = 0x1B
+        const val PID_CONTROL_MODULE_V   = 0x42
         const val PID_FUEL_LEVEL         = 0x2F
         const val PID_BAROMETRIC_PRESSURE = 0x33
         const val PID_AMBIENT_TEMP       = 0x46
+
+        /** Default Mode 01 PID set for live dashboard. */
+        val DEFAULT_LIVE_PIDS: List<Int> = listOf(
+            PID_ENGINE_COOLANT_TEMP,
+            PID_ENGINE_RPM,
+            PID_VEHICLE_SPEED,
+            PID_MAF_RATE,
+            PID_THROTTLE_POSITION,
+            PID_O2_VOLTAGE_B1S1,
+            PID_CONTROL_MODULE_V,
+        )
 
         // OBD-II mode bytes
         const val OBD_MODE_LIVE_DATA     = 0x01
@@ -460,6 +479,28 @@ class VciCommunicator(
                 val b = payload[dataStart + 1].toInt() and 0xFF
                 ((a * 256 + b) / 100.0)
             }
+            PID_INTAKE_MAP -> {
+                if (payload.size - dataStart < 1) return null
+                (payload[dataStart].toInt() and 0xFF).toDouble()
+            }
+            PID_CONTROL_MODULE_V -> {
+                if (payload.size - dataStart < 2) return null
+                val a = payload[dataStart].toInt() and 0xFF
+                val b = payload[dataStart + 1].toInt() and 0xFF
+                ((a * 256 + b) / 1000.0)
+            }
+            in PID_O2_VOLTAGE_B1S1..PID_O2_VOLTAGE_B2S2 -> {
+                if (payload.size - dataStart < 2) return null
+                val a = payload[dataStart].toInt() and 0xFF
+                val b = payload[dataStart + 1].toInt() and 0xFF
+                if (a == 0xFF && b == 0xFF) return null
+                (a / 200.0) + (b / 512.0)
+            }
+            in PID_O2_TRIM_B1S1..PID_O2_TRIM_B2S2 -> {
+                if (payload.size - dataStart < 1) return null
+                val a = payload[dataStart].toInt() and 0xFF
+                ((a - 128) * 100.0 / 128.0)
+            }
             else -> {
                 // Generic: return raw value of first byte
                 if (payload.size - dataStart < 1) return null
@@ -481,8 +522,11 @@ class VciCommunicator(
      * VIN is encoded as 17 ASCII bytes in the payload (after stripping mode/info bytes).
      */
     internal fun parseVinPayload(payload: ByteArray): String? {
+        val ascii = payload.filter { it in 32..126 }.map { it.toInt().toChar() }.joinToString("")
+        val fromRegex = VIN_REGEX.find(ascii)?.value
+        if (fromRegex != null) return fromRegex
+
         if (payload.size < 17) return null
-        // Skip leading mode/info prefix if present (0x49 0x02 or 0x49 0x02 0x01)
         val startIdx = when {
             payload.size >= 20 && payload[0].toInt() and 0xFF == 0x49 -> 3
             payload.size >= 19 && payload[0].toInt() and 0xFF == 0x49 -> 2
@@ -501,11 +545,21 @@ class VciCommunicator(
         PID_FUEL_LEVEL          -> "%"
         PID_MAF_RATE            -> "g/s"
         PID_INTAKE_MAP          -> "kPa"
-        PID_O2_VOLTAGE_B1S1     -> "V"
+        PID_O2_VOLTAGE_B1S1,
+        PID_O2_VOLTAGE_B1S2,
+        PID_O2_VOLTAGE_B2S1,
+        PID_O2_VOLTAGE_B2S2   -> "V"
+        PID_O2_TRIM_B1S1,
+        PID_O2_TRIM_B1S2,
+        PID_O2_TRIM_B2S1,
+        PID_O2_TRIM_B2S2       -> "%"
+        PID_CONTROL_MODULE_V    -> "V"
         PID_BAROMETRIC_PRESSURE -> "kPa"
         PID_AMBIENT_TEMP        -> "°C"
         else                    -> ""
     }
+
+    private val VIN_REGEX = Regex("[A-HJ-NPR-Z0-9]{17}")
 
     // ------------------------------------------------------------------
     // safeRequest — error boundary (mirrors EngineDriver.safeRun)

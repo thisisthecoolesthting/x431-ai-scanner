@@ -54,7 +54,10 @@ import com.caseforge.scanner.data.SettingsRepo
 import com.caseforge.scanner.engine.EngineScraper
 import com.caseforge.scanner.engine.EngineHealthMonitor
 import com.caseforge.scanner.engine.EngineState
+import com.caseforge.scanner.engine.ScrapedDtc
 import com.caseforge.scanner.overlay.compose.OverlayRoot
+import com.caseforge.scanner.vci.DirectVciSession
+import com.caseforge.scanner.vci.VciCommunicator
 import com.caseforge.scanner.voice.VoiceCommander
 import com.caseforge.scanner.voice.VoiceMode
 import android.Manifest
@@ -67,7 +70,9 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Full-screen overlay that hides the X431 engine app behind Launch AI's custom UI.
@@ -157,7 +162,10 @@ class FullScreenOverlayService : Service(),
     private var lastPostScanSignature: String? = null
     private var lastCorrelateSignature: String? = null
     private var sequenceJob: Job? = null
+    private var livePidJob: Job? = null
     private var advancePrompt: CompletableDeferred<Unit>? = null
+    private var directVciSession: DirectVciSession? = null
+    private var standaloneMode: Boolean = false
     private val voiceUiState = mutableStateOf(VoiceMode.State.IDLE)
     private val voiceLastPhrase = mutableStateOf("")
     private var voiceCommander: VoiceCommander? = null
@@ -215,10 +223,15 @@ class FullScreenOverlayService : Service(),
         }
 
         isRunning = true
+        standaloneMode = settingsRepo.directVciExperimental
         startForeground(NOTIFICATION_ID, buildNotification())
         if (rootView == null) attachOverlay()
         syncVoiceCommander()
-        startScraperLoop()
+        if (standaloneMode) {
+            startDirectVciSession()
+        } else {
+            startScraperLoop()
+        }
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
         return START_STICKY
     }
@@ -236,6 +249,9 @@ class FullScreenOverlayService : Service(),
         voiceCommander = null
 
         scraperJob?.cancel()
+        livePidJob?.cancel()
+        directVciSession?.disconnect()
+        directVciSession = null
         sequenceJob?.cancel()
         scope.cancel()
         rootView?.let { runCatching { wm.removeView(it) } }
@@ -262,6 +278,7 @@ class FullScreenOverlayService : Service(),
                     engineState  = engineState.value,
                     alpha        = peekModeAlpha.value,
                     settingsRepo = settingsRepo,
+                    standaloneMode = standaloneMode,
                     onMinimize   = { minimizeToBubble() },
                     onDismiss    = { stopSelf() },
                     onPeek       = { togglePeek() },
@@ -341,11 +358,12 @@ class FullScreenOverlayService : Service(),
      */
     fun requestEmergencyDismiss() {
         Log.i(TAG, "Emergency dismiss triggered via 3-second long-press")
-        Toast.makeText(
-            this,
-            "Overlay dismissed. X431 is now visible.",
-            Toast.LENGTH_SHORT
-        ).show()
+        val message = if (standaloneMode) {
+            "Overlay dismissed."
+        } else {
+            "Overlay dismissed. X431 is now visible."
+        }
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         stopSelf()
     }
 
@@ -618,7 +636,211 @@ class FullScreenOverlayService : Service(),
         voiceCommander?.start()
     }
 
+    private fun startDirectVciSession() {
+        livePidJob?.cancel()
+        livePidJob = null
+        val session = DirectVciSession(applicationContext, settingsRepo)
+        directVciSession = session
+        engineState.value = engineState.value.copy(busy = true, errorBanner = null)
+        scope.launch(Dispatchers.IO) {
+            val connected = session.ensureConnected()
+            withContext(Dispatchers.Main) {
+                if (connected.isFailure) {
+                    val msg = connected.exceptionOrNull()?.message ?: "Direct VCI connect failed"
+                    engineState.value = engineState.value.copy(
+                        screen = ScreenKind.HomeMenu,
+                        busy = false,
+                        errorBanner = msg,
+                    )
+                    return@withContext
+                }
+            }
+            val vin = session.readVinOrNull()
+            withContext(Dispatchers.Main) {
+                engineState.value = EngineState(
+                    screen = ScreenKind.HomeMenu,
+                    vehicleVin = vin,
+                    busy = false,
+                    errorBanner = null,
+                    updatedAtMs = System.currentTimeMillis(),
+                )
+                Log.i(TAG, "Direct VCI connected, vin=$vin")
+            }
+        }
+    }
+
+    private fun dispatchCapabilityViaVci(capabilityId: String) {
+        val adapter = directVciSession?.adapterOrNull() ?: run {
+            engineState.value = engineState.value.copy(
+                errorBanner = "Direct VCI not connected — pair dongle and retry",
+            )
+            return
+        }
+        val app = applicationContext as App
+        app.actionLog.event("overlay.vci.capability", capabilityId)
+
+        if (capabilityId == "actuation") {
+            engineState.value = engineState.value.copy(
+                errorBanner = "OEM actuation requires X431 overlay mode",
+                busy = false,
+            )
+            return
+        }
+
+        if (capabilityId == "live_data") {
+            livePidJob?.cancel()
+            engineState.value = engineState.value.copy(
+                screen = ScreenKind.LiveDataView,
+                liveData = emptyMap(),
+                busy = true,
+                errorBanner = null,
+            )
+            val hexPids = VciCommunicator.DEFAULT_LIVE_PIDS.map { pid ->
+                "0x${pid.toString(16).uppercase().padStart(2, '0')}"
+            }
+            livePidJob = scope.launch(Dispatchers.IO) {
+                try {
+                    adapter.liveData(hexPids).collectLatest { sample ->
+                        withContext(Dispatchers.Main) {
+                            val label = livePidLabel(sample.pid)
+                            engineState.value = engineState.value.copy(
+                                screen = ScreenKind.LiveDataView,
+                                liveData = engineState.value.liveData + (label to sample.value),
+                                busy = false,
+                                updatedAtMs = System.currentTimeMillis(),
+                            )
+                        }
+                    }
+                } catch (t: Throwable) {
+                    withContext(Dispatchers.Main) {
+                        engineState.value = engineState.value.copy(
+                            errorBanner = "Live data failed: ${t.message?.take(120)}",
+                            busy = false,
+                        )
+                    }
+                }
+            }
+            return
+        }
+
+        scope.launch(Dispatchers.IO) {
+            withContext(Dispatchers.Main) {
+                engineState.value = engineState.value.copy(busy = true, errorBanner = null)
+            }
+            try {
+                when (capabilityId) {
+                    "read_dtcs" -> {
+                        adapter.readDtcs(null).fold(
+                            onSuccess = { dtcs ->
+                                withContext(Dispatchers.Main) {
+                                    val next = engineState.value.copy(
+                                        screen = ScreenKind.FullScanResults,
+                                        dtcs = dtcs.map {
+                                            ScrapedDtc(
+                                                code = it.code,
+                                                description = it.description,
+                                                module = it.module,
+                                                status = "current",
+                                            )
+                                        },
+                                        busy = false,
+                                        errorBanner = null,
+                                        updatedAtMs = System.currentTimeMillis(),
+                                    )
+                                    engineState.value = next
+                                }
+                            },
+                            onFailure = { setVciError(it) },
+                        )
+                    }
+                    "clear_dtcs" -> {
+                        adapter.clearCodes().fold(
+                            onSuccess = {
+                                withContext(Dispatchers.Main) {
+                                    engineState.value = engineState.value.copy(
+                                        dtcs = emptyList(),
+                                        busy = false,
+                                        errorBanner = null,
+                                        updatedAtMs = System.currentTimeMillis(),
+                                    )
+                                }
+                            },
+                            onFailure = { setVciError(it) },
+                        )
+                    }
+                    "full_scan" -> {
+                        adapter.fullScan().fold(
+                            onSuccess = { scan ->
+                                val vin = directVciSession?.readVinOrNull()
+                                val dtcs = scan.modules.flatMap { module ->
+                                    module.dtcs.map { dtc ->
+                                        ScrapedDtc(
+                                            code = dtc.code,
+                                            description = dtc.description,
+                                            module = module.name,
+                                            status = "current",
+                                        )
+                                    }
+                                }
+                                withContext(Dispatchers.Main) {
+                                    val prev = engineState.value
+                                    val next = prev.copy(
+                                        screen = ScreenKind.FullScanResults,
+                                        vehicleVin = vin ?: prev.vehicleVin,
+                                        dtcs = dtcs,
+                                        busy = false,
+                                        errorBanner = null,
+                                        updatedAtMs = System.currentTimeMillis(),
+                                    )
+                                    engineState.value = next
+                                    maybeRunPostScanAnalysis(prev, next)
+                                    maybeFetchRecalls(prev, next)
+                                    maybeCorrelateDtcs(prev, next)
+                                }
+                            },
+                            onFailure = { setVciError(it) },
+                        )
+                    }
+                    else -> {
+                        withContext(Dispatchers.Main) {
+                            engineState.value = engineState.value.copy(
+                                errorBanner = "Unknown capability: $capabilityId",
+                                busy = false,
+                            )
+                        }
+                    }
+                }
+            } catch (t: Throwable) {
+                setVciError(t)
+            }
+        }
+    }
+
+    private suspend fun setVciError(e: Throwable) {
+        withContext(Dispatchers.Main) {
+            engineState.value = engineState.value.copy(
+                errorBanner = e.message?.take(120) ?: "VCI operation failed",
+                busy = false,
+            )
+        }
+    }
+
+    private fun livePidLabel(pidKey: String): String = when (pidKey.uppercase()) {
+        "0X0C" -> "Engine RPM"
+        "0X0D" -> "Vehicle Speed"
+        "0X05" -> "Coolant Temp (°C)"
+        "0X10" -> "MAF (g/s)"
+        "0X11" -> "Throttle (%)"
+        "0X14" -> "O2 B1S1 (V)"
+        "0X42" -> "Control module (V)"
+        else -> pidKey
+    }
+
     private fun dispatchCapability(capabilityId: String) {
+        if (standaloneMode) {
+            dispatchCapabilityViaVci(capabilityId)
+            return
+        }
         val a11y = ScannerAccessibilityService.instance() ?: run {
             engineState.value = engineState.value.copy(
                 errorBanner = "Accessibility service not running. Enable in Setup."
@@ -672,13 +894,21 @@ class FullScreenOverlayService : Service(),
             this, 1, peekIntent,
             android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE,
         )
-        return Notification.Builder(this, CHANNEL_ID)
-            .setContentTitle("Launch AI overlay")
-            .setContentText("Tap Peek to see X431 underneath. Tap Dismiss to exit.")
+        val builder = Notification.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_menu_view)
             .setOngoing(true)
-            .addAction(android.R.drawable.ic_menu_view, "Peek", pPeek)
             .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Dismiss", pStop)
-            .build()
+
+        if (standaloneMode) {
+            builder
+                .setContentTitle("Together Direct VCI")
+                .setContentText("Experimental direct dongle mode. Tap Dismiss to exit.")
+        } else {
+            builder
+                .setContentTitle("Launch AI overlay")
+                .setContentText("Tap Peek to see X431 underneath. Tap Dismiss to exit.")
+                .addAction(android.R.drawable.ic_menu_view, "Peek", pPeek)
+        }
+        return builder.build()
     }
 }

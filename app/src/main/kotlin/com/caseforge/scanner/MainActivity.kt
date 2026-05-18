@@ -120,6 +120,7 @@ class MainActivity : ComponentActivity() {
                             "dashboard" -> DashboardScreen(
                                 detectedVin = latestDetectedVin ?: lastVin,
                                 vehicleSummary = lastVehicleSummary,
+                                directVciStandalone = app.settings.directVciExperimental,
                                 speakEnabled = app.settings.speakEnabled,
                                 onSpeakToggle = { app.settings.speakEnabled = it },
                                 onAgentStart = { symptom ->
@@ -151,7 +152,6 @@ class MainActivity : ComponentActivity() {
                                 onOpenHistory = { route = "history" },
                                 onOpenLog = { route = "log" },
                                 onOpenNotes = { route = "notes" },
-                                directVciStandalone = app.settings.directVciExperimental,
                                 onTakeOverX431 = {
                                     if (!Settings.canDrawOverlays(this@MainActivity)) {
                                         startActivity(Intent(
