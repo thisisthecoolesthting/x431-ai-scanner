@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import java.io.OutputStream
 
 /**
  * USB OTG serial transport (CDC-ACM / FTDI / CH340 / PL2303 / CP21xx via usb-serial-for-android).
@@ -148,13 +149,12 @@ class VciUsbClient(
                 }
             },
         )
-        // hold output stream reference via port
-        if (output == null) Log.w(TAG, "USB output stream null")
     }
 
     override fun disconnect() {
         readerJob?.cancel()
         readerJob = null
+        usbOut = null
         runCatching { serialPort?.close() }
         serialPort = null
         _connectionState.value = VciTransport.ConnectionState.DISCONNECTED
@@ -170,7 +170,7 @@ class VciUsbClient(
 
     override fun sendFrame(frame: VciFrame) {
         val port = serialPort ?: throw VciException.NotConnected("USB not connected")
-        val out = port.outputStream ?: throw VciException.NotConnected("USB output stream null")
+        val out = usbOut ?: throw VciException.NotConnected("USB output stream null")
         VciFramePump.sendFrame(out, frame, useHexEncoding) {
             _connectionState.value = VciTransport.ConnectionState.DISCONNECTED
         }
