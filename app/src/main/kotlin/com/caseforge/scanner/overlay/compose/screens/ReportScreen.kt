@@ -13,6 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.engine.ScrapedDtc
 import com.caseforge.scanner.overlay.compose.RecallBanner
+import com.caseforge.scanner.overlay.compose.screens.SuggestedTestCard
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.ScreenKind
 import com.caseforge.scanner.overlay.compose.Spacing
@@ -62,6 +63,13 @@ fun ReportScreen(
         if (state.recallMatches.isNotEmpty()) {
             RecallBanner(recalls = state.recallMatches)
         }
+
+        SuggestedTestCard(
+            suggestion = state.suggestedNextTest,
+            loading = state.nextTestLoading,
+            onAccept = { onAction(UiAction.AcceptSuggestedTest) },
+            onDecline = { onAction(UiAction.DeclineSuggestedTest) },
+        )
 
         if (state.dtcs.isEmpty()) {
             Text(
@@ -170,9 +178,9 @@ private fun ReportScreenWithDtcsPreviewDark() {
                 state = EngineState(
                     screen = ScreenKind.FullScanResults,
                     dtcs = listOf(
-                        Dtc("P0101", description = "Mass or Volume Air Flow Sensor A Range/Performance", module = "Engine"),
-                        Dtc("P0405", description = "EGR Sensor A Circuit Low", module = "Engine"),
-                        Dtc("B1234", description = "Driver Seat Track Position Memory not stored", module = "Seat Memory"),
+                        ScrapedDtc("P0101", description = "Mass or Volume Air Flow Sensor A Range/Performance", module = "Engine"),
+                        ScrapedDtc("P0405", description = "EGR Sensor A Circuit Low", module = "Engine"),
+                        ScrapedDtc("B1234", description = "Driver Seat Track Position Memory not stored", module = "Seat Memory"),
                     ),
                 ),
                 onAction = {},

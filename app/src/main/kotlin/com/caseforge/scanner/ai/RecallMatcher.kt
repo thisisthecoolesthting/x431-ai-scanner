@@ -61,7 +61,7 @@ class RecallMatcher(private val http: OkHttpClient, private val timeoutMs: Long 
     }
 
     private fun findDtcsInText(text: String, codes: Set<String>): List<String> =
-        Regex("""[PBCU]\d{4}""").findAll(text.uppercase()).map { it.value }.filter { it in codes }.distinct()
+        Regex("""[PBCU]\d{4}""").findAll(text.uppercase()).map { it.value }.filter { it in codes }.distinct().toList()
 
     private fun enc(s: String) = s.replace(" ", "%20")
 }

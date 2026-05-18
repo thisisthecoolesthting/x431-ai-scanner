@@ -17,7 +17,7 @@ import com.caseforge.scanner.data.SequenceDefinitions
  */
 object CapabilityMap {
 
-    data class Capability(
+    open class Capability(
         val id: String,
         val label: String,
         val category: Category,
@@ -191,6 +191,6 @@ object CapabilityMap {
         ),
     ) + SequenceDefinitions.asCapabilities()
 
-    fun byId(id: String): Capability? = ALL.firstOrNull { it.id == id }
-    fun byCategory(c: Category): List<Capability> = ALL.filter { it.category == c }
+    fun byId(id: String): Capability? = (ALL + SequenceDefinitions.ALL).firstOrNull { it.id == id }
+    fun byCategory(c: Category): List<Capability> = (ALL + SequenceDefinitions.ALL).filter { it.category == c }
 }

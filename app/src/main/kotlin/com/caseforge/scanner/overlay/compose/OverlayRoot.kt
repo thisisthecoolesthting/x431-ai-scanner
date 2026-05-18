@@ -32,7 +32,6 @@ import com.caseforge.scanner.overlay.compose.screens.ModuleListScreen
 import com.caseforge.scanner.overlay.compose.screens.ReportScreen
 import com.caseforge.scanner.overlay.compose.screens.UiAction
 import com.caseforge.scanner.ui.theme.CaseForgeTheme
-import com.caseforge.scanner.voice.VoiceMode
 
 /**
  * Root composable rendered inside the full-screen overlay window. This is what the
@@ -66,11 +65,6 @@ fun OverlayRoot(
     },
     onEmergencyDismiss: () -> Unit,
     healthState: HealthState? = null,
-    voiceEnabled: Boolean = false,
-    voiceState: VoiceMode.State = VoiceMode.State.IDLE,
-    voiceLastPhrase: String = "",
-    onVoicePressStart: () -> Unit = {},
-    onVoicePressEnd: () -> Unit = {},
 ) {
     // C2: Gate onboarding on first launch
     if (!settingsRepo.overlayOnboardingSeen) {
@@ -95,10 +89,7 @@ fun OverlayRoot(
                     // so this only fires on non-interactive areas (gaps, empty space).
                     awaitEachGesture {
                         val down = awaitFirstDown(pass = PointerEventPass.Main)
-                        val longPress = awaitLongPressOrCancellation(
-                            down.id,
-                            timeoutMillis = 3000,
-                        )
+                        val longPress = awaitLongPressOrCancellation(down.id)
                         if (longPress != null) {
                             onEmergencyDismiss()
                         }
@@ -132,19 +123,6 @@ fun OverlayRoot(
                         state = engineState,
                         onAction = onUiAction,
                     )
-                    if (voiceEnabled) {
-                        VoiceIndicator(
-                            state = voiceState,
-                            lastPhrase = voiceLastPhrase,
-                            modifier = Modifier.align(Alignment.BottomStart).padding(start = Spacing.Space8, bottom = Spacing.Space32),
-                        )
-                        VoiceFab(
-                            enabled = true,
-                            onPressStart = onVoicePressStart,
-                            onPressEnd = onVoicePressEnd,
-                            modifier = Modifier.align(Alignment.BottomEnd).padding(Spacing.Space16),
-                        )
-                    }
                 }
             }
         }
