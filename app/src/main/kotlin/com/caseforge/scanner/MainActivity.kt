@@ -4,13 +4,20 @@ package com.caseforge.scanner
 
 import android.Manifest
 import android.app.Activity
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.hardware.usb.UsbDevice
+import android.hardware.usb.UsbManager
 import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
+import com.caseforge.scanner.vci.VciUsbAttachState
+import com.caseforge.scanner.vci.VciUsbClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -84,6 +91,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        handleUsbIntent(intent)
 
         val sharedReport = intent.getStringExtra(EXTRA_REPORT_TEXT)
 
@@ -245,6 +253,37 @@ class MainActivity : ComponentActivity() {
                             },
                             onBack = { route = "main" },
                         )
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleUsbIntent(intent)
+    }
+
+    private fun handleUsbIntent(intent: Intent?) {
+        if (intent == null) return
+        when (intent.action) {
+            UsbManager.ACTION_USB_DEVICE_ATTACHED,
+            VciUsbClient.ACTION_USB_PERMISSION -> {
+                val device: UsbDevice? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
+                }
+                if (device != null) {
+                    VciUsbAttachState.pendingDevice = device
+                    app.settings.directVciExperimental = true
+                    val usb = VciUsbClient(this)
+                    if (!usb.hasPermission(device)) {
+                        usb.requestPermission(device)
+                    } else {
+                        toast("VCI detected on USB — tap Connect")
                     }
                 }
             }

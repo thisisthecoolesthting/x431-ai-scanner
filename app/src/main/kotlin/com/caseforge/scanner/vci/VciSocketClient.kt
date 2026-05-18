@@ -85,7 +85,9 @@ class VciSocketClient(
     val receiveBufferSize: Int = 32_768,
     /** Reconnect attempts on disconnect. Mirrors sb.b reconnect logic (f56121v = 3). */
     val maxReconnectAttempts: Int = 3,
-) {
+) : VciTransport {
+
+    override val label: String = "Bluetooth SPP"
 
     companion object {
         private const val TAG = "VciSocketClient"
@@ -104,20 +106,8 @@ class VciSocketClient(
         val VCI_NAME_PREFIXES = listOf("VCI", "CRP", "X431", "DBSCAR", "Launch", "98943")
     }
 
-    // ------------------------------------------------------------------
-    // Connection state
-    // ------------------------------------------------------------------
-
-    enum class ConnectionState {
-        DISCONNECTED,   // No socket
-        CONNECTING,     // createRfcommSocketToServiceRecord called, connect() pending
-        CONNECTED,      // Socket open, I/O threads running
-        RECONNECTING,   // Transient disconnect, retrying
-        CLOSED,         // Permanently shut down; create a new instance
-    }
-
-    private val _connectionState = MutableStateFlow(ConnectionState.DISCONNECTED)
-    val connectionState: StateFlow<ConnectionState> = _connectionState.asStateFlow()
+    private val _connectionState = MutableStateFlow(VciTransport.ConnectionState.DISCONNECTED)
+    override val connectionState: StateFlow<VciTransport.ConnectionState> = _connectionState.asStateFlow()
 
     // ------------------------------------------------------------------
     // Frame stream
@@ -130,7 +120,7 @@ class VciSocketClient(
      * Backed by a [Channel.BUFFERED] channel — frames are queued even without a
      * subscriber, but overflow is dropped (diagnostic data is real-time).
      */
-    val frames: Flow<VciFrame> = _frameChannel.receiveAsFlow()
+    override val frames: Flow<VciFrame> = _frameChannel.receiveAsFlow()
 
     // ------------------------------------------------------------------
     // Internal state
@@ -164,16 +154,16 @@ class VciSocketClient(
             Log.e(TAG, "Bluetooth radio disabled")
             return Result.failure(VciException.ConnectionFailed(macAddress, "Bluetooth is off"))
         }
-        if (_connectionState.value == ConnectionState.CLOSED) {
+        if (_connectionState.value == VciTransport.ConnectionState.CLOSED) {
             return Result.failure(IllegalStateException("Client is closed; create a new instance"))
         }
-        _connectionState.value = ConnectionState.CONNECTING
+        _connectionState.value = VciTransport.ConnectionState.CONNECTING
 
         return try {
             val device: BluetoothDevice = bluetoothAdapter.getRemoteDevice(macAddress)
             connectDevice(device)
         } catch (e: Exception) {
-            _connectionState.value = ConnectionState.DISCONNECTED
+            _connectionState.value = VciTransport.ConnectionState.DISCONNECTED
             Result.failure(VciException.ConnectionFailed(macAddress, e.message ?: "Unknown"))
         }
     }
@@ -199,7 +189,7 @@ class VciSocketClient(
 
             socket = sock
             outputStream = sock.outputStream
-            _connectionState.value = ConnectionState.CONNECTED
+            _connectionState.value = VciTransport.ConnectionState.CONNECTED
 
             val probe = probeFirstBytes(sock)
             Log.i(TAG, "Connected to VCI: ${device.name} / ${device.address}; probe=$probe")
@@ -209,11 +199,11 @@ class VciSocketClient(
             Result.success(Unit)
         } catch (e: IOException) {
             Log.e(TAG, "connect IO failure: ${e.message}", e)
-            _connectionState.value = ConnectionState.DISCONNECTED
+            _connectionState.value = VciTransport.ConnectionState.DISCONNECTED
             Result.failure(VciException.ConnectionFailed(device.address, e.message ?: "IO"))
         } catch (e: Exception) {
             Log.e(TAG, "connect failure: ${e.message}", e)
-            _connectionState.value = ConnectionState.DISCONNECTED
+            _connectionState.value = VciTransport.ConnectionState.DISCONNECTED
             Result.failure(VciException.ConnectionFailed(device.address, e.message ?: e.javaClass.simpleName))
         }
     }
@@ -242,7 +232,7 @@ class VciSocketClient(
     // disconnect / close
     // ------------------------------------------------------------------
 
-    fun disconnect() {
+    override fun disconnect() {
         readerJob?.cancel()
         readerJob = null
         try {
@@ -250,16 +240,16 @@ class VciSocketClient(
         } catch (_: IOException) {}
         socket = null
         outputStream = null
-        _connectionState.value = ConnectionState.DISCONNECTED
+        _connectionState.value = VciTransport.ConnectionState.DISCONNECTED
         Log.i(TAG, "Disconnected from VCI")
     }
 
     /** Permanently shut down; cancel the coroutine scope. Create a new instance to reconnect. */
-    fun close() {
+    override fun close() {
         disconnect()
         scope.cancel()
         _frameChannel.close()
-        _connectionState.value = ConnectionState.CLOSED
+        _connectionState.value = VciTransport.ConnectionState.CLOSED
     }
 
     // ------------------------------------------------------------------
@@ -276,47 +266,19 @@ class VciSocketClient(
      * @throws VciException.SendFailed on I/O error.
      */
     @Throws(VciException::class)
-    fun sendFrame(frame: VciFrame) {
-        val out = outputStream
-            ?: throw VciException.NotConnected("Cannot send — not connected")
-
-        val bytes = if (useHexEncoding) {
-            // Hex-ASCII mode: encode to "AABBCC...\n" line
-            (frame.encodeHex() + "\n").toByteArray(Charsets.US_ASCII)
-        } else {
-            frame.encode()
+    override fun sendFrame(frame: VciFrame) {
+        val out = outputStream ?: throw VciException.NotConnected("Cannot send — not connected")
+        VciFramePump.sendFrame(out, frame, useHexEncoding) {
+            _connectionState.value = VciTransport.ConnectionState.DISCONNECTED
         }
-
-        synchronized(out) {
-            try {
-                out.write(bytes)
-                out.flush()
-                Log.v(TAG, "SEND >> $frame")
-            } catch (e: IOException) {
-                // Mirror LocalSocketClient broken-pipe detection
-                if (e.message?.lowercase()?.contains("broken pipe") == true) {
-                    Log.w(TAG, "Broken pipe on send — VCI disconnected")
-                    _connectionState.value = ConnectionState.DISCONNECTED
-                }
-                throw VciException.SendFailed(e.message ?: "IO error on send")
-            }
-        }
+        Log.v(TAG, "SEND >> $frame")
     }
 
-    /**
-     * Convenience: build and send a frame from opcode + payload.
-     * Checksum is computed automatically.
-     */
     @Throws(VciException::class)
-    fun sendRaw(opcode: Int, payload: ByteArray = ByteArray(0)) =
-        sendFrame(VciFrame.build(opcode, payload))
+    override fun sendRaw(opcode: Int, payload: ByteArray) = sendFrame(VciFrame.build(opcode, payload))
 
-    /**
-     * Convenience overload for [KnownOpcode].
-     */
     @Throws(VciException::class)
-    fun send(opcode: KnownOpcode, payload: ByteArray = ByteArray(0)) =
-        sendRaw(opcode.value, payload)
+    override fun send(opcode: KnownOpcode, payload: ByteArray) = sendRaw(opcode.value, payload)
 
     // ------------------------------------------------------------------
     // receive loop
@@ -431,9 +393,9 @@ class VciSocketClient(
     }
 
     private fun onReceiveLoopEnded() {
-        if (_connectionState.value == ConnectionState.CONNECTED) {
+        if (_connectionState.value == VciTransport.ConnectionState.CONNECTED) {
             Log.w(TAG, "Receive loop ended — VCI disconnected")
-            _connectionState.value = ConnectionState.DISCONNECTED
+            _connectionState.value = VciTransport.ConnectionState.DISCONNECTED
         }
     }
 

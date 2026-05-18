@@ -41,11 +41,60 @@ object VciConnectionDiagnostics {
         settings: SettingsRepo,
         tryLiveConnect: Boolean = true,
         macOverride: String? = null,
+        transportMode: String = settings.vciTransportMode,
     ): List<VciDiagnosticStep> {
         val steps = mutableListOf<VciDiagnosticStep>()
         fun step(name: String, pass: Boolean, detail: String) {
             steps += VciDiagnosticStep(name, pass, detail)
         }
+
+        val mode = when (transportMode.lowercase()) {
+            "usb" -> VciConnector.Mode.USB
+            "bluetooth", "bt" -> VciConnector.Mode.BLUETOOTH
+            else -> VciConnector.Mode.AUTO
+        }
+        step("Transport mode", true, transportMode)
+
+        if (mode != VciConnector.Mode.BLUETOOTH) {
+            val usbClient = VciUsbClient(context, useHexEncoding = settings.vciUseHexEncoding)
+            val devices = usbClient.listAttachedDevices()
+            step("USB serial attached", devices.isNotEmpty(), "${devices.size} device(s)")
+            devices.forEach { d ->
+                step(
+                    "  • USB",
+                    true,
+                    "vid=${d.vendorId} pid=${d.productId} ${d.deviceName}",
+                )
+            }
+            if (tryLiveConnect && devices.isNotEmpty()) {
+                val dev = devices.first()
+                if (!usbClient.hasPermission(dev)) {
+                    step("USB permission", false, "Grant USB access when prompted, then re-run")
+                    usbClient.requestPermission(dev)
+                } else {
+                    val usbResult = runCatching {
+                        withTimeout(25_000) { usbClient.connect(dev) }
+                    }
+                    usbResult.fold(
+                        onSuccess = { r ->
+                            r.fold(
+                                onSuccess = {
+                                    step("USB connect", true, "connected ${dev.deviceName}")
+                                    usbClient.disconnect()
+                                },
+                                onFailure = { e -> step("USB connect", false, e.message ?: "failed") },
+                            )
+                        },
+                        onFailure = { e -> step("USB connect", false, e.message ?: "timeout") },
+                    )
+                }
+            }
+            if (mode == VciConnector.Mode.USB) return steps
+            val usbOk = steps.lastOrNull { it.name == "USB connect" }?.pass == true
+            if (mode == VciConnector.Mode.AUTO && usbOk) return steps
+        }
+
+        if (mode == VciConnector.Mode.USB) return steps
 
         val adapter = adapterOrNull(context)
         if (adapter == null) {
