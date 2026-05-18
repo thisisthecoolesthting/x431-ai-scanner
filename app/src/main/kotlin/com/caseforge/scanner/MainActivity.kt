@@ -16,8 +16,11 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
+import com.caseforge.scanner.agent.ObdBluetoothTool
+import com.caseforge.scanner.agent.ObdUsbTool
+import com.caseforge.scanner.vci.DiagnosticConnector
 import com.caseforge.scanner.vci.VciUsbAttachState
-import com.caseforge.scanner.vci.VciUsbClient
+import com.caseforge.scanner.vci.transport.UsbSerialTransport
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -107,17 +110,38 @@ class MainActivity : ComponentActivity() {
                 val vci = remember { StandaloneVciController(this@MainActivity, app.settings) }
                 val engineState by vci.engineState
                 val context = LocalContext.current
+                fun transportNeedsBluetooth(): Boolean {
+                    val mode = DiagnosticConnector.userTransportFrom(app.settings)
+                    return when (mode) {
+                        DiagnosticConnector.UserTransport.LAUNCH_BT,
+                        DiagnosticConnector.UserTransport.ELM327_BT,
+                        -> true
+                        DiagnosticConnector.UserTransport.AUTO ->
+                            app.settings.bluetoothTransportEnabled
+                        else -> false
+                    }
+                }
+
+                fun startConnect() {
+                    lifecycleScope.launch {
+                        AgentStatus.setActivity("Connecting…")
+                        vci.connect()
+                    }
+                }
+
                 val btPermissionLauncher = rememberLauncherForActivityResult(
                     ActivityResultContracts.RequestMultiplePermissions(),
                 ) { results ->
                     if (results[Manifest.permission.BLUETOOTH_CONNECT] == true) {
-                        lifecycleScope.launch {
-                            AgentStatus.setActivity("Connecting VCI…")
-                            vci.connect()
-                        }
+                        startConnect()
                     }
                 }
-                fun requestBtAndConnect() {
+
+                fun requestConnect() {
+                    if (!transportNeedsBluetooth()) {
+                        startConnect()
+                        return
+                    }
                     val perms = buildList {
                         add(Manifest.permission.BLUETOOTH_CONNECT)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -130,12 +154,15 @@ class MainActivity : ComponentActivity() {
                     if (missing) {
                         btPermissionLauncher.launch(perms.toTypedArray())
                     } else {
-                        lifecycleScope.launch {
-                            AgentStatus.setActivity("Connecting VCI…")
-                            vci.connect()
-                        }
+                        startConnect()
                     }
                 }
+
+                var usbCount by remember { mutableStateOf(ObdUsbTool(context).listDevices().size) }
+                var selectedTransport by remember {
+                    mutableStateOf(DiagnosticConnector.userTransportFrom(app.settings))
+                }
+                var btEnabled by remember { mutableStateOf(app.settings.bluetoothTransportEnabled) }
 
                 val initialRoute = if (sharedReport != null) "triage" else "main"
                 var route by remember { mutableStateOf(initialRoute) }
@@ -148,9 +175,36 @@ class MainActivity : ComponentActivity() {
                         "main" -> MainScreen(
                             vciConnected = vci.isConnected,
                             vin = engineState.vehicleVin,
+                            linkDetail = vci.linkKind()?.name?.replace('_', ' '),
                             engineBusy = engineState.busy,
                             engineState = engineState,
-                            onConnectClick = { requestBtAndConnect() },
+                            usbDeviceCount = usbCount,
+                            selectedTransport = selectedTransport,
+                            onTransportSelected = { t ->
+                                selectedTransport = t
+                                app.settings.linkTransport = when (t) {
+                                    DiagnosticConnector.UserTransport.AUTO -> "auto"
+                                    DiagnosticConnector.UserTransport.ELM327_USB -> "elm327_usb"
+                                    DiagnosticConnector.UserTransport.LAUNCH_USB -> "launch_usb"
+                                    DiagnosticConnector.UserTransport.LAUNCH_BT -> "launch_bt"
+                                    DiagnosticConnector.UserTransport.ELM327_BT -> "elm327_bt"
+                                }
+                            },
+                            bluetoothTransportEnabled = btEnabled,
+                            onBluetoothTransportToggle = { on ->
+                                btEnabled = on
+                                app.settings.bluetoothTransportEnabled = on
+                            },
+                            onOpenBluetoothSettings = {
+                                startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+                            },
+                            bondedObdDevices = ObdBluetoothTool.listBondedObdDevices(),
+                            selectedBtAddress = app.settings.vciSelectedBtAddress,
+                            onSelectBtDevice = { app.settings.vciSelectedBtAddress = it },
+                            onConnectClick = {
+                                usbCount = ObdUsbTool(context).listDevices().size
+                                requestConnect()
+                            },
                             onDisconnect = { vci.disconnect() },
                             onScan = {
                                 vci.runFullScan(lifecycleScope) { ok ->
@@ -269,7 +323,7 @@ class MainActivity : ComponentActivity() {
         if (intent == null) return
         when (intent.action) {
             UsbManager.ACTION_USB_DEVICE_ATTACHED,
-            VciUsbClient.ACTION_USB_PERMISSION -> {
+            UsbSerialTransport.ACTION_USB_PERMISSION -> {
                 val device: UsbDevice? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice::class.java)
                 } else {
@@ -279,11 +333,11 @@ class MainActivity : ComponentActivity() {
                 if (device != null) {
                     VciUsbAttachState.pendingDevice = device
                     app.settings.directVciExperimental = true
-                    val usb = VciUsbClient(this)
+                    val usb = ObdUsbTool(this)
                     if (!usb.hasPermission(device)) {
                         usb.requestPermission(device)
                     } else {
-                        toast("VCI detected on USB — tap Connect")
+                        toast("USB OBD cable detected — tap Connect")
                     }
                 }
             }

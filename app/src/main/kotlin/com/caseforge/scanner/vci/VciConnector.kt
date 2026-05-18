@@ -39,11 +39,25 @@ object VciConnector {
 
         return when (modeFrom(settings)) {
             Mode.USB -> connectUsb(context, settings, usbDevice)
-            Mode.BLUETOOTH -> connectBluetooth(context, settings)
+            Mode.BLUETOOTH -> {
+                if (!settings.bluetoothTransportEnabled) {
+                    return Result.failure(
+                        IllegalStateException("Bluetooth is off — enable it in the connection drawer"),
+                    )
+                }
+                connectBluetooth(context, settings)
+            }
             Mode.AUTO -> {
                 val usbTry = connectUsb(context, settings, usbDevice)
                 if (usbTry.isSuccess) return usbTry
                 val usbErr = usbTry.exceptionOrNull()
+                if (!settings.bluetoothTransportEnabled) {
+                    return Result.failure(
+                        IllegalStateException(
+                            "USB failed (${usbErr?.message}). Enable Bluetooth in the connection drawer if needed.",
+                        ),
+                    )
+                }
                 val btTry = connectBluetooth(context, settings)
                 if (btTry.isSuccess) {
                     return btTry.map {

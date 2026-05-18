@@ -18,14 +18,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.agent.AgentStatus
 import com.caseforge.scanner.overlay.compose.LiveActivityTicker
+import com.caseforge.scanner.vci.DiagnosticConnector
 import kotlinx.coroutines.launch
 
 @Composable
 fun MainScreen(
     vciConnected: Boolean,
     vin: String?,
+    linkDetail: String?,
     engineBusy: Boolean,
     engineState: com.caseforge.scanner.engine.EngineState,
+    usbDeviceCount: Int,
+    selectedTransport: DiagnosticConnector.UserTransport,
+    onTransportSelected: (DiagnosticConnector.UserTransport) -> Unit,
+    bluetoothTransportEnabled: Boolean,
+    onBluetoothTransportToggle: (Boolean) -> Unit,
+    onOpenBluetoothSettings: () -> Unit,
+    bondedObdDevices: List<Pair<String, String>>,
+    selectedBtAddress: String?,
+    onSelectBtDevice: (String) -> Unit,
     onConnectClick: () -> Unit,
     onDisconnect: () -> Unit,
     onScan: () -> Unit,
@@ -49,7 +60,17 @@ fun MainScreen(
         ConnectionDrawerSheet(
             connected = vciConnected,
             statusLine = if (vciConnected) "Connected" else "Not connected",
+            linkDetail = linkDetail,
             lastError = engineState.errorBanner,
+            usbDeviceCount = usbDeviceCount,
+            selectedTransport = selectedTransport,
+            onTransportSelected = onTransportSelected,
+            bluetoothEnabled = bluetoothTransportEnabled,
+            onBluetoothToggle = onBluetoothTransportToggle,
+            onOpenBluetoothSettings = onOpenBluetoothSettings,
+            bondedObdDevices = bondedObdDevices,
+            selectedBtAddress = selectedBtAddress,
+            onSelectBtDevice = onSelectBtDevice,
             onConnect = {
                 onConnectClick()
                 showDrawer = false
@@ -105,7 +126,7 @@ fun MainScreen(
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        vin?.let { "VIN: $it" } ?: "Connect VCI to read VIN",
+                        vin?.let { "VIN: $it" } ?: "Connect USB OBD cable to read VIN",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                     )
