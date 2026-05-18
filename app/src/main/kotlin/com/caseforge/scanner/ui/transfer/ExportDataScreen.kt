@@ -5,6 +5,7 @@ package com.caseforge.scanner.ui.transfer
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -12,9 +13,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -22,8 +25,10 @@ import com.caseforge.scanner.R
 import com.caseforge.scanner.agent.AgentActionLog
 import com.caseforge.scanner.transfer.CnlaunchZipper
 import com.caseforge.scanner.transfer.LanFileServer
-import com.caseforge.scanner.transfer.LanNetwork
+import com.caseforge.scanner.transfer.LanSelfTest
+import com.caseforge.scanner.transfer.NetworkInterfaceHelper
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -34,14 +39,26 @@ fun ExportDataScreen(
 ) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
-
-    var running by remember { mutableStateOf(false) }
-    var passCode by remember { mutableStateOf("") }
-    var url by remember { mutableStateOf<String?>(null) }
-    var status by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf<String?>(null) }
-    var serverRef by remember { mutableStateOf<LanFileServer?>(null) }
     val zipper = remember { CnlaunchZipper() }
+
+    val candidates = remember { NetworkInterfaceHelper.mergeCandidates(ctx) }
+    var selectedHost by remember {
+        mutableStateOf(
+            NetworkInterfaceHelper.pickBest(candidates, NetworkInterfaceHelper.wifiIpv4FromConnectivity(ctx))
+                ?.address,
+        )
+    }
+
+    var serverRef by remember { mutableStateOf<LanFileServer?>(null) }
+    var serverState by remember { mutableStateOf(LanFileServer.ServerState.STOPPED) }
+    var serverError by remember { mutableStateOf<String?>(null) }
+    var passCode by remember { mutableStateOf("") }
+    var publicUrl by remember { mutableStateOf<String?>(null) }
+    var actualPort by remember { mutableIntStateOf(8765) }
+    var selfTestResult by remember { mutableStateOf<String?>(null) }
+    var selfTestBusy by remember { mutableStateOf(false) }
+    var startBusy by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -50,17 +67,29 @@ fun ExportDataScreen(
         }
     }
 
+    LaunchedEffect(serverRef) {
+        val s = serverRef ?: return@LaunchedEffect
+        launch {
+            s.state.collectLatest { serverState = it }
+        }
+        launch {
+            s.lastError.collectLatest { serverError = it }
+        }
+    }
+
     fun stopServer() {
         serverRef?.stopServer()
         serverRef = null
-        running = false
-        status = ctx.getString(R.string.export_status_stopped)
+        publicUrl = null
+        passCode = ""
+        serverState = LanFileServer.ServerState.STOPPED
     }
 
     fun startServer() {
         error = null
-        val host = LanNetwork.wifiIpv4OrNull(ctx)
-        if (host == null) {
+        selfTestResult = null
+        val host = selectedHost
+        if (host.isNullOrBlank()) {
             error = ctx.getString(R.string.export_error_no_wifi)
             return
         }
@@ -68,50 +97,78 @@ fun ExportDataScreen(
             error = ctx.getString(R.string.export_error_no_cnlaunch)
             return
         }
+        startBusy = true
         scope.launch {
             withContext(Dispatchers.IO) {
-                runCatching {
-                    serverRef?.stopServer()
-                    val code = LanFileServer.randomPassCode()
-                    val server = LanFileServer(
-                        bindHost = host,
-                        port = LanNetwork.DEFAULT_PORT,
-                        passCode = code,
-                        zipper = zipper,
-                        actionLog = actionLog,
-                        scope = scope,
-                        onAutoStop = {
-                            scope.launch(Dispatchers.Main) {
-                                running = false
-                                status = ctx.getString(R.string.export_status_auto_stopped)
-                                serverRef = null
-                            }
-                        },
-                    )
-                    server.startServer()
-                    server
-                }.fold(
-                    onSuccess = { server ->
-                        withContext(Dispatchers.Main) {
-                            serverRef = server
-                            passCode = server.passCode
-                            url = server.url
-                            running = true
-                            status = ctx.getString(R.string.export_status_running)
-                        }
-                    },
-                    onFailure = { t ->
-                        withContext(Dispatchers.Main) {
-                            error = t.message ?: ctx.getString(R.string.export_error_start_failed)
-                            running = false
+                serverRef?.stopServer()
+                val code = LanFileServer.randomPassCode()
+                LanFileServer.create(
+                    displayHost = host,
+                    passCode = code,
+                    zipper = zipper,
+                    actionLog = actionLog,
+                    scope = scope,
+                    onAutoStop = {
+                        scope.launch(Dispatchers.Main) {
+                            serverRef = null
+                            publicUrl = null
+                            serverState = LanFileServer.ServerState.STOPPED
                         }
                     },
                 )
-            }
+            }.fold(
+                onSuccess = { server ->
+                    serverRef = server
+                    passCode = server.passCode
+                    publicUrl = server.publicUrl
+                    actualPort = server.boundPort
+                    serverState = LanFileServer.ServerState.LISTENING
+                    startBusy = false
+                },
+                onFailure = { t ->
+                    error = t.message ?: ctx.getString(R.string.export_error_start_failed)
+                    serverState = LanFileServer.ServerState.ERROR
+                    serverError = error
+                    startBusy = false
+                },
+            )
         }
     }
 
-    val qrBitmap = remember(url) { url?.let { QrCodeBitmap.encode(it) } }
+    fun runSelfTest() {
+        val port = serverRef?.boundPort ?: return
+        selfTestBusy = true
+        scope.launch {
+            val r = LanSelfTest.healthCheckLocalhost(port)
+            selfTestResult = r.fold(
+                onSuccess = { it },
+                onFailure = { ctx.getString(R.string.export_self_test_fail, it.message ?: "failed") },
+            )
+            selfTestBusy = false
+        }
+    }
+
+    val qrBitmap = remember(publicUrl) { publicUrl?.let { QrCodeBitmap.encode(it) } }
+    val listening = serverState == LanFileServer.ServerState.LISTENING
+    val stateColor = when (serverState) {
+        LanFileServer.ServerState.LISTENING -> Color(0xFF2E7D32)
+        LanFileServer.ServerState.STARTING -> Color(0xFFF9A825)
+        LanFileServer.ServerState.ERROR -> Color(0xFFC62828)
+        else -> Color(0xFF757575)
+    }
+    val stateLabel = when (serverState) {
+        LanFileServer.ServerState.LISTENING -> stringResource(
+            R.string.export_state_listening,
+            selectedHost ?: "?",
+            actualPort,
+        )
+        LanFileServer.ServerState.STARTING -> stringResource(R.string.export_state_starting)
+        LanFileServer.ServerState.ERROR -> stringResource(
+            R.string.export_state_error,
+            serverError ?: error ?: "?",
+        )
+        else -> stringResource(R.string.export_state_stopped)
+    }
 
     Column(Modifier.fillMaxSize()) {
         TopAppBar(
@@ -132,19 +189,69 @@ fun ExportDataScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                stringResource(R.string.export_screen_body),
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .padding(end = 8.dp),
+                    shape = MaterialTheme.shapes.small,
+                    color = stateColor,
+                ) {}
+                Text(stateLabel, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            }
+
+            Text(stringResource(R.string.export_screen_body), style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.export_firewall_hint), style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.export_ap_isolation_hint), style = MaterialTheme.typography.bodySmall)
+
             error?.let {
                 Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
             }
-            if (running && url != null) {
+
+            if (candidates.isEmpty()) {
                 Text(
-                    url!!,
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.SemiBold,
+                    stringResource(R.string.export_error_no_wifi),
+                    color = MaterialTheme.colorScheme.error,
                 )
+            } else {
+                Text(stringResource(R.string.export_pick_ip), style = MaterialTheme.typography.titleSmall)
+                candidates.forEach { c ->
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .selectable(
+                                selected = selectedHost == c.address,
+                                onClick = {
+                                    selectedHost = c.address
+                                    if (listening) {
+                                        stopServer()
+                                    }
+                                },
+                                role = Role.RadioButton,
+                            )
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(
+                            selected = selectedHost == c.address,
+                            onClick = {
+                                selectedHost = c.address
+                                if (listening) stopServer()
+                            },
+                        )
+                        Column(Modifier.padding(start = 8.dp)) {
+                            Text(c.address, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                "${c.interfaceName} (${c.source})",
+                                style = MaterialTheme.typography.labelSmall,
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (listening && publicUrl != null) {
+                Text(publicUrl!!, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.SemiBold)
                 qrBitmap?.let { bmp ->
                     Image(
                         bitmap = bmp.asImageBitmap(),
@@ -159,19 +266,29 @@ fun ExportDataScreen(
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                 )
-                Text(status, style = MaterialTheme.typography.bodySmall)
                 OutlinedButton(
-                    onClick = { stopServer() },
+                    onClick = { runSelfTest() },
+                    enabled = !selfTestBusy,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
+                    Text(if (selfTestBusy) "Testing…" else stringResource(R.string.export_self_test))
+                }
+                selfTestResult?.let {
+                    Text(it, style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace)
+                }
+                OutlinedButton(onClick = { stopServer() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.export_stop_server))
                 }
             } else {
                 Button(
                     onClick = { startServer() },
+                    enabled = !startBusy && selectedHost != null,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text(stringResource(R.string.export_start_server))
+                    Text(
+                        if (startBusy) stringResource(R.string.export_state_starting)
+                        else stringResource(R.string.export_start_server),
+                    )
                 }
             }
         }
