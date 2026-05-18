@@ -37,6 +37,8 @@ fun MainScreen(
     onNotes: () -> Unit,
     onSettings: () -> Unit,
     onDiagnostics: () -> Unit,
+    onCheckUpdate: () -> Unit,
+    buildInfo: String,
     onAiPrompt: (String?) -> Unit,
 ) {
     var showDrawer by remember { mutableStateOf(false) }
