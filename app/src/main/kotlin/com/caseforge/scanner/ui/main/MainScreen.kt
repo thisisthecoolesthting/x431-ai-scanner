@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,6 +37,8 @@ fun MainScreen(
     onNotes: () -> Unit,
     onSettings: () -> Unit,
     onDiagnostics: () -> Unit,
+    onCheckUpdate: () -> Unit,
+    buildInfo: String,
     onAiPrompt: (String?) -> Unit,
 ) {
     var showDrawer by remember { mutableStateOf(false) }
@@ -77,10 +80,19 @@ fun MainScreen(
                 IconButton(onClick = onNotes) {
                     Icon(Icons.Default.Notes, contentDescription = "Notes")
                 }
+                IconButton(onClick = onCheckUpdate) {
+                    Icon(Icons.Default.SystemUpdate, contentDescription = "Check for update")
+                }
                 IconButton(onClick = onSettings) {
                     Icon(Icons.Default.Settings, contentDescription = "Settings")
                 }
             },
+        )
+        Text(
+            buildInfo,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         LiveActivityTicker(engineState = engineState)
         Column(

@@ -9,7 +9,16 @@
     <string name="accessibility_service_summary">Drives the X431 app on your behalf</string>
 
     <string name="export_screen_title">Export tablet data to PC</string>
-    <string name="export_screen_body">Starts a short-lived server on this tablet. On a PC on the same Wi‑Fi, open the URL, enter the pass code, and download cnlaunch-bundle.zip. Run scripts/build_cnlaunch_assets.py on the PC, then rebuild or push assets to cnlaunch-assets. Server stops after download or 10 minutes idle.</string>
+    <string name="export_screen_body">Send cnlaunch to the office PC at 192.168.1.129. Recommended: tap Push to office PC (run scripts/lan-export-receiver.ps1 on that machine first). Or start the tablet server and open the URL below in Chrome on 192.168.1.129 — use the tablet IP, not the PC IP.</string>
+    <string name="export_pc_host_label">Receiving PC (hardcoded): %1$s</string>
+    <string name="export_pc_browser_hint">On that PC, open this address in Chrome:</string>
+    <string name="export_push_to_pc">Push to office PC now</string>
+    <string name="export_push_receiver_hint">On 192.168.1.129 run: powershell -File scripts\\lan-export-receiver.ps1</string>
+    <string name="export_push_busy">Pushing to office PC…</string>
+    <string name="export_push_ok">Push complete: %1$s</string>
+    <string name="export_push_fail">Push failed: %1$s</string>
+    <string name="check_for_update">Check for update</string>
+    <string name="build_info_label">Build %1$s</string>
     <string name="export_start_server">Start export server</string>
     <string name="export_stop_server">Stop server</string>
     <string name="export_pass_code_label">Pass code: %1$s</string>

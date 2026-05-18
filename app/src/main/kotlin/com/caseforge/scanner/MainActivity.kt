@@ -25,8 +25,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import com.caseforge.scanner.BuildConfig
 import com.caseforge.scanner.agent.AgentRunner
 import com.caseforge.scanner.agent.AgentStatus
+import com.caseforge.scanner.agent.Updater
 import com.caseforge.scanner.agent.ScannerAccessibilityService
 import com.caseforge.scanner.ai.ClaudeClient
 import com.caseforge.scanner.ai.Prompts
@@ -158,6 +160,8 @@ class MainActivity : ComponentActivity() {
                             onNotes = { route = "notes" },
                             onSettings = { route = "settings" },
                             onDiagnostics = { route = "vci_diagnostics" },
+                            onCheckUpdate = { checkForAppUpdate() },
+                            buildInfo = BuildConfig.BUILD_INFO,
                             onAiPrompt = { symptom ->
                                 lifecycleScope.launch {
                                     runStandaloneAgent(
@@ -212,6 +216,7 @@ class MainActivity : ComponentActivity() {
                             onOpenDataExport = { route = "export_data" },
                             onOpenDirectVciProbe = { route = "direct_vci" },
                             onOpenVciDiagnostics = { route = "vci_diagnostics" },
+                            onCheckUpdate = { checkForAppUpdate() },
                         )
                         "vci_diagnostics" -> com.caseforge.scanner.ui.diag.VciDiagnosticsScreen(
                             onBack = { route = "settings" },
@@ -242,6 +247,29 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
+            }
+        }
+    }
+
+    private fun checkForAppUpdate() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                AgentStatus.setActivity("Checking for update…")
+                val info = Updater.checkLatest()
+                if (Updater.isNewer(info)) {
+                    AgentStatus.setActivity("New build ${info.sha} — downloading…")
+                    Updater.downloadAndInstall(applicationContext) { msg ->
+                        AgentStatus.setActivity(msg)
+                    }
+                } else {
+                    val msg = "Already on latest (${info.sha})"
+                    AgentStatus.setActivity(msg)
+                    toast(msg)
+                }
+            } catch (t: Throwable) {
+                val msg = "Update check failed: ${t.message?.take(120) ?: t.javaClass.simpleName}"
+                AgentStatus.setActivity(msg)
+                toast(msg)
             }
         }
     }
