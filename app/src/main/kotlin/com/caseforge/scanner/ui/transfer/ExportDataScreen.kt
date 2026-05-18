@@ -54,18 +54,18 @@ fun ExportDataScreen(
         serverRef?.stopServer()
         serverRef = null
         running = false
-        status = stringResource(R.string.export_status_stopped)
+        status = ctx.getString(R.string.export_status_stopped)
     }
 
     fun startServer() {
         error = null
         val host = LanNetwork.wifiIpv4OrNull(ctx)
         if (host == null) {
-            error = stringResource(R.string.export_error_no_wifi)
+            error = ctx.getString(R.string.export_error_no_wifi)
             return
         }
         if (!zipper.exists) {
-            error = stringResource(R.string.export_error_no_cnlaunch)
+            error = ctx.getString(R.string.export_error_no_cnlaunch)
             return
         }
         scope.launch {
