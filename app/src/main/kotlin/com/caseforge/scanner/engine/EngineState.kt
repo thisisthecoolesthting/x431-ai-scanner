@@ -19,7 +19,7 @@ data class EngineState(
     val vehicleVin: String? = null,
     val vehicleSummary: String? = null,
     val currentMenuPath: List<String> = emptyList(),
-    val dtcs: List<Dtc> = emptyList(),
+    val dtcs: List<ScrapedDtc> = emptyList(),
     val liveData: Map<String, Double> = emptyMap(),
     val busy: Boolean = false,
     val errorBanner: String? = null,
@@ -51,7 +51,7 @@ sealed class ScreenKind {
 }
 
 @Serializable
-data class Dtc(
+data class ScrapedDtc(
     val code: String,
     val description: String? = null,
     val module: String? = null,

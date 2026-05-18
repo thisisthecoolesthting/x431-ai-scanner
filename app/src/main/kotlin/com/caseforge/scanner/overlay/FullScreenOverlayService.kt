@@ -336,6 +336,52 @@ class FullScreenOverlayService : Service(),
         }
     }
 
+    // ---------- post-scan AI suggestions (F1) ----------
+
+    private fun maybeRunPostScanAnalysis(prev: EngineState, newState: EngineState) {
+        if (newState.dtcs.isEmpty()) return
+        val signature = newState.dtcs.joinToString("|") { "${it.code}:${it.module}" }
+        if (signature == lastPostScanSignature) return
+        lastPostScanSignature = signature
+
+        val app = applicationContext as App
+        val key = app.settings.claudeApiKey
+        if (key.isBlank()) return
+
+        engineState.value = newState.copy(
+            nextTestLoading = true,
+            suggestedNextTest = null,
+        )
+
+        scope.launch(Dispatchers.IO) {
+            val suggester = NextTestSuggester(
+                ClaudeClient(apiKey = key, model = app.settings.model),
+            )
+            val suggestion = suggester.suggest(newState)
+            engineState.value = engineState.value.copy(
+                nextTestLoading = false,
+                suggestedNextTest = suggestion,
+            )
+        }
+    }
+
+    private fun handleUiAction(action: UiAction) {
+        when (action) {
+            is UiAction.TapCapability -> dispatchCapability(action.capabilityId)
+            UiAction.AcceptSuggestedTest -> {
+                val capId = engineState.value.suggestedNextTest?.capabilityId ?: "live_data"
+                engineState.value = engineState.value.copy(
+                    suggestedNextTest = null,
+                    screen = ScreenKind.LiveDataView,
+                )
+                dispatchCapability(capId)
+            }
+            UiAction.DeclineSuggestedTest -> {
+                engineState.value = engineState.value.copy(suggestedNextTest = null)
+            }
+        }
+    }
+
     // ---------- user-triggered capability execution ----------
 
     private fun dispatchCapability(capabilityId: String) {

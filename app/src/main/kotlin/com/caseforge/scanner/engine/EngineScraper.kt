@@ -29,7 +29,7 @@ object EngineScraper {
         val text = snapshot.text
         val low = text.lowercase()
         val vin = vinHint ?: VIN_REGEX.find(text)?.value
-        val dtcs = DTC_REGEX.findAll(text).map { Dtc(it.groupValues[1]) }.distinctBy { it.code }.toList()
+        val dtcs = DTC_REGEX.findAll(text).map { ScrapedDtc(it.groupValues[1]) }.distinctBy { it.code }.toList()
         val busy = anyOf(low, "scanning", "communicating", "please wait", "loading")
 
         val kind: ScreenKind = when {

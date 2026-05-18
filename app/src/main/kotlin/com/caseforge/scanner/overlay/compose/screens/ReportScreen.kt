@@ -11,7 +11,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.caseforge.scanner.engine.Dtc
+import com.caseforge.scanner.engine.ScrapedDtc
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.ScreenKind
 import com.caseforge.scanner.overlay.compose.Spacing
@@ -76,7 +76,7 @@ fun ReportScreen(
  * Individual DTC card with monospace code, 2-line description, and severity indicator.
  */
 @Composable
-private fun DtcCard(dtc: Dtc) {
+private fun DtcCard(dtc: ScrapedDtc) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = TogetherCardShape,

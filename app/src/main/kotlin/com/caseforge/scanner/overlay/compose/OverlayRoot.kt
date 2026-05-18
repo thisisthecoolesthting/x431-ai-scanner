@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.data.SettingsRepo
@@ -84,10 +85,12 @@ fun OverlayRoot(
                     // Buttons and interactive elements consume press events first,
                     // so this only fires on non-interactive areas (gaps, empty space).
                     awaitEachGesture {
-                        awaitFirstDown(requireUnconsumed = false)
-                        val longPress = awaitLongPressOrCancellation()
+                        val down = awaitFirstDown(pass = PointerEventPass.Main)
+                        val longPress = awaitLongPressOrCancellation(
+                            down.id,
+                            timeoutMillis = 3000,
+                        )
                         if (longPress != null) {
-                            // 3-second hold completed without cancellation or drag.
                             onEmergencyDismiss()
                         }
                     }

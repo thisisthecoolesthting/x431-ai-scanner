@@ -3,7 +3,7 @@ package com.caseforge.scanner.overlay.compose.screens
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import com.caseforge.scanner.engine.Dtc
+import com.caseforge.scanner.engine.ScrapedDtc
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.ScreenKind
 import com.caseforge.scanner.ui.theme.CaseForgeTheme
@@ -65,9 +65,9 @@ val SAMPLE_ENGINE_WITH_DTCS = EngineState(
     vehicleVin = "5FNRL6H73LB123456",
     vehicleSummary = "2020 Honda Odyssey",
     dtcs = listOf(
-        Dtc("P0101", description = "Mass or Volume Air Flow Sensor A Range/Performance", module = "Engine"),
-        Dtc("P0405", description = "EGR Sensor A Circuit Low", module = "Engine"),
-        Dtc("B1234", description = "Driver Seat Track Position Memory not stored", module = "Seat Memory"),
+        ScrapedDtc("P0101", description = "Mass or Volume Air Flow Sensor A Range/Performance", module = "Engine"),
+        ScrapedDtc("P0405", description = "EGR Sensor A Circuit Low", module = "Engine"),
+        ScrapedDtc("B1234", description = "Driver Seat Track Position Memory not stored", module = "Seat Memory"),
     ),
     busy = false,
 )

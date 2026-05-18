@@ -147,8 +147,8 @@ class EngineHealthMonitor(
     internal fun checkBluetooth(): Boolean =
         try { bluetoothAdapter?.isEnabled == true } catch (_: SecurityException) { false }
 
-    internal fun checkVci(): Boolean =
-        try {
+    internal fun checkVci(): Boolean {
+        return try {
             val adapter = bluetoothAdapter ?: return false
             if (!adapter.isEnabled) return false
             @Suppress("MissingPermission")
@@ -160,6 +160,7 @@ class EngineHealthMonitor(
         } catch (_: SecurityException) {
             false
         }
+    }
 
     // -----------------------------------------------------------------------
     //  Private helpers
