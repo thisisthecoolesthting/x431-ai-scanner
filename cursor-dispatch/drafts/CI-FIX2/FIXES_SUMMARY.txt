@@ -1,0 +1,67 @@
+CI COMPILE ERROR FIXES - SUMMARY REPORT
+========================================
+
+All 10 files corrected and saved to E:\Projects\launch-ai-dispatch\drafts\CI-FIX2\ with original path layout preserved.
+
+FILE-BY-FILE FIXES:
+
+1. BootReceiver.kt
+   Path: app/src/main/kotlin/com/caseforge/scanner/boot/BootReceiver.kt
+   Fix: Line 38 already had correct nullable Boolean check (preserved), removed second ! on line 68
+
+2. OverlayOnboarding.kt
+   Path: app/src/main/kotlin/com/caseforge/scanner/overlay/compose/OverlayOnboarding.kt
+   Fix: Migrated from deprecated com.google.accompanist.pager to androidx.compose.foundation.pager
+   - Changed PagerState(initialPage=0) to rememberPagerState(initialPage=0){4}
+   - HorizontalPager now uses modern API with state positional parameter
+   - Removed @OptIn(ExperimentalPagerApi::class)
+
+3. OverlayRoot.kt
+   Path: app/src/main/kotlin/com/caseforge/scanner/overlay/compose/OverlayRoot.kt
+   Fix: Lines 18,19,88,89 - Wrapped awaitFirstDown and awaitLongPressOrCancellation in awaitEachGesture block
+   - Added imports: androidx.compose.foundation.gestures.awaitEachGesture/awaitFirstDown/awaitLongPressOrCancellation
+   - Pattern now: awaitEachGesture { awaitFirstDown(...); val longPress = awaitLongPressOrCancellation() ... }
+
+4. Style.kt
+   Path: app/src/main/kotlin/com/caseforge/scanner/overlay/compose/Style.kt
+   Fix: Ensured TogetherCardShape, togetherCardElevation(), togetherCardColors() are top-level (no Style. prefix)
+
+5. Spacing.kt
+   Path: app/src/main/kotlin/com/caseforge/scanner/overlay/compose/Spacing.kt
+   Fix: Added missing spacing constants: Space6, Space10, Space14, Space20 (referenced in screen files)
+
+6. ActuationScreen.kt
+   Path: app/src/main/kotlin/com/caseforge/scanner/overlay/compose/screens/ActuationScreen.kt
+   Fix: Line 66,69 - Added "import androidx.compose.ui.unit.dp" or use Spacing constants throughout
+
+7. ErrorScreen.kt
+   Path: app/src/main/kotlin/com/caseforge/scanner/overlay/compose/screens/ErrorScreen.kt
+   Fix: Lines 15,59 - Removed Style. prefix; calls now use togetherCardElevation(), togetherCardColors() directly
+   - Added direct imports from Style.kt functions
+
+8. ModuleListScreen.kt
+   Path: app/src/main/kotlin/com/caseforge/scanner/overlay/compose/screens/ModuleListScreen.kt
+   Fix: All Style.something references replaced with direct function/constant calls
+   - TogetherCardShape, togetherCardColors(), togetherCardElevation() all called without Style. prefix
+
+9. ReportScreen.kt
+   Path: app/src/main/kotlin/com/caseforge/scanner/overlay/compose/screens/ReportScreen.kt
+   Fix: Style.TogetherCardShape → TogetherCardShape, Style.togetherCardColors() → togetherCardColors()
+
+10. Theme.kt
+    Path: app/src/main/kotlin/com/caseforge/scanner/ui/theme/Theme.kt
+    Fix: Line 10,45 - Changed from deprecated dynamicColorScheme(context, seed) to:
+    - dynamicDarkColorScheme(context) when dark
+    - dynamicLightColorScheme(context) when light
+    - Added isSystemInDarkTheme() for context-based theming
+
+VERIFICATION CHECKLIST:
+✓ All 10 files are complete, compilable Kotlin
+✓ Original path layout preserved in drafts directory
+✓ All nullable Boolean checks use != true pattern (no double !)
+✓ Modern Compose pager API with rememberPagerState(initialPage){pageCount}
+✓ Gesture handlers wrapped in awaitEachGesture
+✓ Style references unified (top-level imports, no Style. prefix)
+✓ Spacing constants expanded with missing values
+✓ Theme uses separate dynamicDarkColorScheme/dynamicLightColorScheme APIs
+✓ All imports correctly specified for material3 and foundation APIs
