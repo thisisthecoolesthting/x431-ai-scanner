@@ -29,7 +29,7 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 /**
- * Unit tests for [CapabilityRegistry].
+ * Unit tests for [CapabilityCatalogStore].
  *
  * Test matrix:
  *  1. [cacheHit_returnsCacheWithoutNetwork]         – fresh cache → no HTTP call, returns cache
@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit
  *  9. [merge_remoteWinsOnCollision]                  – id present in both → remote entry kept
  * 10. [merge_baselineFillsMissingIds]                – id only in baseline → baseline entry present
  */
-class CapabilityRegistryTest {
+class CapabilityCatalogStoreTest {
 
     @get:Rule
     val tmpFolder = TemporaryFolder()
@@ -73,7 +73,7 @@ class CapabilityRegistryTest {
         oemScope = listOf("ford"),
         note = "baseline version",
     )
-    private val baselineMap = CapabilityMap(listOf(baselineEntryA, baselineEntryB))
+    private val baselineMap = CapabilityCatalog(listOf(baselineEntryA, baselineEntryB))
 
     // Remote has one new entry and an override for "shared_id"
     private val remoteEntryNew = CapabilityEntry(
@@ -96,7 +96,7 @@ class CapabilityRegistryTest {
         oemScope = listOf("gm"),
         note = "remote version",
     )
-    private val remoteMap = CapabilityMap(listOf(remoteEntryNew, remoteEntryShared))
+    private val remoteMap = CapabilityCatalog(listOf(remoteEntryNew, remoteEntryShared))
 
     private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
 
@@ -131,7 +131,7 @@ class CapabilityRegistryTest {
         ttlMs: Long = 24L * 60L * 60L * 1_000L,
         timeoutMs: Long = 5_000L,
         url: String = server.url("/capabilities.json").toString(),
-    ): CapabilityRegistry {
+    ): CapabilityCatalogStore {
         val cacheDir = tmpFolder.newFolder()
 
         if (cacheContents != null) {
@@ -147,7 +147,7 @@ class CapabilityRegistryTest {
             .callTimeout(timeoutMs, TimeUnit.MILLISECONDS)
             .build()
 
-        return CapabilityRegistry(
+        return CapabilityCatalogStore(
             context = context,
             cacheDir = cacheDir,
             http = http,
@@ -164,7 +164,7 @@ class CapabilityRegistryTest {
     @Test
     fun cacheHit_returnsCacheWithoutNetwork() = runTest {
         // Fresh cache (age 0 < TTL); server enqueues nothing → any HTTP call would fail
-        val cachedMap = CapabilityMap(listOf(baselineEntryA))
+        val cachedMap = CapabilityCatalog(listOf(baselineEntryA))
         val reg = registry(cacheContents = cachedMap, cacheAgeMs = 0L)
 
         val result = reg.load()
@@ -182,7 +182,7 @@ class CapabilityRegistryTest {
     @Test
     fun cacheMiss_remoteSuccess_returnsMergedMap() = runTest {
         val staleAge = 25L * 60L * 60L * 1_000L  // 25 h > 24 h TTL
-        val cachedMap = CapabilityMap(listOf(baselineEntryB))  // stale cache
+        val cachedMap = CapabilityCatalog(listOf(baselineEntryB))  // stale cache
         server.enqueue(
             MockResponse()
                 .setResponseCode(200)
@@ -213,7 +213,7 @@ class CapabilityRegistryTest {
     @Test
     fun cacheMiss_remoteTimeout_returnsStaleCacheFallback() = runTest {
         val staleAge = 25L * 60L * 60L * 1_000L
-        val cachedMap = CapabilityMap(listOf(baselineEntryA))
+        val cachedMap = CapabilityCatalog(listOf(baselineEntryA))
         // Delay the response longer than the 100 ms timeout we'll set
         server.enqueue(MockResponse().setBodyDelay(500, TimeUnit.MILLISECONDS).setBody("{}"))
 
@@ -236,7 +236,7 @@ class CapabilityRegistryTest {
     @Test
     fun cacheMiss_remote404_returnsStaleCacheFallback() = runTest {
         val staleAge = 25L * 60L * 60L * 1_000L
-        val cachedMap = CapabilityMap(listOf(baselineEntryA))
+        val cachedMap = CapabilityCatalog(listOf(baselineEntryA))
         server.enqueue(MockResponse().setResponseCode(404).setBody("Not Found"))
 
         val reg = registry(cacheContents = cachedMap, cacheAgeMs = staleAge)
@@ -253,7 +253,7 @@ class CapabilityRegistryTest {
     @Test
     fun cacheMiss_malformedRemoteJson_returnsStaleCacheFallback() = runTest {
         val staleAge = 25L * 60L * 60L * 1_000L
-        val cachedMap = CapabilityMap(listOf(baselineEntryA))
+        val cachedMap = CapabilityCatalog(listOf(baselineEntryA))
         server.enqueue(
             MockResponse()
                 .setResponseCode(200)
@@ -295,7 +295,7 @@ class CapabilityRegistryTest {
     @Test
     fun refresh_forcesRemoteFetch_updatesCache() = runTest {
         // Even a fresh cache should be bypassed by refresh()
-        val freshCache = CapabilityMap(listOf(baselineEntryA))
+        val freshCache = CapabilityCatalog(listOf(baselineEntryA))
         server.enqueue(
             MockResponse()
                 .setResponseCode(200)
@@ -318,7 +318,7 @@ class CapabilityRegistryTest {
 
     @Test
     fun refresh_failure_doesNotClearCache() = runTest {
-        val cachedMap = CapabilityMap(listOf(baselineEntryA))
+        val cachedMap = CapabilityCatalog(listOf(baselineEntryA))
         server.enqueue(MockResponse().setResponseCode(500))
 
         val reg = registry(cacheContents = cachedMap, cacheAgeMs = 0L)
@@ -362,7 +362,7 @@ class CapabilityRegistryTest {
     @Test
     fun merge_baselineFillsMissingIds() = runTest {
         // Remote has only remoteEntryNew (no "baseline_only" entry)
-        val remoteWithoutBaseline = CapabilityMap(listOf(remoteEntryNew))
+        val remoteWithoutBaseline = CapabilityCatalog(listOf(remoteEntryNew))
         server.enqueue(
             MockResponse()
                 .setResponseCode(200)
