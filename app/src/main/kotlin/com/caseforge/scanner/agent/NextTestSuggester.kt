@@ -6,33 +6,24 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.float
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-/**
- * One-shot Claude call that suggests the highest-probability next diagnostic step
- * from the current [EngineState] (DTCs, live data snapshot, vehicle context).
- *
- * Uses the same [ClaudeClient] stack as [AgentRunner] without entering the tool-use
- * loop, so the overlay can suggest a test without driving X431 autonomously.
- */
 class NextTestSuggester(private val claude: ClaudeClient) {
-
     private val json = Json { ignoreUnknownKeys = true }
 
     private val systemPrompt = """
         You are an expert automotive diagnostician on a professional scan tool.
         Given DTCs and optional live-data values from a completed scan, respond with
-        exactly one JSON object (no markdown fences) with this schema:
+        exactly one JSON object and no markdown fences using this schema:
         {
           "testName": "<short name of the next test>",
           "probability": <float 0.0-1.0>,
           "rationale": "<one or two sentences for the technician>",
-          "capabilityId": "<one of: live_data, read_dtcs, actuation, full_scan, clear_dtcs, or null>"
+          "capabilityId": "<one of: live_data, read_dtcs, actuation, full_scan, clear_dtcs, freeze_frame, or null>"
         }
-        Prefer live_data when confirming sensor values; actuation when a bidirectional
-        test is the logical next step. Be specific (name PIDs or tests).
+        Prefer live_data when confirming sensor values and actuation when a bidirectional
+        test is the logical next step. Be specific about PIDs, modules, or tests.
     """.trimIndent()
 
     suspend fun suggest(state: EngineState): NextTestSuggestion? = withContext(Dispatchers.IO) {
@@ -43,48 +34,46 @@ class NextTestSuggester(private val claude: ClaudeClient) {
             state.vehicleSummary?.let { appendLine("Vehicle: $it") }
             appendLine("DTCs:")
             state.dtcs.forEach { dtc ->
-                val mod = dtc.module?.let { " [$it]" }.orEmpty()
-                appendLine("  - ${dtc.code}$mod: ${dtc.description ?: "no description"}")
+                val module = dtc.module?.let { " [$it]" }.orEmpty()
+                appendLine("  - ${dtc.code}$module: ${dtc.description ?: "no description"}")
             }
             if (state.liveData.isNotEmpty()) {
                 appendLine("Freeze-frame / live data snapshot:")
-                state.liveData.forEach { (k, v) -> appendLine("  - $k: $v") }
+                state.liveData.forEach { (name, value) -> appendLine("  - $name: $value") }
             }
             appendLine()
             append("Produce the JSON suggestion now.")
         }
 
         runCatching {
-            val resp = claude.sendMessages(
+            val response = claude.sendMessages(
                 system = systemPrompt,
                 messages = listOf(ClaudeClient.userText(userPrompt)),
                 tools = emptyList(),
                 maxTokens = 512,
                 temperature = 0.15,
             )
-            val text = resp.firstText()?.trim().orEmpty()
-            if (text.isBlank()) return@runCatching null
-            parseSuggestion(text)
+            parseSuggestion(response.firstText()?.trim().orEmpty())
         }.getOrNull()
     }
 
     private fun parseSuggestion(text: String): NextTestSuggestion? {
-        val trimmed = text.trim()
-        val jsonStart = trimmed.indexOf('{')
-        val jsonEnd = trimmed.lastIndexOf('}')
+        val jsonStart = text.indexOf('{')
+        val jsonEnd = text.lastIndexOf('}')
         if (jsonStart < 0 || jsonEnd <= jsonStart) return null
-        val obj = json.parseToJsonElement(trimmed.substring(jsonStart, jsonEnd + 1)).jsonObject
+
+        val obj = json.parseToJsonElement(text.substring(jsonStart, jsonEnd + 1)).jsonObject
         val testName = obj["testName"]?.jsonPrimitive?.content?.trim().orEmpty()
         if (testName.isBlank()) return null
-        val probability = obj["probability"]?.jsonPrimitive?.float?.coerceIn(0f, 1f) ?: 0.5f
-        val rationale = obj["rationale"]?.jsonPrimitive?.content?.trim().orEmpty()
-        val capabilityId = obj["capabilityId"]?.jsonPrimitive?.content
-            ?.takeIf { it.isNotBlank() && !it.equals("null", ignoreCase = true) }
+
         return NextTestSuggestion(
             testName = testName,
-            probability = probability,
-            rationale = rationale.ifBlank { "Run this test to narrow the diagnosis." },
-            capabilityId = capabilityId,
+            probability = obj["probability"]?.jsonPrimitive?.content?.toFloatOrNull()?.coerceIn(0f, 1f) ?: 0.5f,
+            rationale = obj["rationale"]?.jsonPrimitive?.content?.trim()
+                ?.ifBlank { null }
+                ?: "Run this test to narrow the diagnosis.",
+            capabilityId = obj["capabilityId"]?.jsonPrimitive?.content?.trim()
+                ?.takeIf { it.isNotBlank() && !it.equals("null", ignoreCase = true) },
         )
     }
 }
