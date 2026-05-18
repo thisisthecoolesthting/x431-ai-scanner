@@ -19,10 +19,16 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.caseforge.scanner.R
 import com.caseforge.scanner.data.SettingsRepo
+import androidx.compose.ui.res.stringResource
 
 @Composable
-fun SettingsScreen(settings: SettingsRepo, onBack: () -> Unit) {
+fun SettingsScreen(
+    settings: SettingsRepo,
+    onBack: () -> Unit,
+    onOpenDataExport: (() -> Unit)? = null,
+) {
     var apiKey by remember { mutableStateOf(settings.claudeApiKey) }
     var keyVisible by remember { mutableStateOf(false) }
     var autonomous by remember { mutableStateOf(settings.autonomousActuation) }
@@ -63,6 +69,21 @@ fun SettingsScreen(settings: SettingsRepo, onBack: () -> Unit) {
             ListItem(headlineContent = { Text("Confirm bidirectional tests") }, trailingContent = { Switch(checked = approval, onCheckedChange = { approval = it; settings.requireApproval = it }) })
             ListItem(headlineContent = { Text("Show overlay on X431") }, trailingContent = { Switch(checked = overlayOnX431, onCheckedChange = { overlayOnX431 = it; settings.overlayOnX431 = it }) })
             ListItem(headlineContent = { Text("Kill switch") }, trailingContent = { Switch(checked = kill, onCheckedChange = { kill = it; settings.killSwitch = it }) })
+
+            if (onOpenDataExport != null) {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Data and offline AI", style = MaterialTheme.typography.titleSmall)
+                        Text(
+                            stringResource(R.string.export_screen_body),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        Button(onClick = onOpenDataExport, modifier = Modifier.fillMaxWidth()) {
+                            Text(stringResource(R.string.export_settings_entry))
+                        }
+                    }
+                }
+            }
         }
     }
 }
