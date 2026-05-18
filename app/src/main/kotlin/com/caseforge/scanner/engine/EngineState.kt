@@ -1,6 +1,7 @@
 package com.caseforge.scanner.engine
 
 import com.caseforge.scanner.agent.ScreenSnapshot
+import com.caseforge.scanner.ai.RecallMatch
 import kotlinx.serialization.Serializable
 
 /**
@@ -20,6 +21,7 @@ data class EngineState(
     val vehicleSummary: String? = null,
     val currentMenuPath: List<String> = emptyList(),
     val dtcs: List<ScrapedDtc> = emptyList(),
+    val recallMatches: List<RecallMatch> = emptyList(),
     val liveData: Map<String, Double> = emptyMap(),
     val busy: Boolean = false,
     val errorBanner: String? = null,

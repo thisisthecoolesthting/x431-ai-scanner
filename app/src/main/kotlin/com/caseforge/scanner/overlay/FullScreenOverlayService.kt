@@ -34,12 +34,23 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.caseforge.scanner.App
+import com.caseforge.scanner.agent.NextTestSuggester
+import com.caseforge.scanner.agent.RecallFlagger
 import com.caseforge.scanner.agent.ScannerAccessibilityService
+import com.caseforge.scanner.engine.ScreenKind
+import com.caseforge.scanner.ai.ClaudeClient
 import com.caseforge.scanner.data.SettingsRepo
 import com.caseforge.scanner.engine.EngineScraper
 import com.caseforge.scanner.engine.EngineHealthMonitor
 import com.caseforge.scanner.engine.EngineState
+import com.caseforge.scanner.engine.ScreenKind
 import com.caseforge.scanner.overlay.compose.OverlayRoot
+import com.caseforge.scanner.overlay.compose.screens.UiAction
+import com.caseforge.scanner.voice.VoiceCommander
+import com.caseforge.scanner.voice.VoiceMode
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -132,6 +143,10 @@ class FullScreenOverlayService : Service(),
     private val ui = Handler(Looper.getMainLooper())
     private val engineState   = mutableStateOf(EngineState.EMPTY)
     private val peekModeAlpha = mutableStateOf(1.0f) // 1.0 = fully opaque, 0.0 = peek
+    private var lastPostScanSignature: String? = null
+    private val voiceUiState = mutableStateOf(VoiceMode.State.IDLE)
+    private val voiceLastPhrase = mutableStateOf("")
+    private var voiceCommander: VoiceCommander? = null
 
     // A3: health monitor — created in onCreate, started/stopped alongside the service.
     private lateinit var monitor: EngineHealthMonitor
@@ -188,6 +203,7 @@ class FullScreenOverlayService : Service(),
         isRunning = true
         startForeground(NOTIFICATION_ID, buildNotification())
         if (rootView == null) attachOverlay()
+        syncVoiceCommander()
         startScraperLoop()
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
         return START_STICKY
@@ -201,6 +217,9 @@ class FullScreenOverlayService : Service(),
         // A3: stop the health monitor before cancelling the scope it runs on.
         monitor.stop()
         Log.i(TAG, "EngineHealthMonitor stopped")
+
+        voiceCommander?.stop()
+        voiceCommander = null
 
         scraperJob?.cancel()
         scope.cancel()
@@ -232,8 +251,14 @@ class FullScreenOverlayService : Service(),
                     onDismiss    = { stopSelf() },
                     onPeek       = { togglePeek() },
                     onCapability = { id -> dispatchCapability(id) },
+                    onUiAction = { handleUiAction(it) },
                     onEmergencyDismiss = { requestEmergencyDismiss() },
                     healthState  = healthState,
+                    voiceEnabled = settingsRepo.voiceEnabled && hasRecordAudioPermission(),
+                    voiceState = voiceUiState.value,
+                    voiceLastPhrase = voiceLastPhrase.value,
+                    onVoicePressStart = { voiceCommander?.startPushToTalk() },
+                    onVoicePressEnd = { voiceCommander?.stopPushToTalk() },
                 )
             }
         }
@@ -322,11 +347,18 @@ class FullScreenOverlayService : Service(),
                         // A3: feed the foreground package to the health monitor so it can
                         // evaluate X431 foreground state without any manifest permissions.
                         monitor.notifyForegroundPackage(snap.pkg)
+                        val prev = engineState.value
                         val newState = EngineScraper.scrape(snap)
                         engineState.value = newState
 
+                        if (newState.screen is ScreenKind.FullScanResults) {
+                            maybeRunPostScanAnalysis(prev, newState)
+                        } else {
+                            lastPostScanSignature = null
+                        }
+
                         // D2: persist state on every screen transition
-                        if (newState.screen != engineState.value.screen) {
+                        if (newState.screen != prev.screen) {
                             OverlayStatePersistence.save(applicationContext, newState)
                         }
                     }
@@ -336,48 +368,18 @@ class FullScreenOverlayService : Service(),
         }
     }
 
-    // ---------- post-scan AI suggestions (F1) ----------
-
-    private fun maybeRunPostScanAnalysis(prev: EngineState, newState: EngineState) {
+    private fun maybeFetchRecalls(prev: EngineState, newState: EngineState) {
+        if (newState.screen !is ScreenKind.FullScanResults) return
         if (newState.dtcs.isEmpty()) return
-        val signature = newState.dtcs.joinToString("|") { "${it.code}:${it.module}" }
-        if (signature == lastPostScanSignature) return
-        lastPostScanSignature = signature
-
-        val app = applicationContext as App
-        val key = app.settings.claudeApiKey
-        if (key.isBlank()) return
-
-        engineState.value = newState.copy(
-            nextTestLoading = true,
-            suggestedNextTest = null,
-        )
+        val vin = newState.vehicleVin ?: return
+        val signature = "$vin|${newState.dtcs.joinToString { it.code }}"
+        if (signature == lastRecallSignature && newState.recallMatches.isNotEmpty()) return
+        lastRecallSignature = signature
 
         scope.launch(Dispatchers.IO) {
-            val suggester = NextTestSuggester(
-                ClaudeClient(apiKey = key, model = app.settings.model),
-            )
-            val suggestion = suggester.suggest(newState)
-            engineState.value = engineState.value.copy(
-                nextTestLoading = false,
-                suggestedNextTest = suggestion,
-            )
-        }
-    }
-
-    private fun handleUiAction(action: UiAction) {
-        when (action) {
-            is UiAction.TapCapability -> dispatchCapability(action.capabilityId)
-            UiAction.AcceptSuggestedTest -> {
-                val capId = engineState.value.suggestedNextTest?.capabilityId ?: "live_data"
-                engineState.value = engineState.value.copy(
-                    suggestedNextTest = null,
-                    screen = ScreenKind.LiveDataView,
-                )
-                dispatchCapability(capId)
-            }
-            UiAction.DeclineSuggestedTest -> {
-                engineState.value = engineState.value.copy(suggestedNextTest = null)
+            val matches = recallFlagger.flagRecalls(vin, newState.dtcs)
+            if (matches.isNotEmpty()) {
+                engineState.value = engineState.value.copy(recallMatches = matches)
             }
         }
     }

@@ -13,4 +13,8 @@ sealed class UiAction {
      * The hosting service will dispatch this capability ID to the X431 engine.
      */
     data class TapCapability(val capabilityId: String) : UiAction()
+
+    data object AcceptSuggestedTest : UiAction()
+
+    data object DeclineSuggestedTest : UiAction()
 }

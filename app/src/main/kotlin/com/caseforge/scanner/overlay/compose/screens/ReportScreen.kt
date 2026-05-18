@@ -12,6 +12,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.engine.ScrapedDtc
+import com.caseforge.scanner.overlay.compose.RecallBanner
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.ScreenKind
 import com.caseforge.scanner.overlay.compose.Spacing
@@ -57,6 +58,10 @@ fun ReportScreen(
             style = MaterialTheme.typography.bodySmall,
         )
         HorizontalDivider()
+
+        if (state.recallMatches.isNotEmpty()) {
+            RecallBanner(recalls = state.recallMatches)
+        }
 
         if (state.dtcs.isEmpty()) {
             Text(
