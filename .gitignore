@@ -15,3 +15,6 @@ gradle/wrapper/gradle-wrapper.jar
 .build-cache/
 local.properties
 
+
+setup-github.log
+

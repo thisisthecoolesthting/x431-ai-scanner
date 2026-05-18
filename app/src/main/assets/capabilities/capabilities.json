@@ -1,0 +1,4640 @@
+{
+  "capabilities": [
+    {
+      "id": "scan_full_system",
+      "label": "Full System Scan",
+      "category": "Scan",
+      "path": [
+        "diagnose",
+        "ford",
+        "scan",
+        "full_system"
+      ],
+      "done_when": "scan completed successfully",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Scans all vehicle modules and systems; may take 2-3 minutes on full vehicles"
+    },
+    {
+      "id": "scan_single_module",
+      "label": "Single Module Scan",
+      "category": "Scan",
+      "path": [
+        "diagnose",
+        "ford",
+        "scan",
+        "module_select"
+      ],
+      "done_when": "module scan finished",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Target specific modules: ECM, TCM, ABS, BCM, etc."
+    },
+    {
+      "id": "codes_read_dtc",
+      "label": "Read Diagnostic Trouble Codes",
+      "category": "Codes",
+      "path": [
+        "diagnose",
+        "ford",
+        "codes",
+        "read"
+      ],
+      "done_when": "all codes displayed",
+      "timeout_sec": 30,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Retrieves pending, confirmed, and history codes from all modules"
+    },
+    {
+      "id": "codes_clear_dtc",
+      "label": "Clear Diagnostic Trouble Codes",
+      "category": "Codes",
+      "path": [
+        "diagnose",
+        "ford",
+        "codes",
+        "clear"
+      ],
+      "done_when": "codes cleared",
+      "timeout_sec": 30,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Clears all trouble codes; vehicle may require drive cycle for some systems"
+    },
+    {
+      "id": "codes_read_freeze_frame",
+      "label": "Read Freeze Frame Data",
+      "category": "Codes",
+      "path": [
+        "diagnose",
+        "ford",
+        "codes",
+        "freeze_frame"
+      ],
+      "done_when": "freeze frame data displayed",
+      "timeout_sec": 30,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Captures snapshot of vehicle conditions when DTC was triggered"
+    },
+    {
+      "id": "livedata_engine_pids",
+      "label": "Engine Live Data PIDs",
+      "category": "LiveData",
+      "path": [
+        "diagnose",
+        "ford",
+        "livedata",
+        "engine"
+      ],
+      "done_when": "data streaming",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Monitor fuel trim, oxygen sensors, MAF, IAT, coolant temp, RPM in real-time"
+    },
+    {
+      "id": "livedata_transmission_pids",
+      "label": "Transmission Live Data PIDs",
+      "category": "LiveData",
+      "path": [
+        "diagnose",
+        "ford",
+        "livedata",
+        "transmission"
+      ],
+      "done_when": "data streaming",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "View gear selection, fluid temp, pressure, shift points, and TCM parameters"
+    },
+    {
+      "id": "livedata_abs_pids",
+      "label": "ABS Live Data PIDs",
+      "category": "LiveData",
+      "path": [
+        "diagnose",
+        "ford",
+        "livedata",
+        "abs"
+      ],
+      "done_when": "data streaming",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Monitor wheel speed sensors, ABS pump status, and brake pressure values"
+    },
+    {
+      "id": "service_oil_reset",
+      "label": "Oil Change Service Reset",
+      "category": "Service",
+      "path": [
+        "special_functions",
+        "ford",
+        "service",
+        "oil_reset"
+      ],
+      "done_when": "oil service interval reset",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Resets the service interval timer after oil and filter replacement"
+    },
+    {
+      "id": "service_epb_reset",
+      "label": "Electronic Parking Brake Service Reset",
+      "category": "Service",
+      "path": [
+        "special_functions",
+        "ford",
+        "service",
+        "epb_reset"
+      ],
+      "done_when": "epb service reset complete",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Resets EPB after brake pad replacement; vehicle must be on level ground"
+    },
+    {
+      "id": "service_throttle_relearn",
+      "label": "Throttle Position Relearn",
+      "category": "Service",
+      "path": [
+        "special_functions",
+        "ford",
+        "service",
+        "throttle_relearn"
+      ],
+      "done_when": "throttle relearn successful",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Resets electronic throttle to factory baseline; may require ignition cycles"
+    },
+    {
+      "id": "service_tpms_reset",
+      "label": "TPMS Sensor Reset and Relearn",
+      "category": "Service",
+      "path": [
+        "special_functions",
+        "ford",
+        "service",
+        "tpms_reset"
+      ],
+      "done_when": "tpms sensors learned",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Relearns tire pressure sensor IDs; drive vehicle at 25+ mph after reset"
+    },
+    {
+      "id": "service_battery_registration",
+      "label": "Battery Charge State Registration",
+      "category": "Service",
+      "path": [
+        "special_functions",
+        "ford",
+        "service",
+        "battery_registration"
+      ],
+      "done_when": "battery registered",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Re-registers battery with BMS after replacement; requires full charge"
+    },
+    {
+      "id": "service_steering_angle_reset",
+      "label": "Steering Angle Calibration",
+      "category": "Service",
+      "path": [
+        "special_functions",
+        "ford",
+        "service",
+        "steering_angle_reset"
+      ],
+      "done_when": "steering angle calibrated",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Resets steering angle sensor after alignment; vehicle must be centered"
+    },
+    {
+      "id": "service_dpf_regeneration",
+      "label": "DPF Regeneration",
+      "category": "Service",
+      "path": [
+        "special_functions",
+        "ford",
+        "service",
+        "dpf_regen"
+      ],
+      "done_when": "dpf regeneration complete",
+      "timeout_sec": 600,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Performs active DPF regeneration; requires 20+ minutes and steady RPM"
+    },
+    {
+      "id": "service_transmission_learning_reset",
+      "label": "Transmission Adaptive Learning Reset",
+      "category": "Service",
+      "path": [
+        "special_functions",
+        "ford",
+        "service",
+        "transmission_learning"
+      ],
+      "done_when": "transmission learning reset",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Resets TCM adaptive learning after ECU/TCM replacement; drive cycle required"
+    },
+    {
+      "id": "bidirectional_fuel_pump_command",
+      "label": "Fuel Pump Enable/Disable Command",
+      "category": "Bidirectional",
+      "path": [
+        "special_functions",
+        "ford",
+        "active_test",
+        "fuel_pump"
+      ],
+      "done_when": "fuel pump commanded",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Commands fuel pump on/off to verify operation and pressure; listen for pump"
+    },
+    {
+      "id": "bidirectional_injector_test",
+      "label": "Fuel Injector Pulse Test",
+      "category": "Bidirectional",
+      "path": [
+        "special_functions",
+        "ford",
+        "active_test",
+        "injector"
+      ],
+      "done_when": "injector test complete",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Tests each injector individually; requires engine off or cranking mode"
+    },
+    {
+      "id": "bidirectional_evap_test",
+      "label": "EVAP Purge Solenoid Test",
+      "category": "Bidirectional",
+      "path": [
+        "special_functions",
+        "ford",
+        "active_test",
+        "evap_purge"
+      ],
+      "done_when": "evap test complete",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Commands EVAP purge solenoid and vent valve; listen for clicking sounds"
+    },
+    {
+      "id": "bidirectional_cooling_fan_control",
+      "label": "Cooling Fan Control Test",
+      "category": "Bidirectional",
+      "path": [
+        "special_functions",
+        "ford",
+        "active_test",
+        "cooling_fan"
+      ],
+      "done_when": "fan control test complete",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Commands fan at multiple speeds (20%, 40%, 50%, 70%, 90%); listen for fan"
+    },
+    {
+      "id": "bidirectional_glow_plug_test",
+      "label": "Glow Plug Cycle Test",
+      "category": "Bidirectional",
+      "path": [
+        "special_functions",
+        "ford",
+        "active_test",
+        "glow_plug"
+      ],
+      "done_when": "glow plug test complete",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Tests glow plug relay and circuits on diesel engines; check for heat"
+    },
+    {
+      "id": "programming_pats_key_learn",
+      "label": "PATS Key Add/Learn",
+      "category": "Programming",
+      "path": [
+        "programming",
+        "ford",
+        "pats",
+        "key_learn"
+      ],
+      "done_when": "key programming successful",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Programs new PATS keys; requires valid blue transponder keys; max 8 keys"
+    },
+    {
+      "id": "programming_pats_key_erase",
+      "label": "PATS Key Erase All",
+      "category": "Programming",
+      "path": [
+        "programming",
+        "ford",
+        "pats",
+        "key_erase"
+      ],
+      "done_when": "all keys erased",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Erases all PATS keys from system; must reprogram minimum 2 keys afterward"
+    },
+    {
+      "id": "programming_ecu_flash",
+      "label": "ECU Firmware Programming",
+      "category": "Programming",
+      "path": [
+        "programming",
+        "ford",
+        "ecu",
+        "flash"
+      ],
+      "done_when": "ecu programming successful",
+      "timeout_sec": 600,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Updates ECU firmware; requires stable power and uninterrupted connection"
+    },
+    {
+      "id": "programming_immobilizer_init",
+      "label": "Immobilizer System Initialization",
+      "category": "Programming",
+      "path": [
+        "programming",
+        "ford",
+        "immobilizer",
+        "initialize"
+      ],
+      "done_when": "immobilizer initialized",
+      "timeout_sec": 240,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Initializes immobilizer after PCM replacement; requires valid keys present"
+    },
+    {
+      "id": "coding_parameter_coding",
+      "label": "Parameter Coding",
+      "category": "Coding",
+      "path": [
+        "coding",
+        "ford",
+        "parameter",
+        "coding"
+      ],
+      "done_when": "parameters coded successfully",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Customizes vehicle parameters like units, language, comfort settings"
+    },
+    {
+      "id": "coding_feature_coding",
+      "label": "Feature Coding and Customization",
+      "category": "Coding",
+      "path": [
+        "coding",
+        "ford",
+        "feature",
+        "coding"
+      ],
+      "done_when": "features coded successfully",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Enables/disables features: daytime running lights, interior lighting, door locks"
+    },
+    {
+      "id": "coding_asbuilt_data",
+      "label": "As-Built Data Programming",
+      "category": "Coding",
+      "path": [
+        "coding",
+        "ford",
+        "asbuilt",
+        "programming"
+      ],
+      "done_when": "asbuilt data written",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Programs module configuration data; requires exact vehicle specifications"
+    },
+    {
+      "id": "module_abs_bleed",
+      "label": "ABS Brake System Bleed",
+      "category": "Module",
+      "path": [
+        "special_functions",
+        "ford",
+        "module",
+        "abs_bleed"
+      ],
+      "done_when": "abs bleed procedure complete",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Bleeds air from ABS system after master cylinder or module replacement"
+    },
+    {
+      "id": "module_bcm_configuration",
+      "label": "Body Control Module Configuration",
+      "category": "Module",
+      "path": [
+        "programming",
+        "ford",
+        "module",
+        "bcm_config"
+      ],
+      "done_when": "bcm configured successfully",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Configures BCM after replacement; programs comfort and lighting settings"
+    },
+    {
+      "id": "module_ipc_reset",
+      "label": "Instrument Panel Cluster Reset",
+      "category": "Module",
+      "path": [
+        "special_functions",
+        "ford",
+        "module",
+        "ipc_reset"
+      ],
+      "done_when": "ipc reset complete",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Clears IPC fault memory and recalibrates display; syncs with BCM"
+    },
+    {
+      "id": "module_tcm_reset",
+      "label": "Transmission Control Module Reset",
+      "category": "Module",
+      "path": [
+        "special_functions",
+        "ford",
+        "module",
+        "tcm_reset"
+      ],
+      "done_when": "tcm reset complete",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Resets TCM after replacement; requires drive cycle for learning reestablishment"
+    },
+    {
+      "id": "module_abs_module_replacement",
+      "label": "ABS Module Post-Replacement Programming",
+      "category": "Module",
+      "path": [
+        "programming",
+        "ford",
+        "module",
+        "abs_program"
+      ],
+      "done_when": "abs module programmed",
+      "timeout_sec": 240,
+      "oem_scope": [
+        "ford",
+        "lincoln"
+      ],
+      "note": "Programs new ABS module VIN and calibration data after hardware replacement"
+    },
+    {
+      "id": "codes_freeze_frame",
+      "label": "Read Freeze Frame Data",
+      "category": "Codes",
+      "path": [
+        "gm",
+        "x431",
+        "codes",
+        "freeze_frame"
+      ],
+      "done_when": "Freeze Frame Retrieved",
+      "timeout_sec": 30,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Displays sensor snapshots captured when DTC was set. Critical for intermittent issue diagnosis."
+    },
+    {
+      "id": "livedata_body_pids",
+      "label": "Body Control Module Live Data",
+      "category": "LiveData",
+      "path": [
+        "gm",
+        "x431",
+        "livedata",
+        "body_module"
+      ],
+      "done_when": "Data Stream Active",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Real-time BCM PIDs: lighting, door locks, windows, wipers, mirror positions, TPMS pressures."
+    },
+    {
+      "id": "service_tpms_relearn",
+      "label": "Tire Pressure Sensor Relearn",
+      "category": "Service",
+      "path": [
+        "gm",
+        "x431",
+        "service",
+        "tpms_relearn"
+      ],
+      "done_when": "TPMS Relearn Complete",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Relearns tire sensor IDs after wheel rotation or sensor replacement. Requires new sensors to be programmed first."
+    },
+    {
+      "id": "service_afm_relearn",
+      "label": "Active Fuel Management System Relearn",
+      "category": "Service",
+      "path": [
+        "gm",
+        "x431",
+        "service",
+        "afm_relearn"
+      ],
+      "done_when": "AFM Relearn Complete",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Relearns cylinder deactivation parameters on 4.3L and 5.3L engines. Improves fuel economy and performance."
+    },
+    {
+      "id": "bidirect_fuel_pump_control",
+      "label": "Fuel Pump Command Test",
+      "category": "Bidirectional",
+      "path": [
+        "gm",
+        "x431",
+        "bidirect",
+        "fuel_pump_cmd"
+      ],
+      "done_when": "Fuel Pump Running",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Commands fuel pump on/off for testing. Verify pump operation and pressure under load."
+    },
+    {
+      "id": "bidirect_fuel_injector_test",
+      "label": "Fuel Injector Pulse Test",
+      "category": "Bidirectional",
+      "path": [
+        "gm",
+        "x431",
+        "bidirect",
+        "injector_test"
+      ],
+      "done_when": "Injector Pulse Active",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Pulses individual fuel injectors for balance testing. Verify equal spray patterns and fuel delivery."
+    },
+    {
+      "id": "bidirect_evap_test",
+      "label": "EVAP System Purge Test",
+      "category": "Bidirectional",
+      "path": [
+        "gm",
+        "x431",
+        "bidirect",
+        "evap_test"
+      ],
+      "done_when": "Purge Solenoid Activated",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Commands EVAP purge solenoid and charcoal canister vent valve. Listen for solenoid clicks and monitor fuel vapor flow."
+    },
+    {
+      "id": "bidirect_ac_compressor",
+      "label": "AC Compressor Clutch Cycle Test",
+      "category": "Bidirectional",
+      "path": [
+        "gm",
+        "x431",
+        "bidirect",
+        "ac_compressor"
+      ],
+      "done_when": "AC Clutch Cycling",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Cycles AC compressor clutch on/off for verification. Confirms electrical circuit and compressor engagement."
+    },
+    {
+      "id": "bidirect_cooling_fans",
+      "label": "Cooling Fan Speed Control Test",
+      "category": "Bidirectional",
+      "path": [
+        "gm",
+        "x431",
+        "bidirect",
+        "cooling_fans"
+      ],
+      "done_when": "Fan Speed Test Complete",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Commands electric cooling fans to low/high speed. Verify motor operation and PWM control."
+    },
+    {
+      "id": "programming_key_fob",
+      "label": "Key Fob Programming",
+      "category": "Programming",
+      "path": [
+        "gm",
+        "x431",
+        "programming",
+        "key_fob"
+      ],
+      "done_when": "Key Programming Complete",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Programs remote keyless entry fobs to vehicle BCM. Requires dealer-level database access. May need existing fob."
+    },
+    {
+      "id": "programming_bcm_config",
+      "label": "Body Control Module Configuration",
+      "category": "Programming",
+      "path": [
+        "gm",
+        "x431",
+        "programming",
+        "bcm_config"
+      ],
+      "done_when": "BCM Configuration Complete",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Configures BCM for optional features (sunroof, power seat memory, auto locks). Tech2-equivalent function."
+    },
+    {
+      "id": "coding_parameter_adjust",
+      "label": "Parameter Coding and Adjustment",
+      "category": "Coding",
+      "path": [
+        "gm",
+        "x431",
+        "coding",
+        "parameter"
+      ],
+      "done_when": "Parameter Coding Complete",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Modifies ECM/TCM/BCM calibration parameters (shift points, idle speed, thresholds). Affects performance and economy."
+    },
+    {
+      "id": "coding_feature_enable",
+      "label": "Feature Coding and Activation",
+      "category": "Coding",
+      "path": [
+        "gm",
+        "x431",
+        "coding",
+        "feature"
+      ],
+      "done_when": "Feature Coding Complete",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Enables/disables hidden vehicle features (speed limiter, daytime running lights, comfort features)."
+    },
+    {
+      "id": "coding_rpo_config",
+      "label": "RPO Code Configuration",
+      "category": "Coding",
+      "path": [
+        "gm",
+        "x431",
+        "coding",
+        "rpo"
+      ],
+      "done_when": "RPO Configuration Complete",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Programs RPO (Regular Production Option) codes for optional equipment recognition (towing, AWD, special editions)."
+    },
+    {
+      "id": "module_transmission_adapt",
+      "label": "Transmission Adaptive Learning Reset",
+      "category": "Module",
+      "path": [
+        "gm",
+        "x431",
+        "module",
+        "trans_adapt"
+      ],
+      "done_when": "Transmission Adapt Complete",
+      "timeout_sec": 240,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Clears transmission shift adapts and relearns pressure tables. Perform after transmission service or TCM replacement."
+    },
+    {
+      "id": "module_cluster_setup",
+      "label": "Instrument Cluster Initialization",
+      "category": "Module",
+      "path": [
+        "gm",
+        "x431",
+        "module",
+        "cluster_setup"
+      ],
+      "done_when": "Cluster Initialization Complete",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Initializes instrument cluster calibration and mileage. Perform after cluster replacement."
+    },
+    {
+      "id": "module_passlock_relearn",
+      "label": "Passlock Security System Relearn",
+      "category": "Module",
+      "path": [
+        "gm",
+        "x431",
+        "module",
+        "passlock_relearn"
+      ],
+      "done_when": "Passlock Relearn Complete",
+      "timeout_sec": 600,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Relearns Passlock immobilizer system. 10-30min procedure. Check battery voltage (13.5V+). Security light must turn off."
+    },
+    {
+      "id": "module_door_window_init",
+      "label": "Door and Window Initialization",
+      "category": "Module",
+      "path": [
+        "gm",
+        "x431",
+        "module",
+        "door_window_init"
+      ],
+      "done_when": "Door/Window Initialization Complete",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Calibrates power window and door lock motor end positions. Required after BCM service or component replacement."
+    },
+    {
+      "id": "module_immobilizer_service",
+      "label": "Immobilizer Service and Key Sync",
+      "category": "Module",
+      "path": [
+        "gm",
+        "x431",
+        "module",
+        "immobilizer_service"
+      ],
+      "done_when": "Immobilizer Service Complete",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Syncs new keys or reprogram immobilizer database. Requires existing key or OEM database."
+    },
+    {
+      "id": "module_sunroof_calibration",
+      "label": "Sunroof Motor Calibration",
+      "category": "Module",
+      "path": [
+        "gm",
+        "x431",
+        "module",
+        "sunroof_calib"
+      ],
+      "done_when": "Sunroof Calibration Complete",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Calibrates sunroof open/close limits. Perform after motor replacement or jamming repair."
+    },
+    {
+      "id": "livedata_abs_module",
+      "label": "ABS Module Live Data",
+      "category": "LiveData",
+      "path": [
+        "gm",
+        "x431",
+        "livedata",
+        "abs_module"
+      ],
+      "done_when": "Data Stream Active",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Real-time ABS PIDs: wheel speeds, pump status, solenoid duty, brake pressure, fault flags."
+    },
+    {
+      "id": "service_headlight_aim",
+      "label": "Adaptive Headlight Aiming",
+      "category": "Service",
+      "path": [
+        "gm",
+        "x431",
+        "service",
+        "headlight_aim"
+      ],
+      "done_when": "Headlight Aiming Complete",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Calibrates adaptive/LED headlight beam patterns and leveling motors. Required after collision repair."
+    },
+    {
+      "id": "coding_speed_limiter",
+      "label": "Speed Limiter Configuration",
+      "category": "Coding",
+      "path": [
+        "gm",
+        "x431",
+        "coding",
+        "speed_limiter"
+      ],
+      "done_when": "Speed Limiter Configuration Complete",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "gm",
+        "chevrolet",
+        "buick",
+        "gmc",
+        "cadillac"
+      ],
+      "note": "Enables/disables and adjusts max vehicle speed limiter threshold for fleet management."
+    },
+    {
+      "id": "scan_full_system_modules",
+      "label": "Full System Module Scan (ECM, BCM, SAS, ABS, TCM)",
+      "category": "Scan",
+      "path": [
+        "scan",
+        "full_system",
+        "all_modules"
+      ],
+      "done_when": "Module list displayed",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Scans all primary modules in sequence; supported on 2007+ vehicles with CAN"
+    },
+    {
+      "id": "scan_security_gateway_fca_autoauth",
+      "label": "FCA Security Gateway Module with AutoAuth",
+      "category": "Scan",
+      "path": [
+        "scan",
+        "fca_sgw",
+        "autoauth"
+      ],
+      "done_when": "SGW module accessed and scanned",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "2017+ vehicles; requires AutoAuth registration; bypasses SGM encryption"
+    },
+    {
+      "id": "codes_read_clear_all_modules",
+      "label": "Read and Clear Codes (All Modules)",
+      "category": "Codes",
+      "path": [
+        "codes",
+        "read_clear",
+        "all_systems"
+      ],
+      "done_when": "Code list cleared or display refreshed",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "ECM, BCM, TCM, ABS, SRS, EPB, TPMS supported; clears permanent codes"
+    },
+    {
+      "id": "codes_freeze_frame_dtc",
+      "label": "Freeze Frame and DTC Snapshot Analysis",
+      "category": "Codes",
+      "path": [
+        "codes",
+        "freeze_frame",
+        "dtc_snapshot"
+      ],
+      "done_when": "Snapshot data displayed with conditions",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Captures fault conditions at time of code set; aids root-cause analysis"
+    },
+    {
+      "id": "codes_pending_inactive",
+      "label": "Pending and Inactive Code Inspection",
+      "category": "Codes",
+      "path": [
+        "codes",
+        "pending_inactive",
+        "inspection"
+      ],
+      "done_when": "Pending/inactive codes listed with status",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Identifies emerging faults before they become permanent; 2007+ vehicles"
+    },
+    {
+      "id": "livedata_engine_parameters",
+      "label": "Engine Live Data (RPM, Load, Fuel Trim, O2 Sensors)",
+      "category": "LiveData",
+      "path": [
+        "livedata",
+        "engine",
+        "core_params"
+      ],
+      "done_when": "Real-time parameter stream active",
+      "timeout_sec": 600,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Gas and diesel engines; monitors fuel trims, oxygen sensor voltage, load"
+    },
+    {
+      "id": "livedata_transmission_shift_solenoid",
+      "label": "Transmission Live Data (Shift Solenoid PWM, Oil Temp)",
+      "category": "LiveData",
+      "path": [
+        "livedata",
+        "transmission",
+        "solenoid_temp"
+      ],
+      "done_when": "TCM solenoid duty cycle and temperature streaming",
+      "timeout_sec": 600,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "4-speed, 5-speed, 6-speed, 8-speed, 10-speed transmissions; real-time PWM"
+    },
+    {
+      "id": "livedata_abs_brake_pressure",
+      "label": "ABS Brake System Live Data (Pressure, Wheel Speed)",
+      "category": "LiveData",
+      "path": [
+        "livedata",
+        "abs",
+        "pressure_wheel_speed"
+      ],
+      "done_when": "ABS solenoid duty cycle and four-wheel speed data active",
+      "timeout_sec": 600,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "ABS modulator diagnostic; tracks wheel slip and solenoid control"
+    },
+    {
+      "id": "service_oil_change_reset",
+      "label": "Oil Change Maintenance Reset",
+      "category": "Service",
+      "path": [
+        "service",
+        "maintenance",
+        "oil_reset"
+      ],
+      "done_when": "Oil life counter reset to 100%",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Clears oil change reminder in instrument cluster; 2007+ vehicles"
+    },
+    {
+      "id": "service_epb_calibration_bleed",
+      "label": "Electric Parking Brake (EPB) Calibration and Bleed",
+      "category": "Service",
+      "path": [
+        "service",
+        "epb",
+        "calibration_bleed"
+      ],
+      "done_when": "EPB motor positioned and calibrated; bleed cycle complete",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Required after pad replacement; EPB motors must be homed and ABS bled"
+    },
+    {
+      "id": "service_throttle_electronic_relearn",
+      "label": "Electronic Throttle Control (ETC) Relearn",
+      "category": "Service",
+      "path": [
+        "service",
+        "throttle",
+        "etc_relearn"
+      ],
+      "done_when": "ECM idle trim values updated and saved",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Must be performed after ECM disconnect or throttle body service; critical for idle stability"
+    },
+    {
+      "id": "service_tpms_sensor_relearn",
+      "label": "TPMS Sensor ID Relearning",
+      "category": "Service",
+      "path": [
+        "service",
+        "tpms",
+        "sensor_id_relearn"
+      ],
+      "done_when": "All four tire sensors recognized and stored in BCM",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Pairing of new TPMS sensors to vehicle receiver; prevents dash warning light"
+    },
+    {
+      "id": "service_battery_registration_bms",
+      "label": "Battery Registration and BMS Calibration",
+      "category": "Service",
+      "path": [
+        "service",
+        "battery",
+        "bms_registration"
+      ],
+      "done_when": "Battery capacity and state stored in BMS; charge cycle logged",
+      "timeout_sec": 150,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Registers new battery with BMS; enables Start-Stop and hybrid battery algorithms; 2015+"
+    },
+    {
+      "id": "service_steering_angle_sensor_calibration",
+      "label": "Steering Angle Sensor (SAS) Calibration",
+      "category": "Service",
+      "path": [
+        "service",
+        "steering",
+        "sas_calibration"
+      ],
+      "done_when": "SAS offset zeroed and stored in ESP module",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Required after suspension work or wheel alignment; affects ESP and ABS accuracy"
+    },
+    {
+      "id": "service_dpf_regen_diesel",
+      "label": "Diesel Particulate Filter (DPF) Active Regeneration",
+      "category": "Service",
+      "path": [
+        "service",
+        "emissions",
+        "dpf_regen"
+      ],
+      "done_when": "DPF temperature reached and soot burn-off complete (20-40 minutes)",
+      "timeout_sec": 2400,
+      "oem_scope": [
+        "stellantis",
+        "ram",
+        "fiat"
+      ],
+      "note": "RAM 2500/3500 diesel, Fiat 2.0 HDi; graphical UI shows exhaust temperature and pressure"
+    },
+    {
+      "id": "service_transmission_learning_adaptation",
+      "label": "Transmission Adaptive Learning and Relearning",
+      "category": "Service",
+      "path": [
+        "service",
+        "transmission",
+        "adaptive_learn"
+      ],
+      "done_when": "TCM adaptation values cleared; relearn cycles initiated",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Required after TCM reprogramming; resets shift map to factory baseline; 30-50 miles driving"
+    },
+    {
+      "id": "bidirectional_fuel_pump_test",
+      "label": "Fuel Pump Actuation Test",
+      "category": "Bidirectional",
+      "path": [
+        "bidirectional",
+        "fuel_system",
+        "pump_test"
+      ],
+      "done_when": "Fuel pump audibly primed; pressure verified",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Direct ECM control of fuel pump relay; can be pulsed for prime or held on"
+    },
+    {
+      "id": "bidirectional_fuel_injector_test",
+      "label": "Fuel Injector Pulse and Cylinder Balance Test",
+      "category": "Bidirectional",
+      "path": [
+        "bidirectional",
+        "fuel_system",
+        "injector_pulse"
+      ],
+      "done_when": "Injectors fire sequentially; cylinder balance measured",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Tests all cylinders for equal pulse width; identifies sticking injectors and lean cylinders"
+    },
+    {
+      "id": "bidirectional_evap_canister_purge",
+      "label": "EVAP Canister Purge Valve Control Test",
+      "category": "Bidirectional",
+      "path": [
+        "bidirectional",
+        "emissions",
+        "evap_purge"
+      ],
+      "done_when": "Purge valve solenoid energized; hiss heard or pressure verified",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Activates EVAP purge valve solenoid; confirms response and no stuck condition"
+    },
+    {
+      "id": "bidirectional_hybrid_electric_water_pump",
+      "label": "Hybrid Electric Water Pump Actuation (4xe Jeep)",
+      "category": "Bidirectional",
+      "path": [
+        "bidirectional",
+        "hybrid",
+        "electric_water_pump"
+      ],
+      "done_when": "EWP motor activated; coolant circulation verified",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "jeep"
+      ],
+      "note": "Jeep Wrangler 4xe, Grand Cherokee 4xe; confirms EWP operation for battery thermal management"
+    },
+    {
+      "id": "programming_skim_key_learn",
+      "label": "SKIM/SKREEM Immobilizer Key Learning (Dealer-Level)",
+      "category": "Programming",
+      "path": [
+        "programming",
+        "immobilizer",
+        "skim_key_learn"
+      ],
+      "done_when": "New key recognized by SKIM module; PIN entry confirmed",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "PIN required for access; creates new SKIM keys after loss; multiple keys supported; 2007-2012"
+    },
+    {
+      "id": "programming_fobik_remote_key",
+      "label": "FOBIK Remote Key Programming",
+      "category": "Programming",
+      "path": [
+        "programming",
+        "remote",
+        "fobik_program"
+      ],
+      "done_when": "Remote button test confirms pairing; all buttons functional",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Programs push-button FOBIK remotes to BCM; up to 8 remotes per vehicle; 2007+"
+    },
+    {
+      "id": "programming_ecm_flash_reprogram",
+      "label": "ECM Flash Reprogramming and Reflash",
+      "category": "Programming",
+      "path": [
+        "programming",
+        "ecm",
+        "flash_reprogram"
+      ],
+      "done_when": "New firmware verified and persisted; ECM validates checksum",
+      "timeout_sec": 600,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "OEM-level ECM calibration update; requires power stability; DOIP/CAN FD on 2018+"
+    },
+    {
+      "id": "coding_proximity_sensor_alignment",
+      "label": "Proximity Sensor Alignment and Coding",
+      "category": "Coding",
+      "path": [
+        "coding",
+        "proximity",
+        "alignment"
+      ],
+      "done_when": "Proximity module aligned to BCM; threshold values calibrated",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Passive entry sensor calibration; aligns detection field after module replacement; 2013+"
+    },
+    {
+      "id": "coding_bcm_module_configuration",
+      "label": "BCM (Body Control Module) Feature Configuration",
+      "category": "Coding",
+      "path": [
+        "coding",
+        "bcm",
+        "module_config"
+      ],
+      "done_when": "Feature bits updated and stored; door locks and lighting functions verified",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Enables/disables comfort features: auto-lock, auto-window, perimeter lighting, keyless entry"
+    },
+    {
+      "id": "coding_instrument_cluster_country",
+      "label": "Instrument Cluster Country Code and Unit Selection",
+      "category": "Coding",
+      "path": [
+        "coding",
+        "instrument_cluster",
+        "country_units"
+      ],
+      "done_when": "Cluster resets and displays in target country format; mph/kmh, C/F verified",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "stellantis",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Sets market configuration: US/EU/Canada; fuel economy units; temperature display; 2010+"
+    },
+    {
+      "id": "module_abs_bleed_initialization",
+      "label": "ABS Module Bleed and Initialization",
+      "category": "Module",
+      "path": [
+        "module",
+        "abs",
+        "bleed_init"
+      ],
+      "done_when": "ABS pump cycles complete; brake pressure normalized",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Post-service bleed removes air from ABS lines after ECU or wheel work; critical for safety"
+    },
+    {
+      "id": "module_transfer_case_shift_motor",
+      "label": "Transfer Case Shift Motor Calibration and Initialization",
+      "category": "Module",
+      "path": [
+        "module",
+        "transfer_case",
+        "shift_motor_init"
+      ],
+      "done_when": "Motor positioned to neutral; position sensor synchronized",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "jeep"
+      ],
+      "note": "Jeep Wrangler, Cherokee, Grand Cherokee; re-homes electric shift motor after replacement"
+    },
+    {
+      "id": "module_electronic_shifter_learning",
+      "label": "Electronic Shifter Module Learning and Calibration",
+      "category": "Module",
+      "path": [
+        "module",
+        "shifter",
+        "electronic_learn"
+      ],
+      "done_when": "Shifter detents recognized; gear selection validated",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat"
+      ],
+      "note": "Models with electronic PRNDL shifter (non-mechanical); calibrates shifter position sensor"
+    },
+    {
+      "id": "service_transmission_solenoid_test",
+      "label": "Transmission Solenoid Functional Test (All Shift Solenoids)",
+      "category": "Service",
+      "path": [
+        "service",
+        "transmission",
+        "solenoid_test"
+      ],
+      "done_when": "All solenoids energized; duty cycle confirmed for each",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Tests A, B, C, and pressure solenoids; identifies stuck or open conditions; real-time PWM"
+    },
+    {
+      "id": "livedata_powertrain_mode_hybrid",
+      "label": "Hybrid Powertrain Mode and Battery State Live Data",
+      "category": "LiveData",
+      "path": [
+        "livedata",
+        "hybrid",
+        "powertrain_state"
+      ],
+      "done_when": "Real-time hybrid mode (EV/Hybrid/Charge Sustain) and battery SoC streaming",
+      "timeout_sec": 600,
+      "oem_scope": [
+        "jeep"
+      ],
+      "note": "Jeep 4xe models; monitors battery voltage, current, state of charge, thermal management"
+    },
+    {
+      "id": "service_crankshaft_relearn",
+      "label": "Crankshaft Position Relearn and Sync",
+      "category": "Service",
+      "path": [
+        "service",
+        "engine",
+        "crank_relearn"
+      ],
+      "done_when": "ECM crankshaft sync offset stored; no cam/crank codes present",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Required after crank sensor replacement or timing work; ECM learns sensor phase offset"
+    },
+    {
+      "id": "programming_abs_module_reprogramming",
+      "label": "ABS Module Firmware Reprogramming",
+      "category": "Programming",
+      "path": [
+        "programming",
+        "abs",
+        "firmware_reprogram"
+      ],
+      "done_when": "ABS firmware version updated; module validated",
+      "timeout_sec": 600,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "ABS/ESP module calibration update; supports CAN FD on 2018+ vehicles"
+    },
+    {
+      "id": "service_air_level_calibration",
+      "label": "Air Suspension Level Calibration (RAM 1500 Air Suspension)",
+      "category": "Service",
+      "path": [
+        "service",
+        "suspension",
+        "air_level_calib"
+      ],
+      "done_when": "Air spring pressure and ride height verified and stored",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "ram"
+      ],
+      "note": "RAM 1500 with air suspension; calibrates system after service or compressor replacement"
+    },
+    {
+      "id": "bidirectional_evap_leak_test",
+      "label": "EVAP System Leak Detection Test",
+      "category": "Bidirectional",
+      "path": [
+        "bidirectional",
+        "emissions",
+        "evap_leak_test"
+      ],
+      "done_when": "Test pressure plateaued and held; leak rate measured",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "stellantis",
+        "chrysler",
+        "dodge",
+        "jeep",
+        "ram",
+        "fiat",
+        "alfa_romeo"
+      ],
+      "note": "Active smoke test simulation; ECM pressurizes and vents EVAP to detect leaks; 2007+"
+    },
+    {
+      "id": "scan_read_dtc",
+      "label": "Read Diagnostic Trouble Codes (DTCs)",
+      "category": "Scan",
+      "path": [
+        "diagnose",
+        "read_codes"
+      ],
+      "done_when": "Code list displayed with descriptions",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Retrieves active and stored fault codes from all vehicle systems"
+    },
+    {
+      "id": "scan_read_live_data",
+      "label": "Read Vehicle Live Data Stream",
+      "category": "Scan",
+      "path": [
+        "diagnose",
+        "live_data"
+      ],
+      "done_when": "Data stream active and refreshing",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Streaming sensor data from ECU and modules in real-time"
+    },
+    {
+      "id": "codes_read_dtc_full",
+      "label": "Read Full DTC Information",
+      "category": "Codes",
+      "path": [
+        "diagnose",
+        "codes",
+        "read_full"
+      ],
+      "done_when": "DTC codes, definitions, and freeze frame data displayed",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Includes freeze frame data, occurrence count, and fault description"
+    },
+    {
+      "id": "codes_read_history",
+      "label": "Read Historical/Pending Codes",
+      "category": "Codes",
+      "path": [
+        "diagnose",
+        "codes",
+        "history"
+      ],
+      "done_when": "Historical code list displayed",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Toyota historics are critical for intermittent fault diagnosis; shows codes that may not be currently active"
+    },
+    {
+      "id": "livedata_hybrid_battery",
+      "label": "Monitor Hybrid Battery Health & Voltage",
+      "category": "LiveData",
+      "path": [
+        "diagnose",
+        "livedata",
+        "hybrid_battery"
+      ],
+      "done_when": "HV battery voltage, SOC, temperature, fan status displayed",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Hybrid-only function; monitors HV battery health, charge state, thermistor readings, cooling fan activity"
+    },
+    {
+      "id": "livedata_abs_brake_system",
+      "label": "Monitor ABS and Brake System Data",
+      "category": "LiveData",
+      "path": [
+        "diagnose",
+        "livedata",
+        "abs"
+      ],
+      "done_when": "Wheel speeds, brake pressure, solenoid status, ABS activation displayed",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Critical for post-alignment verification; shows all ABS module parameters and brake status"
+    },
+    {
+      "id": "service_tpms_register",
+      "label": "TPMS Sensor Registration",
+      "category": "Service",
+      "path": [
+        "service",
+        "tire",
+        "tpms_register"
+      ],
+      "done_when": "All 4 tire sensors detected and registered",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Registers new TPMS sensors after replacement; verifies tire pressure sensor ID programming"
+    },
+    {
+      "id": "service_battery_reset",
+      "label": "Battery System Reset / Battery Replacement Registration",
+      "category": "Service",
+      "path": [
+        "service",
+        "electrical",
+        "battery_reset"
+      ],
+      "done_when": "Confirmation: Battery registration complete",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Clears low battery faults and registers new battery 12-digit code; essential after main battery replacement"
+    },
+    {
+      "id": "service_steering_angle_zero",
+      "label": "Steering Angle Sensor (SAS) Zero Point Calibration",
+      "category": "Service",
+      "path": [
+        "service",
+        "steering",
+        "sas_zero_point"
+      ],
+      "done_when": "Message: Zero point calibration complete, steering wheel centered",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Critical post-alignment procedure; must be performed on level surface with stationary vehicle; Prius uses pins 4/12"
+    },
+    {
+      "id": "service_hybrid_cooling_fan",
+      "label": "Hybrid HV Battery Cooling Fan Control & Reset",
+      "category": "Service",
+      "path": [
+        "service",
+        "hybrid",
+        "cooling_fan_reset"
+      ],
+      "done_when": "Message: Hybrid cooling fan system reset, fan responds to temperature commands",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Hybrid-only function; resets cooling fan monitor after thermistor replacement; clears P0A82 code"
+    },
+    {
+      "id": "service_transmission_ecu_thermistor",
+      "label": "Transmission ECU Thermistor Reset",
+      "category": "Service",
+      "path": [
+        "service",
+        "transmission",
+        "thermistor_reset"
+      ],
+      "done_when": "Confirmation: Transmission thermistor reset successful",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Resets transmission fluid temperature sensor calibration after replacement"
+    },
+    {
+      "id": "bidirectional_fuel_pump_control",
+      "label": "Fuel Pump Actuator Test",
+      "category": "Bidirectional",
+      "path": [
+        "service",
+        "actuator_test",
+        "fuel_pump"
+      ],
+      "done_when": "Fuel pump energized and de-energized on command",
+      "timeout_sec": 30,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Bi-directional test to verify fuel pump operation; listen for pump cycling"
+    },
+    {
+      "id": "bidirectional_evap_solenoid",
+      "label": "EVAP Purge Control Solenoid Test",
+      "category": "Bidirectional",
+      "path": [
+        "service",
+        "actuator_test",
+        "evap_purge"
+      ],
+      "done_when": "Solenoid clicks audible, EVAP valve opens/closes on command",
+      "timeout_sec": 30,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Tests canister purge solenoid response; verifies emissions system valve operation"
+    },
+    {
+      "id": "bidirectional_af_sensor_heater",
+      "label": "A/F Sensor Heater Control",
+      "category": "Bidirectional",
+      "path": [
+        "service",
+        "actuator_test",
+        "af_sensor_heater"
+      ],
+      "done_when": "Heater voltage applied/removed, sensor reaches operating temp",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Tests air/fuel ratio sensor heater element; monitors heater circuit response and sensor warm-up"
+    },
+    {
+      "id": "bidirectional_hybrid_inverter_control",
+      "label": "Hybrid Inverter PWM Control",
+      "category": "Bidirectional",
+      "path": [
+        "service",
+        "actuator_test",
+        "hybrid_inverter"
+      ],
+      "done_when": "Inverter responds to PWM control, current monitored",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Hybrid-only function; controls inverter boost/throttle; essential for hybrid system diagnostics"
+    },
+    {
+      "id": "bidirectional_brake_bleed_hybrid_regen",
+      "label": "ABS Brake Bleeding & Hybrid Regenerative Brake Balance",
+      "category": "Bidirectional",
+      "path": [
+        "service",
+        "brake",
+        "bleed_regen_balance"
+      ],
+      "done_when": "All 4 wheels bled in correct sequence, regen blending verified",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Hybrid-only function; Toyota has critical bleed sequence (FL-FR-RR-RL for most, varies by platform); coordinates hydraulic and regen braking"
+    },
+    {
+      "id": "programming_key_registration",
+      "label": "Key / Immobilizer Programming",
+      "category": "Programming",
+      "path": [
+        "programming",
+        "security",
+        "key_registration"
+      ],
+      "done_when": "New key recognized by vehicle, starts engine, immobilizer disarmed",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Registers new transponder keys to immobilizer; supports 8A/8C/8E/4C/4D/4E/48/7935/7936/7938/7939 chips"
+    },
+    {
+      "id": "programming_smart_key_registration",
+      "label": "Smart Key System Registration",
+      "category": "Programming",
+      "path": [
+        "programming",
+        "security",
+        "smart_key_registration"
+      ],
+      "done_when": "Smart key paired with vehicle, unlock/lock functions verified",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Registers proximity fob and push-button start keys; requires specific pairing protocol per model"
+    },
+    {
+      "id": "programming_ecu_customization",
+      "label": "ECU Customization / Personalization",
+      "category": "Programming",
+      "path": [
+        "programming",
+        "ecu",
+        "customization"
+      ],
+      "done_when": "Custom parameters written to ECU, vehicle behavior adjusted",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Online ECU coding, parameterization, and component matching after ECU replacement or update"
+    },
+    {
+      "id": "coding_option_setting",
+      "label": "Option Code Setting / Configuration",
+      "category": "Coding",
+      "path": [
+        "coding",
+        "options",
+        "setting"
+      ],
+      "done_when": "Configuration options applied, system response verified",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Sets optional features and system behavior codes; requires matching adaptation values"
+    },
+    {
+      "id": "coding_sliding_door_auto",
+      "label": "Sliding Door Auto-Configuration",
+      "category": "Coding",
+      "path": [
+        "coding",
+        "doors",
+        "sliding_auto_config"
+      ],
+      "done_when": "Sliding doors detect obstacles and auto-stop on command",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Configures automatic open/close sensors and safety limits for vehicles with power sliding doors"
+    },
+    {
+      "id": "coding_hybrid_trim_setup",
+      "label": "Hybrid Trim-Specific Coding Setup",
+      "category": "Coding",
+      "path": [
+        "coding",
+        "hybrid",
+        "trim_setup"
+      ],
+      "done_when": "Hybrid parameters configured for trim level (EV mode, battery limits, etc.)",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Hybrid-only function; sets EV-only mode parameters, battery pack capacity, cooling thresholds based on trim"
+    },
+    {
+      "id": "module_abs_bleed_sequence",
+      "label": "ABS Bleed Sequence (Toyota-Specific Order)",
+      "category": "Module",
+      "path": [
+        "module",
+        "abs",
+        "bleed_sequence"
+      ],
+      "done_when": "All 4 wheels bled in manufacturer order, no air in system",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Critical post-brake work; Toyota has very specific bleed order (Front-Left, Front-Right, Rear-Right, Rear-Left for most platforms)"
+    },
+    {
+      "id": "module_zero_point_calibration",
+      "label": "Multi-Axis Zero Point Calibration (Steering, Yaw, Deceleration)",
+      "category": "Module",
+      "path": [
+        "module",
+        "calibration",
+        "zero_point_multi"
+      ],
+      "done_when": "All sensors report zero reference, vehicle drives straight",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Calibrates steering wheel center, yaw sensor, and deceleration sensor on level surface with stationary engine"
+    },
+    {
+      "id": "module_steering_angle_learn_post_alignment",
+      "label": "Steering Angle Sensor Learn After Wheel Alignment",
+      "category": "Module",
+      "path": [
+        "module",
+        "steering",
+        "sas_learn_alignment"
+      ],
+      "done_when": "SAS learned new center position, alignment confirmed in code",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Must follow four-wheel alignment; ensures ESC/VSC uses correct steering reference after suspension work"
+    },
+    {
+      "id": "module_adas_camera_calibration",
+      "label": "ADAS Camera Calibration & Verification",
+      "category": "Module",
+      "path": [
+        "module",
+        "adas",
+        "camera_calibration"
+      ],
+      "done_when": "Camera alignment verified, lane detection and collision warnings functional",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Newer models with lane departure warning, adaptive cruise; critical for safety after windshield replacement"
+    },
+    {
+      "id": "module_transmission_adaptive_shift_learn",
+      "label": "Transmission Adaptive Shift Learning",
+      "category": "Module",
+      "path": [
+        "module",
+        "transmission",
+        "adaptive_learn"
+      ],
+      "done_when": "Shift points reset to factory, adaption relearned through drive cycle",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Resets learned transmission shift behavior after fluid change or ECU reprogramming"
+    },
+    {
+      "id": "module_hybrid_battery_eol_test",
+      "label": "Hybrid Battery End-of-Life Testing",
+      "category": "Module",
+      "path": [
+        "module",
+        "hybrid",
+        "battery_eol_test"
+      ],
+      "done_when": "Battery capacity, resistance, and cell balance verified against thresholds",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "toyota",
+        "lexus",
+        "scion"
+      ],
+      "note": "Hybrid-only function; comprehensive battery health assessment before replacement; measures capacity fade and internal resistance"
+    },
+    {
+      "id": "scan_engine_system",
+      "label": "Engine System Scan",
+      "category": "Scan",
+      "path": [
+        "diagnose",
+        "powertrain",
+        "engine"
+      ],
+      "done_when": "Scan complete, DTCs displayed",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Full engine control module diagnostic scan for DTCs and freeze frame data"
+    },
+    {
+      "id": "scan_transmission_system",
+      "label": "Transmission System Scan",
+      "category": "Scan",
+      "path": [
+        "diagnose",
+        "powertrain",
+        "transmission"
+      ],
+      "done_when": "Transmission DTCs retrieved",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Automatic transmission (AT/CVT) diagnostic scan with shift solenoid codes"
+    },
+    {
+      "id": "livedata_vsa_abs",
+      "label": "VSA/ABS Live Data",
+      "category": "LiveData",
+      "path": [
+        "monitor",
+        "chassis",
+        "vsa_abs"
+      ],
+      "done_when": "VSA module parameters displaying",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Monitor wheel speeds, slip conditions, solenoid activation, hydraulic pressure"
+    },
+    {
+      "id": "livedata_transmission",
+      "label": "Transmission Live Data",
+      "category": "LiveData",
+      "path": [
+        "monitor",
+        "powertrain",
+        "transmission"
+      ],
+      "done_when": "Gear selection and torque data streaming",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Monitor current gear, line pressure, solenoid duty cycle, TCM parameters"
+    },
+    {
+      "id": "service_oil_maintenance_reset",
+      "label": "Oil Change Maintenance Reset",
+      "category": "Service",
+      "path": [
+        "service",
+        "maintenance",
+        "oil_reset"
+      ],
+      "done_when": "Maintenance light extinguished, service reset confirmed",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Reset oil maintenance reminder and service indicator light after oil service"
+    },
+    {
+      "id": "service_epb_calibration",
+      "label": "Electronic Parking Brake Calibration",
+      "category": "Service",
+      "path": [
+        "service",
+        "brake",
+        "epb_calibration"
+      ],
+      "done_when": "EPB stroke initialization complete",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Recalibrate EPB module after brake service or pad replacement"
+    },
+    {
+      "id": "service_throttle_idle_relearn",
+      "label": "Throttle Body Cleaning & Idle Relearn",
+      "category": "Service",
+      "path": [
+        "service",
+        "engine",
+        "throttle_relearn"
+      ],
+      "done_when": "Idle learned, stable RPM confirmed",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Complete throttle position sensor reset and PCM idle learning after throttle body cleaning"
+    },
+    {
+      "id": "service_steering_angle_vsa",
+      "label": "Steering Angle Sensor Calibration (VSA)",
+      "category": "Service",
+      "path": [
+        "service",
+        "chassis",
+        "steering_angle"
+      ],
+      "done_when": "Steering angle zero point established",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Calibrate steering angle sensor for VSA system after steering wheel alignment or replacement"
+    },
+    {
+      "id": "service_cvt_fluid_reset",
+      "label": "CVT Fluid Temperature Reset",
+      "category": "Service",
+      "path": [
+        "service",
+        "transmission",
+        "cvt_temp_reset"
+      ],
+      "done_when": "CVT learning parameters cleared",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Reset CVT fluid condition monitoring and thermal learning after fluid flush or replacement"
+    },
+    {
+      "id": "service_brake_fluid_reminder",
+      "label": "Brake Fluid Replacement Reminder Reset",
+      "category": "Service",
+      "path": [
+        "service",
+        "brake",
+        "fluid_reminder"
+      ],
+      "done_when": "Service reminder cleared, brake fluid age reset",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Reset brake fluid service interval and reminder indicator after brake system maintenance"
+    },
+    {
+      "id": "bidirectional_fuel_pump",
+      "label": "Fuel Pump Control Test",
+      "category": "Bidirectional",
+      "path": [
+        "test",
+        "engine",
+        "fuel_pump"
+      ],
+      "done_when": "Fuel pump engaged, pressure verified",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Activate fuel pump relay for pressure test; monitor ECU commands"
+    },
+    {
+      "id": "bidirectional_fuel_injectors",
+      "label": "Fuel Injector Activation Test",
+      "category": "Bidirectional",
+      "path": [
+        "test",
+        "engine",
+        "injector_control"
+      ],
+      "done_when": "Injectors pulsing at specified frequency",
+      "timeout_sec": 30,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Command individual cylinder fuel injectors on/off; verify solenoid response"
+    },
+    {
+      "id": "bidirectional_evap_purge",
+      "label": "EVAP Purge Solenoid Test",
+      "category": "Bidirectional",
+      "path": [
+        "test",
+        "emissions",
+        "evap_purge"
+      ],
+      "done_when": "Purge solenoid state confirmed",
+      "timeout_sec": 30,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Energize EVAP canister purge control solenoid; verify valve operation"
+    },
+    {
+      "id": "bidirectional_vsa_solenoid",
+      "label": "VSA Solenoid Actuation Test",
+      "category": "Bidirectional",
+      "path": [
+        "test",
+        "chassis",
+        "vsa_solenoid"
+      ],
+      "done_when": "Solenoid clicking confirmed, modulator response verified",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Command VSA hydraulic solenoids; verify modulator valve response and brake fluid flow"
+    },
+    {
+      "id": "bidirectional_ac_clutch",
+      "label": "A/C Compressor Clutch Control",
+      "category": "Bidirectional",
+      "path": [
+        "test",
+        "climate",
+        "ac_clutch"
+      ],
+      "done_when": "Compressor clutch engaged/disengaged as commanded",
+      "timeout_sec": 30,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Engage and disengage A/C compressor clutch; verify refrigerant pressure response"
+    },
+    {
+      "id": "programming_immobilizer_key",
+      "label": "Immobilizer Key Registration",
+      "category": "Programming",
+      "path": [
+        "program",
+        "security",
+        "immobilizer"
+      ],
+      "done_when": "Key registered to module, engine start test passed",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Register new or replacement key to immobilizer ECU; supports ID47 and ID4D transponder types"
+    },
+    {
+      "id": "programming_hds_replacement",
+      "label": "HDS Module Replacement Programming",
+      "category": "Programming",
+      "path": [
+        "program",
+        "modules",
+        "hds_replacement"
+      ],
+      "done_when": "Module initialized, VIN and calibration data programmed",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Program replacement ECU with vehicle VIN, calibration, and learned parameters via XPROG interface"
+    },
+    {
+      "id": "programming_ecu_full",
+      "label": "Full ECU Programming",
+      "category": "Programming",
+      "path": [
+        "program",
+        "modules",
+        "ecu_flash"
+      ],
+      "done_when": "Firmware flashed, module verified",
+      "timeout_sec": 600,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Reflash engine control module firmware for updates or recovery after corruption"
+    },
+    {
+      "id": "coding_option_setup",
+      "label": "Option Setup Coding",
+      "category": "Coding",
+      "path": [
+        "configure",
+        "modules",
+        "option_setup"
+      ],
+      "done_when": "Options configured, system reboot confirmed",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Configure vehicle options: mirror type, door locks, keyless entry, power windows, HVAC mode defaults"
+    },
+    {
+      "id": "coding_lane_watch_calibration",
+      "label": "Lane Watch Camera Calibration",
+      "category": "Coding",
+      "path": [
+        "configure",
+        "vision",
+        "lane_watch"
+      ],
+      "done_when": "Camera calibration pattern centered on display",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Recalibrate Honda LaneWatch right-side camera alignment after windshield replacement or module swap"
+    },
+    {
+      "id": "coding_headlight_aim_memory",
+      "label": "Headlight Aim Memory Coding",
+      "category": "Coding",
+      "path": [
+        "configure",
+        "lighting",
+        "headlight_aim"
+      ],
+      "done_when": "Aim position stored, vertical adjustment range verified",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Store correct headlight aiming position in module after adjustment or headlight assembly replacement"
+    },
+    {
+      "id": "module_vsa_modulator_bleed",
+      "label": "VSA Modulator Bleed & Initialization",
+      "category": "Module",
+      "path": [
+        "service",
+        "brake",
+        "vsa_bleed"
+      ],
+      "done_when": "Air purged from modulator, system pressure normal",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Execute VSA modulator bleeding sequence post-service; pumps fluid through circuits to remove trapped air"
+    },
+    {
+      "id": "module_steering_angle_calibration",
+      "label": "Steering Angle Sensor Initialization",
+      "category": "Module",
+      "path": [
+        "service",
+        "chassis",
+        "steering_init"
+      ],
+      "done_when": "Neutral position stored, system ready",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Perform VSA sensor neutral position memorization after wheel alignment or suspension work"
+    },
+    {
+      "id": "module_transmission_learn_reset",
+      "label": "Transmission Learning Reset After Replacement",
+      "category": "Module",
+      "path": [
+        "service",
+        "transmission",
+        "learn_reset"
+      ],
+      "done_when": "Transmission adaptation parameters cleared, ready for relearn",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Initialize transmission control module after assembly replacement; resets clutch learn and pressure maps"
+    },
+    {
+      "id": "scan_abs_system",
+      "label": "ABS Module Diagnostic Scan",
+      "category": "Scan",
+      "path": [
+        "diagnose",
+        "chassis",
+        "abs"
+      ],
+      "done_when": "ABS DTCs and status retrieved",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Comprehensive ABS/VSA module scan with solenoid and wheel speed sensor diagnostics"
+    },
+    {
+      "id": "livedata_srs_airbag",
+      "label": "SRS Airbag System Live Data",
+      "category": "LiveData",
+      "path": [
+        "monitor",
+        "safety",
+        "srs"
+      ],
+      "done_when": "SRS module status and sensor data displaying",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Monitor airbag module status, crash sensors, and pretensioner readiness"
+    },
+    {
+      "id": "service_ac_refrigerant_reset",
+      "label": "A/C System Refrigerant Reset",
+      "category": "Service",
+      "path": [
+        "service",
+        "climate",
+        "ac_reset"
+      ],
+      "done_when": "A/C system capacity data reset, compressor clutch functional",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Reset A/C refrigerant capacity learning and compressor cycling data after system evacuation and recharge"
+    },
+    {
+      "id": "bidirectional_power_steering",
+      "label": "Electric Power Steering Motor Test",
+      "category": "Bidirectional",
+      "path": [
+        "test",
+        "steering",
+        "eps_motor"
+      ],
+      "done_when": "Motor response confirmed in both directions",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Command electric power steering motor activation; verify assist response and torque feedback"
+    },
+    {
+      "id": "coding_comfort_settings",
+      "label": "Comfort Feature Configuration",
+      "category": "Coding",
+      "path": [
+        "configure",
+        "body",
+        "comfort"
+      ],
+      "done_when": "Settings applied and stored",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "honda",
+        "acura"
+      ],
+      "note": "Code comfort features: seat heater settings, window auto-close, sunroof position memory, mirror tilt-down"
+    },
+    {
+      "id": "vag_gateway_full_scan",
+      "label": "Gateway Full Vehicle Scan",
+      "category": "Scan",
+      "path": [
+        "gateway",
+        "full_scan"
+      ],
+      "done_when": "Scan Complete - All modules accessible",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Complete gateway scan of all interconnected ECUs via CAN/K-Line"
+    },
+    {
+      "id": "vag_single_module_scan",
+      "label": "Single Module Diagnostics",
+      "category": "Scan",
+      "path": [
+        "module",
+        "single_scan"
+      ],
+      "done_when": "Module Status - OK or list of DTCs",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Scan specific ECU (engine, ABS, transmission, comfort, etc)"
+    },
+    {
+      "id": "vag_read_dtc",
+      "label": "Read Diagnostic Trouble Codes",
+      "category": "Codes",
+      "path": [
+        "codes",
+        "read"
+      ],
+      "done_when": "DTC List displayed or No Codes",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Read all stored and pending DTCs from selected module"
+    },
+    {
+      "id": "vag_clear_dtc",
+      "label": "Clear Diagnostic Trouble Codes",
+      "category": "Codes",
+      "path": [
+        "codes",
+        "clear"
+      ],
+      "done_when": "Memory cleared - Confirmed",
+      "timeout_sec": 30,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Erase all DTC memory from ECU after diagnosis"
+    },
+    {
+      "id": "vag_readiness_check",
+      "label": "OBD Readiness Status Check",
+      "category": "Codes",
+      "path": [
+        "codes",
+        "readiness"
+      ],
+      "done_when": "Readiness Status: All ready or list pending",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Check MIL readiness monitors; required for emissions certification"
+    },
+    {
+      "id": "vag_measuring_blocks_engine",
+      "label": "Engine Measuring Blocks (Live Data)",
+      "category": "LiveData",
+      "path": [
+        "livedata",
+        "measuring_blocks",
+        "engine"
+      ],
+      "done_when": "Live parameter display active",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Real-time engine parameters: RPM, fuel pressure, ignition timing, O2 sensors, temp"
+    },
+    {
+      "id": "vag_measuring_blocks_abs",
+      "label": "ABS System Measuring Blocks",
+      "category": "LiveData",
+      "path": [
+        "livedata",
+        "measuring_blocks",
+        "abs"
+      ],
+      "done_when": "Live ABS sensor readings displayed",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Real-time ABS wheel speed sensors, brake pressure, control status"
+    },
+    {
+      "id": "vag_measuring_blocks_transmission",
+      "label": "Transmission Measuring Blocks",
+      "category": "LiveData",
+      "path": [
+        "livedata",
+        "measuring_blocks",
+        "transmission"
+      ],
+      "done_when": "Live transmission parameters active",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "DSG/automatic: fluid temp, pressure, gear selection, shift status; manual: clutch"
+    },
+    {
+      "id": "vag_oil_reset",
+      "label": "Engine Oil Change Reset",
+      "category": "Service",
+      "path": [
+        "service",
+        "maintenance",
+        "oil_reset"
+      ],
+      "done_when": "Oil service interval reset - Confirmed",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Reset engine oil change service interval in dash display and ECU"
+    },
+    {
+      "id": "vag_epb_pad_replacement",
+      "label": "EPB Rear Pad Replacement Procedure",
+      "category": "Service",
+      "path": [
+        "service",
+        "brakes",
+        "epb_rear_pads"
+      ],
+      "done_when": "Brake service mode exited - Pads replaced",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Electronic parking brake calipers open for rear pad service. Requires stable power supply (battery charger)"
+    },
+    {
+      "id": "vag_throttle_body_adaption",
+      "label": "Throttle Body Alignment / Adaptation",
+      "category": "Service",
+      "path": [
+        "service",
+        "engine",
+        "throttle_adaptation"
+      ],
+      "done_when": "TBA complete - Throttle calibrated",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Electronic throttle learns full open/close range. Required after throttle replacement or major sensor work. Prerequisites: no DTCs, battery 11.5V+, coolant 5-95\u00b0C"
+    },
+    {
+      "id": "vag_tpms_storage",
+      "label": "TPMS Storage / Relearn Procedure",
+      "category": "Service",
+      "path": [
+        "service",
+        "tires",
+        "tpms_storage"
+      ],
+      "done_when": "Tire pressures stored - System armed",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Store current tire pressures in indirect TPMS. All 4 tires must be at correct pressure per door placard"
+    },
+    {
+      "id": "vag_steering_angle_g85",
+      "label": "Steering Angle Sensor G85 Calibration",
+      "category": "Service",
+      "path": [
+        "service",
+        "suspension",
+        "steering_g85_calib"
+      ],
+      "done_when": "G85 calibration complete - Value within -1.5 to +1.5\u00b0",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Zero-position calibration for ESP steering angle sensor. Prerequisites: straight line <20 km/h, level ground, wheels parallel. Post-calibration: steering limit stops check"
+    },
+    {
+      "id": "vag_dpf_regeneration_tdi",
+      "label": "DPF Regeneration (TDI Diesel)",
+      "category": "Service",
+      "path": [
+        "service",
+        "emissions",
+        "dpf_regen"
+      ],
+      "done_when": "Regeneration cycle complete - Soot cleared",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat"
+      ],
+      "note": "Force DPF active regeneration. Prerequisites: fuel >1/4 tank, coolant >85\u00b0C, gear P/N, parking brake on, no DTCs. Monitors soot burn at 1000-1200\u00b0F"
+    },
+    {
+      "id": "vag_dsg_transmission_reset",
+      "label": "DSG Transmission Basic Setting Reset",
+      "category": "Service",
+      "path": [
+        "service",
+        "transmission",
+        "dsg_basic_setting"
+      ],
+      "done_when": "Mechatronic basic setting confirmed",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda"
+      ],
+      "note": "Transmission adaptation after clutch pack, mechatronic, or DSG replacement. Clears P175F00 fault. Requires >20 min runtime at operating temp"
+    },
+    {
+      "id": "vag_haldex_awd_service",
+      "label": "Haldex AWD Coupler Service Reset",
+      "category": "Service",
+      "path": [
+        "service",
+        "drivetrain",
+        "haldex_service"
+      ],
+      "done_when": "Haldex pump primed - System ready",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "vag",
+        "audi",
+        "skoda",
+        "seat"
+      ],
+      "note": "Relearn and prime procedure after Haldex fluid/filter service. Access module 22 basic settings for pump motor prime. Warm engine and haldex to temp"
+    },
+    {
+      "id": "vag_fuel_pump_actuation",
+      "label": "Fuel Pump Activation Test",
+      "category": "Bidirectional",
+      "path": [
+        "bidirectional",
+        "fuel_system",
+        "pump_test"
+      ],
+      "done_when": "Pump running audibly or voltage monitored",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Command fuel pump relay to activate. Verify pump operation by sound or fuel pressure gauge"
+    },
+    {
+      "id": "vag_injector_buzz_test",
+      "label": "Fuel Injector Buzz Test",
+      "category": "Bidirectional",
+      "path": [
+        "bidirectional",
+        "fuel_system",
+        "injector_buzz"
+      ],
+      "done_when": "Injector clicks heard / solenoid response confirmed",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Command individual or all injectors to open/close. Verify mechanical response and electrical circuit continuity"
+    },
+    {
+      "id": "vag_evap_purge_valve",
+      "label": "EVAP Purge Valve Control Test",
+      "category": "Bidirectional",
+      "path": [
+        "bidirectional",
+        "emissions",
+        "evap_purge"
+      ],
+      "done_when": "Valve actuation confirmed - Click/flow detected",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Energize/de-energize EVAP canister purge solenoid. Listen for valve click or monitor fuel vapor flow"
+    },
+    {
+      "id": "vag_epb_retract",
+      "label": "Electronic Parking Brake Retract Test",
+      "category": "Bidirectional",
+      "path": [
+        "bidirectional",
+        "brakes",
+        "epb_retract"
+      ],
+      "done_when": "EPB motor energized - Parking brake released",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Command EPB module to fully release brake. Safety: vehicle on level ground, in gear with handbrake test mode active"
+    },
+    {
+      "id": "vag_secondary_air_pump",
+      "label": "Secondary Air Injection Pump Test",
+      "category": "Bidirectional",
+      "path": [
+        "bidirectional",
+        "emissions",
+        "air_pump_test"
+      ],
+      "done_when": "Air pump running / solenoid clicks heard",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda"
+      ],
+      "note": "Activate EVAP secondary air pump during cold start diagnostics. Confirms pump motor and solenoid function"
+    },
+    {
+      "id": "vag_component_protection_check",
+      "label": "Component Protection / SVM Status Check",
+      "category": "Programming",
+      "path": [
+        "programming",
+        "component_protection"
+      ],
+      "done_when": "CP enabled/disabled status reported",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Read current component protection (CP) and Software Version Management (SVM) status. NOTE: X431 cannot REMOVE protection; requires ODIS with dealership credentials"
+    },
+    {
+      "id": "vag_immobilizer_key_adapt",
+      "label": "Immobilizer Key Adaptation (Std / Kessy)",
+      "category": "Programming",
+      "path": [
+        "programming",
+        "immobilizer",
+        "key_adapt"
+      ],
+      "done_when": "Key programmed and synchronized to ECU",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Add new/replacement keys to Immo III or Kessy system. Requires Kessy IC access for Audi A8/Touareg/Phaeton. Requires additional key programmer hardware (IMMO Plus/Elite)"
+    },
+    {
+      "id": "vag_kessy_key_programming",
+      "label": "Kessy Comfort System Key Programming",
+      "category": "Programming",
+      "path": [
+        "programming",
+        "kessy",
+        "key_program"
+      ],
+      "done_when": "Kessy IC synchronized - Key tested",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "audi",
+        "volkswagen",
+        "bentley"
+      ],
+      "note": "Program/reprogram Kessy smart entry keys. Synchronizes EZS (immobilizer) and comfort module. Modern Audi/VW models with pushstart and no keyhole"
+    },
+    {
+      "id": "vag_long_coding_helper",
+      "label": "Long Coding Configuration",
+      "category": "Coding",
+      "path": [
+        "coding",
+        "long_coding"
+      ],
+      "done_when": "Long coding value programmed and confirmed",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Modify 6-byte long coding values to enable/disable module features (lights, comfort, safety). Requires security access. Many options hidden behind bit flags"
+    },
+    {
+      "id": "vag_adaptation_channel",
+      "label": "Adaptation / Learning Channel Adjustment",
+      "category": "Coding",
+      "path": [
+        "coding",
+        "adaptation"
+      ],
+      "done_when": "Adaptation value stored and verified",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Modify ECU adaptation values (fuel trim, timing, shift points, sensor offsets). Stored after vehicle startup confirmation"
+    },
+    {
+      "id": "vag_security_access_unlock",
+      "label": "Security Access Code Entry / Unlock",
+      "category": "Coding",
+      "path": [
+        "coding",
+        "security_access"
+      ],
+      "done_when": "Access level unlocked - Coding permitted",
+      "timeout_sec": 30,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Enter 4-byte security code to unlock ECU for long coding and adaptation. Codes per vehicle VIN; X431 can request auto-unlock via online service"
+    },
+    {
+      "id": "vag_gateway_module_list",
+      "label": "Gateway Module Installation List Update",
+      "category": "Module",
+      "path": [
+        "module",
+        "gateway",
+        "installation_list"
+      ],
+      "done_when": "Module list updated in gateway ECU",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Update gateway ECU internal module address table after ECU replacement or addition. Critical for K-Line/CAN communication routing"
+    },
+    {
+      "id": "vag_instrument_cluster_service",
+      "label": "Instrument Cluster Service / Mileage Reset",
+      "category": "Module",
+      "path": [
+        "module",
+        "instruments",
+        "cluster_service"
+      ],
+      "done_when": "Cluster service mode confirmed / mileage synced",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Access cluster module for service intervals, warning lights, mileage sync after cluster replacement"
+    },
+    {
+      "id": "vag_infotainment_fec_coding",
+      "label": "Infotainment FEC / Coding Configuration",
+      "category": "Module",
+      "path": [
+        "module",
+        "infotainment",
+        "fec_coding"
+      ],
+      "done_when": "Infotainment feature coding applied and reboot complete",
+      "timeout_sec": 150,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Modify infotainment feature enabling (Nav, parking camera, phone control, ambient lighting). Reboot required for changes to take effect"
+    },
+    {
+      "id": "vag_comfort_module_coding",
+      "label": "Comfort Module Feature Coding",
+      "category": "Coding",
+      "path": [
+        "coding",
+        "comfort_features"
+      ],
+      "done_when": "Feature configuration saved to comfort module",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Enable/disable comfort features: auto-locks at speed, rain sensor, headlight delay, seat comfort, locking/unlocking sequences"
+    },
+    {
+      "id": "vag_tpms_relearn",
+      "label": "TPMS Sensor ID Programming / Relearn",
+      "category": "Service",
+      "path": [
+        "service",
+        "tires",
+        "tpms_sensor_id"
+      ],
+      "done_when": "All 4 tire sensor IDs learned and stored",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Learn/reprogram TPMS sensor IDs after wheel replacement. Direct method: manually trigger each sensor near antenna; indirect: driving trigger"
+    },
+    {
+      "id": "vag_battery_reset_adaptation",
+      "label": "Battery Change Registration / Adaptation",
+      "category": "Service",
+      "path": [
+        "service",
+        "electrical",
+        "battery_adapt"
+      ],
+      "done_when": "Battery registration confirmed in comfort module",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Register new battery (capacity, type) in comfort module after battery replacement. Enables correct charging strategy and load management"
+    },
+    {
+      "id": "vag_sunroof_service_mode",
+      "label": "Sunroof / Panoramic Roof Service Mode",
+      "category": "Service",
+      "path": [
+        "service",
+        "body",
+        "sunroof_service"
+      ],
+      "done_when": "Roof positioned for service - Fully open or closed",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat"
+      ],
+      "note": "Open/close sunroof to service position without normal controls. Required for replacement or motor/switch troubleshooting"
+    },
+    {
+      "id": "vag_headlight_beam_align",
+      "label": "Headlight Beam Alignment Adjustment",
+      "category": "Service",
+      "path": [
+        "service",
+        "lighting",
+        "headlight_align"
+      ],
+      "done_when": "Headlight beam height adjusted and verified",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Adjust headlight aim for left/right leveling, especially after suspension work or headlight replacement. Automated via light level sensor feedback"
+    },
+    {
+      "id": "vag_seat_memory_init",
+      "label": "Seat Memory / Position Initialization",
+      "category": "Service",
+      "path": [
+        "service",
+        "comfort",
+        "seat_memory"
+      ],
+      "done_when": "Seat full travel calibrated - Memory positions set",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "vag",
+        "volkswagen",
+        "audi",
+        "skoda",
+        "seat",
+        "porsche",
+        "bentley"
+      ],
+      "note": "Calibrate seat motors after replacement or ECU reset. Initialize lumbar, fore-aft, height, and backrest positions"
+    },
+    {
+      "id": "scan_full_system_diagnostics",
+      "label": "Full System Scan - All ECU Modules",
+      "category": "Scan",
+      "path": [
+        "scan",
+        "full_system"
+      ],
+      "done_when": "Scan completed, all modules identified",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Scans all available ECU modules (DME, DDE, FRM, SZL, gateway, etc.). E-series uses DCAN interface; F/G-series use ENET. Requires DOIP protocol support."
+    },
+    {
+      "id": "scan_single_ecu_module",
+      "label": "Single ECU Module Scan - Select & Diagnose",
+      "category": "Scan",
+      "path": [
+        "scan",
+        "module_specific"
+      ],
+      "done_when": "Module selected and scanned, status displayed",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Target specific module: Engine Control (DME/DDE), Transmission (EGS), Chassis (DSC/ABS), Body (FRM), Instrument Cluster (KOMBI), Steering (SZL). Different addressing for E/F/G series."
+    },
+    {
+      "id": "codes_clear_dtc_confirm",
+      "label": "Clear DTCs - Reset Fault Memory",
+      "category": "Codes",
+      "path": [
+        "codes",
+        "clear_dtc"
+      ],
+      "done_when": "Fault memory cleared, confirmation displayed",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Clear active and stored fault codes from selected module. Some modules require special preconditions; verify module state before clearing."
+    },
+    {
+      "id": "codes_shadow_memory_check",
+      "label": "Shadow Memory & Freeze Frame Check",
+      "category": "Codes",
+      "path": [
+        "codes",
+        "shadow_memory"
+      ],
+      "done_when": "Freeze frame data and shadow codes displayed",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Access freeze frame data (conditions at fault occurrence), shadow codes, and diagnostic trouble code history. Critical for intermittent fault diagnosis."
+    },
+    {
+      "id": "livedata_transmission_egs",
+      "label": "Live Data - Transmission EGS Parameters",
+      "category": "LiveData",
+      "path": [
+        "livedata",
+        "transmission"
+      ],
+      "done_when": "Real-time transmission data stream active",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Monitor transmission control module: gear selection, shift pressure, torque converter slip, transmission oil temperature and pressure. Varies by transmission type (ZF, Aisin)."
+    },
+    {
+      "id": "livedata_chassis_suspension",
+      "label": "Live Data - Chassis, Suspension & ABS",
+      "category": "LiveData",
+      "path": [
+        "livedata",
+        "chassis"
+      ],
+      "done_when": "Real-time chassis data streaming",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Monitor DSC/ABS module: wheel speeds, brake pressure, stability control status, suspension height (if air suspension). F/G-series with xDrive benefit from additional torque vectoring data."
+    },
+    {
+      "id": "service_oil_reset_cbs",
+      "label": "Service Reset - Oil Change & CBS Inspection",
+      "category": "Service",
+      "path": [
+        "service",
+        "oil_cbs_reset"
+      ],
+      "done_when": "Oil service and CBS inspection interval reset confirmed",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Reset oil service interval and Condition Based Service (CBS) inspection counters in instrument cluster. E-series uses different procedure than F/G-series."
+    },
+    {
+      "id": "service_epb_pad_replacement_emf",
+      "label": "Electric Parking Brake - Pad Replacement & EMF Calibration",
+      "category": "Service",
+      "path": [
+        "service",
+        "epb_pad_replacement"
+      ],
+      "done_when": "EPB calibration completed, mechanical index reset",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "After EPB brake pad replacement, perform electromagnetic force (EMF) calibration and mechanical index reset via FRM module. Critical for brake safety. F/G-series integrated parking brake differs from older mechanical designs."
+    },
+    {
+      "id": "service_throttle_adaptation_reset",
+      "label": "Throttle Body - Adaptation & Learning Reset",
+      "category": "Service",
+      "path": [
+        "service",
+        "throttle_adaptation"
+      ],
+      "done_when": "Throttle adaptation completed, idle stable",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Reset throttle position sensor learning and electronic throttle unit adaptation after replacement or rough idle symptoms. Standard procedure: key on 90 sec, clear codes, key off 90 sec, restart."
+    },
+    {
+      "id": "service_tpms_reset_relearn",
+      "label": "TPMS - Tire Pressure Sensor Reset & Relearn",
+      "category": "Service",
+      "path": [
+        "service",
+        "tpms_reset"
+      ],
+      "done_when": "TPMS sensors detected and registered, pressure values displayed",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Register new TPMS sensors after replacement or tire rotation. E-series uses indirect method (ABS integration); F/G-series direct TPMS. May require driving distance after reset."
+    },
+    {
+      "id": "service_battery_registration_ibs",
+      "label": "Battery Registration - IBS Sensor Reset & Initialization",
+      "category": "Service",
+      "path": [
+        "service",
+        "battery_registration"
+      ],
+      "done_when": "Battery registered, age/capacity/chemistry confirmed in BMS",
+      "timeout_sec": 150,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Register new battery after replacement. Resets Intelligent Battery Sensor (IBS) age counter and capacity. Critical post-replacement procedure. FRM module manages battery status. Different procedures for AGM vs standard batteries."
+    },
+    {
+      "id": "service_steering_angle_calibration_szl",
+      "label": "Steering Angle Calibration - SZL Module Initialization",
+      "category": "Service",
+      "path": [
+        "service",
+        "steering_calibration"
+      ],
+      "done_when": "Steering angle sensor calibrated, SZL learned new neutral point",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Calibrate steering angle sensor integrated into SZL (Steering Column Module) after replacement or after wheel alignment work. Procedure: turn wheel full left, full right, or drive 30-40 km/h. Required before DSC initialization."
+    },
+    {
+      "id": "service_dpf_regeneration_diesel",
+      "label": "DPF Regeneration - Forced Diesel Particulate Filter Regen",
+      "category": "Service",
+      "path": [
+        "service",
+        "dpf_regen"
+      ],
+      "done_when": "Regeneration cycle completed, DDE soot load cleared, warning light off",
+      "timeout_sec": 600,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Perform forced regeneration of diesel particulate filter (DDE module). Engine RPM typically rises to 2000-2500 RPM; process takes 15-30 minutes. Not applicable to petrol DME engines. Requires adequate fuel level."
+    },
+    {
+      "id": "service_transmission_egs_adaption_reset",
+      "label": "Transmission - EGS Adaptation Reset & Relearning",
+      "category": "Service",
+      "path": [
+        "service",
+        "transmission_adaption"
+      ],
+      "done_when": "Transmission adaptation reset, learning data cleared, relearning initiated",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Reset transmission adaptation after ECU replacement or after major repairs. EGS module will relearn shift characteristics. Requires test drive after reset. Procedure differs between automatic and manual transmission variants."
+    },
+    {
+      "id": "bidirectional_injector_activation_pulse",
+      "label": "Bidirectional Control - Injector Activation & Pulse Test",
+      "category": "Bidirectional",
+      "path": [
+        "bidirectional",
+        "injector_test"
+      ],
+      "done_when": "Injector(s) pulsing audibly, fuel spray verified",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Activate individual fuel injectors sequentially via DME/DDE to test solenoid operation and detect clogged/stuck injectors. Select injector 1/2/3/4/6 (or 1-6 for I-series). Listen for distinctive clicking."
+    },
+    {
+      "id": "bidirectional_electric_water_pump_test",
+      "label": "Bidirectional Control - Electric Water Pump Activation",
+      "category": "Bidirectional",
+      "path": [
+        "bidirectional",
+        "water_pump"
+      ],
+      "done_when": "Electric water pump running, coolant flow detected or pump noise heard",
+      "timeout_sec": 30,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Activate electric water pump (if equipped) via DME. Newer F/G-series engines with variable coolant management use electric pump; older E-series use engine-driven pump. Feel hose temperature rise."
+    },
+    {
+      "id": "bidirectional_valvetronic_motor_adjustment",
+      "label": "Bidirectional Control - Valvetronic Motor Adjustment & Calibration",
+      "category": "Bidirectional",
+      "path": [
+        "bidirectional",
+        "valvetronic"
+      ],
+      "done_when": "Valvetronic motor repositioned, intake valve lift calibrated",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Adjust valvetronic camshaft lift motor via DME after replacement or maintenance. Listen for characteristic motor operation; excessive noise indicates mechanical binding. Petrol engines only (N-series, N2x engines)."
+    },
+    {
+      "id": "programming_key_learn_fem_bdc",
+      "label": "Programming - Key Learning & FEM-BDC Registration",
+      "category": "Programming",
+      "path": [
+        "programming",
+        "key_learn"
+      ],
+      "done_when": "New key(s) registered in FEM module, IMMO synchronization complete",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Program new vehicle keys and register in Front Electronic Module (FEM) or Body Domain Controller (BDC). Requires master/existing key present. F/G-series BDC differs from older FEM architecture. Critical security function."
+    },
+    {
+      "id": "programming_ecu_flash_ista_equivalent",
+      "label": "Programming - ECU Flash & Reprogramming (ISTA/D Equivalent)",
+      "category": "Programming",
+      "path": [
+        "programming",
+        "ecu_flash"
+      ],
+      "done_when": "ECU firmware updated, checksum verified, module reinitialized",
+      "timeout_sec": 600,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Reprogram ECU firmware after corruption or update. Equivalent to ISTA/D flashing. Supports DME, DDE, EGS, FRM modules. Do NOT interrupt process. E-series uses DCAN; F/G-series ENET. Requires stable power and connection."
+    },
+    {
+      "id": "programming_ecu_initialization_virgin",
+      "label": "Programming - ECU Initialization (Virgin ECU Setup)",
+      "category": "Programming",
+      "path": [
+        "programming",
+        "ecu_init"
+      ],
+      "done_when": "Virgin ECU initialized, IMMO data written, module ready for key coding",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Initialize completely virgin (unprogrammed) ECU with baseline software and vehicle identifiers. Necessary before key learning or coding. Requires VIN and original part number."
+    },
+    {
+      "id": "coding_fa_vo_vehicle_order",
+      "label": "Coding - FA/VO (Vehicle Order) Edit & Update",
+      "category": "Coding",
+      "path": [
+        "coding",
+        "fa_vo"
+      ],
+      "done_when": "FA/VO coding values read, edited, and written; vehicle configuration updated",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Read and edit Factory Authorized (FA) and Vehicle Order (VO) coding data via FRM or gateway module. Controls vehicle features, options, and configuration. E-series uses different coding format than F/G-series. Requires SALAPA access."
+    },
+    {
+      "id": "coding_retrofit_video_motion",
+      "label": "Coding - Retrofit Coding (e.g. Video-in-Motion, Feature Unlock)",
+      "category": "Coding",
+      "path": [
+        "coding",
+        "retrofit"
+      ],
+      "done_when": "Retrofit coding applied, feature enabled, no conflicts detected",
+      "timeout_sec": 200,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Apply retrofit coding to enable features like video-in-motion (VIM), comfort functions, or equipment adaptations. Common retrofits: coding KOMBI for new display, coding FRM for feature activation. Coding persists across ISTA flashing if using proper method."
+    },
+    {
+      "id": "coding_dme_dde_engine_parameters",
+      "label": "Coding - Engine Control Parameter Coding (DME/DDE)",
+      "category": "Coding",
+      "path": [
+        "coding",
+        "engine_params"
+      ],
+      "done_when": "Engine control parameters coded, adaptation values set, module ready",
+      "timeout_sec": 150,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Code engine control parameters in DME (petrol) or DDE (diesel) such as displacement, fuel type, catalyst type, and performance variants. Required after ECU replacement or when converting between engine variants."
+    },
+    {
+      "id": "module_frm_footwell_init",
+      "label": "Module - FRM Footwell Module Initialization & Coding",
+      "category": "Module",
+      "path": [
+        "module",
+        "frm_init"
+      ],
+      "done_when": "FRM module initialized, lighting and comfort functions operational",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Initialize Front-Right Module (FRM) or equivalent body module controlling lighting, comfort, and power distribution. Requires coding vehicle configuration and testing all integrated functions (headlights, wipers, locks, heating)."
+    },
+    {
+      "id": "module_cas_fem_coding_gateway",
+      "label": "Module - CAS/FEM Gateway Module Coding & Integration",
+      "category": "Module",
+      "path": [
+        "module",
+        "cas_fem"
+      ],
+      "done_when": "Gateway module configured, all connected modules responding to gateway commands",
+      "timeout_sec": 200,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Code and initialize Central Authentication System (CAS) or Front Electronic Module (FEM) gateway. Manages vehicle bus communication, key authentication, and module integration. E-series CAS differs from F-series FEM and G-series BDC architecture."
+    },
+    {
+      "id": "module_kombi_cluster_mileage_check",
+      "label": "Module - Instrument Cluster Mileage Verification & Coding",
+      "category": "Module",
+      "path": [
+        "module",
+        "kombi_mileage"
+      ],
+      "done_when": "Cluster mileage verified against vehicle history, coding applied if needed",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Verify instrument cluster mileage against vehicle memory and perform safety checks. Code cluster for configuration (speedometer type, fuel gauge range, unit display language). E-series uses analog; F/G-series digital with customizable display."
+    },
+    {
+      "id": "service_abs_dsc_initialization",
+      "label": "Service - ABS/DSC System Initialization & Bleeding",
+      "category": "Service",
+      "path": [
+        "service",
+        "abs_dsc_init"
+      ],
+      "done_when": "ABS/DSC module initialized, system test passed, no brake warnings",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Initialize and bleed ABS/DSC system after brake work or module replacement. Automated procedure cycles pump and solenoid valves to purge air. Requires clean brake fluid and proper brake pedal monitoring."
+    },
+    {
+      "id": "bidirectional_dsc_pump_motor_test",
+      "label": "Bidirectional Control - DSC Pump Motor Test",
+      "category": "Bidirectional",
+      "path": [
+        "bidirectional",
+        "dsc_pump"
+      ],
+      "done_when": "DSC pump motor running smoothly, pressure feedback confirmed",
+      "timeout_sec": 45,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Activate DSC pump motor via ABS module to verify pump operation and detect blockages. Listen for consistent motor noise; grinding or slipping indicates air in system or internal failure."
+    },
+    {
+      "id": "service_seat_belt_pretensioner_coding",
+      "label": "Service - Seat Belt Pretensioner Module Initialization",
+      "category": "Service",
+      "path": [
+        "service",
+        "seatbelt_pretension"
+      ],
+      "done_when": "Pretensioner module initialized, system test passed",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Initialize seat belt pretensioner system after module replacement or battery disconnect. SRS module manages pyrotechnic charge arming and test modes. Safety-critical function requiring careful procedure."
+    },
+    {
+      "id": "livedata_dsc_abs_wheel_speeds",
+      "label": "Live Data - DSC/ABS Wheel Speed Sensors & Pressure",
+      "category": "LiveData",
+      "path": [
+        "livedata",
+        "wheel_speed"
+      ],
+      "done_when": "Real-time wheel speed data and brake pressure streaming",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Monitor wheel speed sensors and brake system pressure via DSC/ABS module. Identifies ABS sensor faults, stuck calipers, and brake system imbalances. Test during light braking and cornering."
+    },
+    {
+      "id": "coding_kombi_display_retrofit",
+      "label": "Coding - Instrument Cluster Display Retrofit (6WB, 8.8-inch)",
+      "category": "Coding",
+      "path": [
+        "coding",
+        "cluster_retrofit"
+      ],
+      "done_when": "New cluster type coded in FRM/gateway, display format activated, no conflicts",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Code instrument cluster upgrade from traditional analog to modern digital display (6WB, 8.8-inch, MFID). Requires VO coding update, cluster coding adjustment, and potential FRM parameter changes. F-series commonly retrofitted from E-series clusters."
+    },
+    {
+      "id": "service_emission_monitor_readiness",
+      "label": "Service - Emission Monitor Readiness Status Check",
+      "category": "Service",
+      "path": [
+        "service",
+        "emission_readiness"
+      ],
+      "done_when": "All emissions monitors operational, readiness status complete",
+      "timeout_sec": 200,
+      "oem_scope": [
+        "bmw",
+        "mini",
+        "rolls_royce"
+      ],
+      "note": "Check OBD emissions monitor readiness after service or ECU reset. Requires specific drive cycle completion (city + highway) to achieve 'ready' status for emission testing. Monitors include catalyst, O2 sensor, EGR, fuel system."
+    },
+    {
+      "id": "scan_full_system_diagnostic",
+      "label": "Full System Diagnostic Scan",
+      "category": "Scan",
+      "path": [
+        "diagnosis",
+        "full_system"
+      ],
+      "done_when": "All available control modules scanned and results displayed",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Scans all available ECUs and systems; requires auto-VIN detection enabled"
+    },
+    {
+      "id": "scan_quick_test_single_ecu",
+      "label": "Quick Test Single ECU",
+      "category": "Scan",
+      "path": [
+        "diagnosis",
+        "quick_test"
+      ],
+      "done_when": "Single ECU test completed with diagnostic results",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Fast single-module test for quick diagnostics; useful for targeted troubleshooting"
+    },
+    {
+      "id": "livedata_engine_me_ecu",
+      "label": "Live Data Engine ME ECU",
+      "category": "LiveData",
+      "path": [
+        "live_data",
+        "engine",
+        "me_ecu"
+      ],
+      "done_when": "Real-time engine parameters streaming and displayed",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Streams engine control unit parameters: cylinder pressure, common rail pressure, fuel injection timing, ignition advance"
+    },
+    {
+      "id": "livedata_abs_esp_system",
+      "label": "Live Data ABS/ESP System",
+      "category": "LiveData",
+      "path": [
+        "live_data",
+        "braking",
+        "abs_esp"
+      ],
+      "done_when": "Real-time brake system parameters streaming and displayed",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Streams ABS/ESP parameters: wheel speeds, brake pressure, lateral acceleration, system status"
+    },
+    {
+      "id": "service_oil_reset_assyst",
+      "label": "Oil Service Reset ASSYST",
+      "category": "Service",
+      "path": [
+        "service",
+        "maintenance",
+        "oil_reset"
+      ],
+      "done_when": "Service reminder reset confirmed and interval reset",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Resets oil change service interval via ASSYST; clears ASSYST Plus engine oil reminder"
+    },
+    {
+      "id": "service_epb_pad_wear_reset",
+      "label": "EPB BAS Brake Pad Service Reset",
+      "category": "Service",
+      "path": [
+        "service",
+        "braking",
+        "epb_pad_reset"
+      ],
+      "done_when": "Brake pad wear indicator reset and reminder cleared",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Resets electronic parking brake (EPB) and brake assist (BAS) pad wear service reminder after pad replacement"
+    },
+    {
+      "id": "service_throttle_valve_learn",
+      "label": "Throttle Valve Idle Learn Procedure",
+      "category": "Service",
+      "path": [
+        "service",
+        "engine",
+        "throttle_learn"
+      ],
+      "done_when": "Idle speed adaptation completed and idle values learned",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Relearn idle speed and throttle position after throttle body cleaning or replacement; M271/M272 engines"
+    },
+    {
+      "id": "service_sbc_reset_counter",
+      "label": "SBC Brake Unit Reset Counter",
+      "category": "Service",
+      "path": [
+        "service",
+        "braking",
+        "sbc_reset"
+      ],
+      "done_when": "SBC threshold counter reset and warning light cleared",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Resets SBC (Sensotronic Brake Control) threshold counter for models W203-W211 (2000-2009); clears C249F/C2498 fault codes"
+    },
+    {
+      "id": "service_steering_angle_calibration",
+      "label": "Steering Angle Calibration LWS",
+      "category": "Service",
+      "path": [
+        "service",
+        "steering",
+        "angle_calibration"
+      ],
+      "done_when": "Steering angle sensor calibrated and steering angle offset reset",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Calibrates Lane Keeping Assist (LWS) steering angle sensor after steering component replacement or alignment"
+    },
+    {
+      "id": "service_transmission_722_9_adapt",
+      "label": "Transmission 722.9 Adaptation Reset",
+      "category": "Service",
+      "path": [
+        "service",
+        "transmission",
+        "722_9_reset"
+      ],
+      "done_when": "Transmission adaptive learning cleared and reset to factory defaults",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Resets transmission adaptive values for 722.9 7G-Tronic automatic; requires proper voltage and ignition control; models W204-W212"
+    },
+    {
+      "id": "bidirectional_fuel_pump_activation",
+      "label": "Fuel Pump Activation Test",
+      "category": "Bidirectional",
+      "path": [
+        "actuation",
+        "fuel",
+        "pump_test"
+      ],
+      "done_when": "Fuel pump activated and deactivated; audible/pressure confirmation",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Activates fuel pump for test/prime; verifies pump operation and fuel delivery pressure"
+    },
+    {
+      "id": "bidirectional_evap_canister_test",
+      "label": "EVAP Canister Purge Control Test",
+      "category": "Bidirectional",
+      "path": [
+        "actuation",
+        "emissions",
+        "evap_test"
+      ],
+      "done_when": "EVAP purge valve actuated; system operation verified",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Tests EVAP purge control valve operation; detects charcoal canister and valve faults"
+    },
+    {
+      "id": "bidirectional_secondary_air_pump",
+      "label": "Secondary Air Pump Control Test",
+      "category": "Bidirectional",
+      "path": [
+        "actuation",
+        "emissions",
+        "air_pump_test"
+      ],
+      "done_when": "Air pump activated; airflow/pressure confirmed",
+      "timeout_sec": 60,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Tests secondary air injection pump operation; critical for emissions system diagnostics"
+    },
+    {
+      "id": "bidirectional_sbc_brake_bleeding",
+      "label": "SBC Brake System Bleeding Procedure",
+      "category": "Bidirectional",
+      "path": [
+        "actuation",
+        "braking",
+        "sbc_bleed"
+      ],
+      "done_when": "Brake system bled and air removed; brake pressure stabilized",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Automated brake bleeding via SBC module for vehicles with ABS/ESP; eliminates manual bleeding; W203-W212 models"
+    },
+    {
+      "id": "programming_key_learn_scn",
+      "label": "Key Learn via SCN Online",
+      "category": "Programming",
+      "path": [
+        "programming",
+        "immobilizer",
+        "key_learn_scn"
+      ],
+      "done_when": "Key learned to vehicle and authentication verified",
+      "timeout_sec": 300,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Programs new keys via SCN (Smartphone Coding Network) online server; requires internet connection and online credentials; aftermarket limitations apply"
+    },
+    {
+      "id": "programming_ecu_scn_coding",
+      "label": "ECU SCN Online Coding",
+      "category": "Programming",
+      "path": [
+        "programming",
+        "ecu",
+        "scn_coding"
+      ],
+      "done_when": "ECU coded and software updated; configuration applied",
+      "timeout_sec": 600,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Performs online SCN coding for ECU modifications; downloads latest firmware; restricted to year 2021 for PAD VII; regional limitations in North America/Spain"
+    },
+    {
+      "id": "programming_ezs_switch_program",
+      "label": "EZS Ignition Switch Programming",
+      "category": "Programming",
+      "path": [
+        "programming",
+        "security",
+        "ezs_program"
+      ],
+      "done_when": "EZS module programmed and ignition switch synchronized",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Programs Electronic Start Switch (EZS) for newer models; includes ignition switch synchronization and immobilizer coding"
+    },
+    {
+      "id": "coding_variant_coding_xentry",
+      "label": "Variant Coding XENTRY Equivalent",
+      "category": "Coding",
+      "path": [
+        "coding",
+        "variant",
+        "coding_xentry"
+      ],
+      "done_when": "Vehicle variant parameters updated and applied",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Performs variant coding equivalent to XENTRY dealer tool; configures vehicle options and regional specifications"
+    },
+    {
+      "id": "coding_eis_ezs_pairing",
+      "label": "EIS/EZS Module Pairing",
+      "category": "Coding",
+      "path": [
+        "coding",
+        "security",
+        "eis_ezs_pair"
+      ],
+      "done_when": "EIS and EZS modules paired and synchronized",
+      "timeout_sec": 150,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Pairs Engine Immobilizer System (EIS) with Electronic Start Switch (EZS); required after module replacement or battery disconnect"
+    },
+    {
+      "id": "coding_infotainment_scn",
+      "label": "Infotainment Module SCN Coding",
+      "category": "Coding",
+      "path": [
+        "coding",
+        "infotainment",
+        "scn_coding"
+      ],
+      "done_when": "Infotainment module coded and media functions restored",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "SCN coding for infotainment units; unlocks media and navigation features; requires online authentication"
+    },
+    {
+      "id": "module_sbc_bleed_w221_older",
+      "label": "SBC Bleed Procedure W221 Older S-Class",
+      "category": "Module",
+      "path": [
+        "modules",
+        "braking",
+        "sbc_bleed_w221"
+      ],
+      "done_when": "Brake system fully bled and pressure stabilized",
+      "timeout_sec": 600,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Complete automated SBC brake bleeding sequence for older S-Class (W221 and earlier); includes full system evacuation and refill"
+    },
+    {
+      "id": "module_airmatic_suspension_calibration",
+      "label": "Airmatic Suspension Level Calibration",
+      "category": "Module",
+      "path": [
+        "modules",
+        "suspension",
+        "airmatic_calibration"
+      ],
+      "done_when": "Suspension level adjusted to standard height and locked",
+      "timeout_sec": 180,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Calibrates air suspension system; adjusts ride height via F3-F10 function keys; applies to W204-W212 models with Airmatic"
+    },
+    {
+      "id": "module_4matic_transfer_case_reset",
+      "label": "4MATIC Transfer Case Reset",
+      "category": "Module",
+      "path": [
+        "modules",
+        "drivetrain",
+        "4matic_reset"
+      ],
+      "done_when": "Transfer case module reset and all-wheel-drive system reinitialized",
+      "timeout_sec": 120,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Resets 4MATIC all-wheel-drive transfer case; performed after drivetrain component replacement or electronic reinitialization"
+    },
+    {
+      "id": "service_battery_registration_same_type",
+      "label": "Battery Registration Same Type Capacity",
+      "category": "Service",
+      "path": [
+        "service",
+        "electrical",
+        "battery_same"
+      ],
+      "done_when": "Battery registered and system adaptation complete",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Registers battery replacement with same type and capacity; required for proper power management and charging regulation"
+    },
+    {
+      "id": "service_battery_registration_different_capacity",
+      "label": "Battery Registration Different Capacity",
+      "category": "Service",
+      "path": [
+        "service",
+        "electrical",
+        "battery_capacity"
+      ],
+      "done_when": "Battery capacity difference registered and charging adjusted",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Registers battery replacement with same type but different capacity; adjusts charging algorithm and system parameters"
+    },
+    {
+      "id": "service_battery_registration_different_type",
+      "label": "Battery Registration Different Type",
+      "category": "Service",
+      "path": [
+        "service",
+        "electrical",
+        "battery_type"
+      ],
+      "done_when": "Different battery type registered and systems recalibrated",
+      "timeout_sec": 90,
+      "oem_scope": [
+        "mercedes",
+        "mercedes_benz",
+        "smart",
+        "amg",
+        "maybach"
+      ],
+      "note": "Registers completely different battery type (AGM vs Standard); recalibrates all voltage-dependent vehicle systems; critical for system stability"
+    }
+  ]
+}

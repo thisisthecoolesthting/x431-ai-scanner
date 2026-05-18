@@ -2,6 +2,7 @@ package com.caseforge.scanner.agent
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
+import android.content.Intent
 import android.graphics.Path
 import android.graphics.Rect
 import android.os.Bundle
@@ -10,6 +11,8 @@ import android.os.Looper
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import com.caseforge.scanner.data.SettingsRepo
+import com.caseforge.scanner.overlay.FullScreenOverlayService
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 
@@ -19,6 +22,9 @@ import kotlinx.coroutines.delay
  * This service exposes a small set of operations (read_screen / tap / type / scroll / back /
  * wait_for) that the agent loop in [AgentRunner] calls as tools. It also detects VINs on
  * screen and notifies listeners so we can auto-start a diagnostic session.
+ *
+ * A6: When [SettingsRepo.overlayOnX431] is true and an X431 package comes to the foreground,
+ * [FullScreenOverlayService] is auto-launched (idempotent via isRunning guard).
  */
 class ScannerAccessibilityService : AccessibilityService() {
 
@@ -44,9 +50,13 @@ class ScannerAccessibilityService : AccessibilityService() {
         @Volatile var onVinDetected: ((String) -> Unit)? = null
     }
 
+    // Lazily created once the service is connected and has a valid Context.
+    private lateinit var settingsRepo: SettingsRepo
+
     override fun onServiceConnected() {
         super.onServiceConnected()
         INSTANCE = this
+        settingsRepo = SettingsRepo(this)
         Log.i(TAG, "ScannerAccessibilityService connected")
     }
 
@@ -72,7 +82,21 @@ class ScannerAccessibilityService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         event ?: return
-        if (event.packageName?.toString() !in X431_PACKAGES) return
+        val eventPkg = event.packageName?.toString() ?: return
+
+        // A6: When an X431 window comes to the foreground and the toggle is on,
+        // auto-launch FullScreenOverlayService — but only once (isRunning guard).
+        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED &&
+            eventPkg in X431_PACKAGES
+        ) {
+            if (settingsRepo.overlayOnX431 && !FullScreenOverlayService.isRunning) {
+                Log.i(TAG, "X431 foregrounded ($eventPkg) — launching FullScreenOverlayService")
+                startForegroundService(Intent(this, FullScreenOverlayService::class.java))
+            }
+        }
+
+        // Only process further events from X431 packages.
+        if (eventPkg !in X431_PACKAGES) return
 
         // Cheap VIN detection on any text change.
         when (event.eventType) {

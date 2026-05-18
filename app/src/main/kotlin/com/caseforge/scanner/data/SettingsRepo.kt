@@ -1,9 +1,14 @@
 package com.caseforge.scanner.data
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.caseforge.scanner.BuildConfig
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 /**
  * Stores secrets (Claude API key) in EncryptedSharedPreferences, and non-secret prefs
@@ -78,6 +83,36 @@ class SettingsRepo(context: Context) {
         get() = prefs.getString(K_NOTES, DEFAULT_AGENT_NOTES) ?: DEFAULT_AGENT_NOTES
         set(value) { prefs.edit().putString(K_NOTES, value).apply() }
 
+    // ---- A6: overlayOnX431 ----
+
+    /**
+     * When true, [ScannerAccessibilityService] auto-launches [FullScreenOverlayService]
+     * the moment any X431 package becomes the foreground window.
+     * Default false — opt-in only.
+     */
+    var overlayOnX431: Boolean
+        get() = prefs.getBoolean(K_OVERLAY_ON_X431, false)
+        set(value) { prefs.edit().putBoolean(K_OVERLAY_ON_X431, value).apply() }
+
+    /**
+     * Reactive view of [overlayOnX431]. Backed by a SharedPreferences listener so every
+     * collector sees the latest value immediately on subscription and on every change.
+     */
+    val overlayOnX431Flow: Flow<Boolean> = callbackFlow {
+        // Emit the current value immediately so collectors don't wait for the first change.
+        trySend(overlayOnX431)
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == K_OVERLAY_ON_X431) trySend(overlayOnX431)
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.distinctUntilChanged()
+
+    /** Coroutine-friendly writer; delegates to the property setter. */
+    suspend fun setOverlayOnX431(value: Boolean) {
+        overlayOnX431 = value
+    }
+
     companion object {
         private const val K_API_KEY = "claude_api_key"
         private const val K_MODEL = "claude_model"
@@ -89,6 +124,7 @@ class SettingsRepo(context: Context) {
         private const val K_NOTES = "agent_notes"
         private const val K_THEME = "theme_mode"
         private const val K_WIZARD = "wizard_complete"
+        private const val K_OVERLAY_ON_X431 = "overlay_on_x431"   // A6
 
         const val DEFAULT_AGENT_NOTES = """About this app
 ==============

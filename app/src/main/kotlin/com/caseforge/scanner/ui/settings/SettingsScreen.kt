@@ -25,6 +25,8 @@ fun SettingsScreen(settings: SettingsRepo, onBack: () -> Unit) {
     var approval by remember { mutableStateOf(settings.requireApproval) }
     var speak by remember { mutableStateOf(settings.speakEnabled) }
     var theme by remember { mutableStateOf(settings.themeMode) }
+    // A6: overlay-on-X431 toggle
+    var overlayOnX431 by remember { mutableStateOf(settings.overlayOnX431) }
 
     Column(Modifier.fillMaxSize()) {
         TopAppBar(
@@ -94,6 +96,17 @@ fun SettingsScreen(settings: SettingsRepo, onBack: () -> Unit) {
                 headlineContent = { Text("Confirm bidirectional tests") },
                 supportingContent = { Text("When on, the agent must request approval before any actuation.") },
                 trailingContent = { Switch(checked = approval, onCheckedChange = { approval = it; settings.requireApproval = it }) },
+            )
+            // A6: Show overlay on X431
+            ListItem(
+                headlineContent = { Text("Show overlay on X431") },
+                supportingContent = { Text("Automatically overlay diagnostics when the X431 app is active") },
+                trailingContent = {
+                    Switch(
+                        checked = overlayOnX431,
+                        onCheckedChange = { overlayOnX431 = it; settings.overlayOnX431 = it },
+                    )
+                },
             )
             ListItem(
                 headlineContent = { Text("Kill switch") },

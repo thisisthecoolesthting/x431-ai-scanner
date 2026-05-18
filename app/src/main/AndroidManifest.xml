@@ -101,6 +101,11 @@
                 android:value="Floating AI assistant bubble" />
         </service>
 
+        <!--
+            A6: FullScreenOverlayService is already registered with foregroundServiceType="specialUse".
+            No change required — verified correct for startForegroundService() calls from
+            ScannerAccessibilityService.
+        -->
         <service
             android:name=".overlay.FullScreenOverlayService"
             android:exported="false"

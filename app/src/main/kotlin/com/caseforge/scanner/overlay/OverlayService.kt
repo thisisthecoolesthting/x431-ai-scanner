@@ -13,6 +13,7 @@ import android.os.Looper
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.graphics.Color
 import android.text.TextUtils
@@ -38,12 +39,14 @@ import kotlinx.coroutines.launch
  * Foreground service that shows a draggable bubble over the X431 app.
  * Tap = start an agent session against whatever the X431 app is showing right now.
  * Tap again while the agent is running = stop it (kill-switch).
+ * Long-press (>800ms) = launch FullScreenOverlayService.
  */
 class OverlayService : Service() {
 
     companion object {
         private const val CHANNEL_ID = "overlay"
         private const val NOTIFICATION_ID = 1002
+        private const val LONG_PRESS_TIMEOUT_MS = 800L
     }
 
     private lateinit var wm: WindowManager
@@ -53,6 +56,9 @@ class OverlayService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var currentJob: Job? = null
     private val ui = Handler(Looper.getMainLooper())
+
+    private var longPressTriggered = false
+    private var longPressHandler: Runnable? = null
 
     private val app: App get() = applicationContext as App
 
@@ -68,6 +74,7 @@ class OverlayService : Service() {
     override fun onDestroy() {
         currentJob?.cancel()
         scope.cancel()
+        longPressHandler?.let { ui.removeCallbacks(it) }
         bubbleContainer?.let { runCatching { wm.removeView(it) } }
         bubble = null
         bubbleContainer = null
@@ -129,25 +136,64 @@ class OverlayService : Service() {
 
         var downX = 0f; var downY = 0f
         var startX = 0; var startY = 0
+        val touchSlop = ViewConfiguration.get(this).scaledTouchSlop
+        
         iv.setOnTouchListener { v, e ->
             when (e.action) {
                 MotionEvent.ACTION_DOWN -> {
                     downX = e.rawX; downY = e.rawY
                     startX = params.x; startY = params.y
+                    longPressTriggered = false
+                    
+                    // Schedule long-press handler
+                    longPressHandler?.let { ui.removeCallbacks(it) }
+                    longPressHandler = Runnable {
+                        longPressTriggered = true
+                        onBubbleLongPress()
+                    }
+                    ui.postDelayed(longPressHandler!!, LONG_PRESS_TIMEOUT_MS)
+                    
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    params.x = startX + (e.rawX - downX).toInt()
-                    params.y = startY + (e.rawY - downY).toInt()
-                    bubbleContainer?.let { wm.updateViewLayout(it, params) }
-                    true
-                }
-                MotionEvent.ACTION_UP -> {
                     val moved = kotlin.math.hypot(
                         (e.rawX - downX).toDouble(),
                         (e.rawY - downY).toDouble()
                     )
-                    if (moved < 10) onBubbleTap()
+                    
+                    // If movement exceeds touch slop, cancel long-press and start drag
+                    if (moved > touchSlop) {
+                        longPressHandler?.let { ui.removeCallbacks(it) }
+                        longPressHandler = null
+                        longPressTriggered = false
+                    }
+                    
+                    // Only update position if not a potential long-press
+                    if (moved > touchSlop) {
+                        params.x = startX + (e.rawX - downX).toInt()
+                        params.y = startY + (e.rawY - downY).toInt()
+                        bubbleContainer?.let { wm.updateViewLayout(it, params) }
+                    }
+                    
+                    true
+                }
+                MotionEvent.ACTION_UP -> {
+                    // Cancel pending long-press if still scheduled
+                    longPressHandler?.let { ui.removeCallbacks(it) }
+                    longPressHandler = null
+                    
+                    // Only process tap if long-press did not fire
+                    if (!longPressTriggered) {
+                        val moved = kotlin.math.hypot(
+                            (e.rawX - downX).toDouble(),
+                            (e.rawY - downY).toDouble()
+                        )
+                        if (moved < touchSlop) {
+                            onBubbleTap()
+                        }
+                    }
+                    
+                    longPressTriggered = false
                     true
                 }
                 else -> false
@@ -156,6 +202,19 @@ class OverlayService : Service() {
 
         wm.addView(container, params)
         bubble = iv
+    }
+
+    /** Long-press handler: launch FullScreenOverlayService. */
+    private fun onBubbleLongPress() {
+        toast("Opening full-screen overlay…")
+        app.actionLog.event("bubble.longpress", "user long-pressed bubble")
+        val intent = Intent(this, FullScreenOverlayService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            @Suppress("DEPRECATION")
+            startService(intent)
+        }
     }
 
     /** Click handler: start agent if idle, stop it if already running. */
