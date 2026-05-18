@@ -75,3 +75,41 @@ If 203/204 already shipped without 202, do not roll back. Land 202 next and foll
 
 ---
 
+
+
+---
+
+# URGENT v2 — USB CABLE IS PRIMARY, BLUETOOTH IS OPT-IN
+
+Per Ricky: the **USB OBD cable** (task 206) is the **first** transport the app tries and the default. Bluetooth is a secondary path that the tech must EXPLICITLY enable.
+
+## Revised execution order
+
+0. Task 201 — standalone bugs + diagnostics surface
+1. **Task 206 — ELM327 USB-OBD cable (PRIMARY transport).** First thing the app tries. Default on Connection drawer.
+2. Task 202 — Launch VCI USB OTG (secondary USB path for techs who own the Launch dongle).
+3. Task 203 — Fix LAN file-transfer server.
+4. Task 204 — Single-screen detached UI. Connection drawer ordering: USB OBD Cable → Launch VCI (USB) → Bluetooth (collapsed, requires toggle).
+5. Task 205 — cnlaunch data integration (triggered when Ricky uploads).
+
+## Bluetooth UX rule
+
+Bluetooth is NOT auto-attempted. Behavior in Connection drawer:
+
+- Top of drawer: USB transports (active by default).
+- Below USB: a section labeled **"Bluetooth (optional — requires pairing)"** with a single toggle.
+- Toggling Bluetooth ON does this exact UX:
+  1. Pop a one-time explanation: "Pairing happens in Android's Bluetooth Settings, not inside Together. Tap Continue to open Bluetooth settings."
+  2. "Continue" → fire `Intent(Settings.ACTION_BLUETOOTH_SETTINGS)`.
+  3. Tech pairs the VCI / ELM327 over there.
+  4. Tech returns to Together. The drawer now lists bonded devices Together recognizes — they pick one.
+- If the toggle is OFF, the app NEVER scans for Bluetooth devices and NEVER attempts a BT connection.
+
+This means a tech with a USB cable just plugs in and works. A tech wanting Bluetooth has to take an extra deliberate step (toggle + pair) — exactly Ricky's spec.
+
+## If 204 already shipped without 206
+
+204 shipped without USB cable support. Don't roll back. Land 206 next as the new primary, then a small follow-up to Connection drawer ordering + the Bluetooth opt-in toggle.
+
+---
+
