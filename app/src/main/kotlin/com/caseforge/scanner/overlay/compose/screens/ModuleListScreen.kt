@@ -28,6 +28,8 @@ import com.caseforge.scanner.ui.theme.CaseForgeTheme
  * - Vehicle info card (VIN, summary, busy indicator)
  * - Capability category tabs
  * - Capability cards in a 2-column grid
+ *
+ * All text and colors routed through MaterialTheme (C1 requirement).
  */
 @Composable
 fun ModuleListScreen(
@@ -55,6 +57,7 @@ fun ModuleListScreen(
                         Text(
                             state.vehicleVin?.let { "VIN: $it" } ?: "No vehicle detected yet",
                             fontWeight = FontWeight.SemiBold,
+                            style = MaterialTheme.typography.titleMedium,
                         )
                         Text(
                             state.vehicleSummary ?: state.currentMenuPath.joinToString(" › ").ifBlank {
@@ -82,7 +85,7 @@ fun ModuleListScreen(
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         Icon(Icons.Default.Build, contentDescription = null)
-                        Text("X431 engine not running", fontWeight = FontWeight.SemiBold)
+                        Text("X431 engine not running", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
                     }
                     Text(
                         "Tap any capability below and Launch AI will start the X431 engine for you. " +
@@ -103,7 +106,7 @@ fun ModuleListScreen(
                 Tab(
                     selected = selectedCategory == c,
                     onClick = { selectedCategory = c },
-                    text = { Text(c.name) },
+                    text = { Text(c.name, style = MaterialTheme.typography.labelLarge) },
                 )
             }
         }
@@ -118,7 +121,7 @@ fun ModuleListScreen(
                         modifier = Modifier.weight(1f),
                     ) {
                         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(cap.label, fontWeight = FontWeight.SemiBold)
+                            Text(cap.label, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleSmall)
                             Text(
                                 cap.note ?: cap.path.joinToString(" › "),
                                 style = MaterialTheme.typography.labelSmall,
@@ -144,6 +147,25 @@ private fun ModuleListScreenPreview() {
                     vehicleVin = "5FNRL6H73LB123456",
                     vehicleSummary = "2020 Honda Odyssey",
                     currentMenuPath = listOf("Scan", "Full System"),
+                    busy = false,
+                ),
+                onAction = {},
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun ModuleListScreenDarkPreview() {
+    CaseForgeTheme(isDarkMode = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            ModuleListScreen(
+                state = EngineState(
+                    screen = ScreenKind.HomeMenu,
+                    vehicleVin = "5FNRL6H73LB123456",
+                    vehicleSummary = "2020 Honda Odyssey",
+                    currentMenuPath = listOf("Main Menu"),
                     busy = false,
                 ),
                 onAction = {},

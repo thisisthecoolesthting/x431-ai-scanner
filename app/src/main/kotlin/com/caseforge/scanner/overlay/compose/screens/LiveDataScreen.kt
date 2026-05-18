@@ -22,6 +22,8 @@ import com.caseforge.scanner.ui.theme.CaseForgeTheme
  * - Title "Live data"
  * - "Waiting for PIDs" placeholder if none available
  * - Rows of live data with label and formatted numeric value
+ *
+ * All text and colors routed through MaterialTheme (C1 requirement).
  */
 @Composable
 fun LiveDataScreen(
@@ -40,6 +42,7 @@ fun LiveDataScreen(
             Text(
                 "Waiting for PIDs from the engine…",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
             )
         } else {
             state.liveData.forEach { (k, v) ->
@@ -49,8 +52,8 @@ fun LiveDataScreen(
                         .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(6.dp))
                         .padding(horizontal = 10.dp, vertical = 6.dp),
                 ) {
-                    Text(k, modifier = Modifier.weight(1f))
-                    Text("%.2f".format(v), fontWeight = FontWeight.SemiBold)
+                    Text(k, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
+                    Text("%.2f".format(v), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
@@ -73,10 +76,10 @@ private fun LiveDataScreenEmptyPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun LiveDataScreenWithDataPreview() {
-    CaseForgeTheme(mode = "dark") {
+private fun LiveDataScreenWithDataPreviewDark() {
+    CaseForgeTheme(isDarkMode = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
             LiveDataScreen(
                 state = EngineState(

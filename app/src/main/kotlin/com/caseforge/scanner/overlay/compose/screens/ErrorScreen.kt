@@ -21,6 +21,8 @@ import com.caseforge.scanner.ui.theme.CaseForgeTheme
  * - Error title
  * - Error message or dialog text
  * - "Peek to see X431" hint
+ *
+ * All text and colors routed through MaterialTheme (C1 requirement).
  */
 @Composable
 fun ErrorScreen(
@@ -76,10 +78,10 @@ private fun ErrorScreenDialogPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun ErrorScreenUnknownPreview() {
-    CaseForgeTheme(mode = "dark") {
+private fun ErrorScreenUnknownPreviewDark() {
+    CaseForgeTheme(isDarkMode = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
             ErrorScreen(
                 state = EngineState(

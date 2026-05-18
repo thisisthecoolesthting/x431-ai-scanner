@@ -17,6 +17,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +35,7 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.caseforge.scanner.App
 import com.caseforge.scanner.agent.ScannerAccessibilityService
+import com.caseforge.scanner.data.SettingsRepo
 import com.caseforge.scanner.engine.EngineScraper
 import com.caseforge.scanner.engine.EngineHealthMonitor
 import com.caseforge.scanner.engine.EngineState
@@ -70,10 +72,15 @@ import kotlinx.coroutines.launch
  *   - On [onDestroy] (graceful shutdown), the state file is cleared.
  *   - Crashes or OS kills lose the state file naturally (BootReceiver + SettingsRepo handle re-launch).
  *
+ * ## D1 additions
+ *   - [requestEmergencyDismiss] provides an escape hatch: 3-second press-and-hold on dead space
+ *     dismisses the overlay with a Toast confirmation. Called from OverlayRoot's pointerInput handler.
+ *
  * Escape hatches:
  *   - "Peek" button fades overlay to 30% opacity so the tech can verify X431 underneath
  *   - "Minimize" collapses the overlay to a bubble (legacy OverlayService bubble)
  *   - Foreground-service notification action "Dismiss overlay" for emergency exit
+ *   - 3-second long-press on dead space (D1) for emergency dismissal
  */
 class FullScreenOverlayService : Service(),
     LifecycleOwner,
@@ -128,6 +135,9 @@ class FullScreenOverlayService : Service(),
 
     // A3: health monitor — created in onCreate, started/stopped alongside the service.
     private lateinit var monitor: EngineHealthMonitor
+    
+    // SettingsRepo for C2 onboarding gate
+    private lateinit var settingsRepo: SettingsRepo
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -137,6 +147,9 @@ class FullScreenOverlayService : Service(),
         savedStateController.performRestore(null)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
         wm = getSystemService(WINDOW_SERVICE) as WindowManager
+
+        // Initialize SettingsRepo for C2 onboarding gate
+        settingsRepo = SettingsRepo(applicationContext)
 
         // D2: restore persisted state if available
         val restoredState = OverlayStatePersistence.load(applicationContext)
@@ -214,10 +227,12 @@ class FullScreenOverlayService : Service(),
                 OverlayRoot(
                     engineState  = engineState.value,
                     alpha        = peekModeAlpha.value,
+                    settingsRepo = settingsRepo,
                     onMinimize   = { minimizeToBubble() },
                     onDismiss    = { stopSelf() },
                     onPeek       = { togglePeek() },
                     onCapability = { id -> dispatchCapability(id) },
+                    onEmergencyDismiss = { requestEmergencyDismiss() },
                     healthState  = healthState,
                 )
             }
@@ -250,7 +265,8 @@ class FullScreenOverlayService : Service(),
     }
 
     private fun applyAlpha() {
-        rootView?.let { v ->\n            v.alpha = peekModeAlpha.value
+        rootView?.let { v ->
+            v.alpha = peekModeAlpha.value
             // When fully transparent, also disable touches so X431 receives them.
             params?.let { p ->
                 if (peekModeAlpha.value < 0.05f) {
@@ -273,6 +289,23 @@ class FullScreenOverlayService : Service(),
         OverlayService.let { /* class ref keeps it imported */ }
         val i = Intent(this, OverlayService::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(i) else startService(i)
+        stopSelf()
+    }
+
+    // ---------- D1: emergency dismiss via 3s long-press ----------
+
+    /**
+     * Called from OverlayRoot's pointerInput handler when a 3-second press-and-hold
+     * is detected on dead space (non-interactive area). Stops the service and shows
+     * a Toast confirming that the overlay is dismissed and X431 is now visible.
+     */
+    fun requestEmergencyDismiss() {
+        Log.i(TAG, "Emergency dismiss triggered via 3-second long-press")
+        Toast.makeText(
+            this,
+            "Overlay dismissed. X431 is now visible.",
+            Toast.LENGTH_SHORT
+        ).show()
         stopSelf()
     }
 

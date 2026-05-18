@@ -6,7 +6,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -20,8 +19,11 @@ import com.caseforge.scanner.ui.theme.CaseForgeTheme
  *
  * Shows:
  * - "Scan complete" title with DTC count
- * - "Clean scan" message if no DTCs found
+ * - "Clean scan" message if no DTCs found (via colorScheme.primary)
  * - DTC cards with code, module, and description
+ *
+ * All text and colors routed through MaterialTheme (C1 requirement).
+ * Note: Green color replaced with MaterialTheme.colorScheme.primary for proper theme integration.
  */
 @Composable
 fun ReportScreen(
@@ -36,19 +38,20 @@ fun ReportScreen(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text("Scan complete", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-        Text("${state.dtcs.size} DTC(s) found", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("${state.dtcs.size} DTC(s) found", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
         HorizontalDivider()
 
         if (state.dtcs.isEmpty()) {
             Text(
                 "No diagnostic trouble codes stored. Clean scan.",
-                color = Color(0xFF66BB6A),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodySmall,
             )
         } else {
             state.dtcs.forEach { dtc ->
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(dtc.code, fontWeight = FontWeight.SemiBold)
+                        Text(dtc.code, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleSmall)
                         dtc.module?.let { Text("Module: $it", style = MaterialTheme.typography.labelSmall) }
                         dtc.description?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                     }
@@ -74,10 +77,10 @@ private fun ReportScreenCleanPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun ReportScreenWithDtcsPreview() {
-    CaseForgeTheme(mode = "dark") {
+private fun ReportScreenWithDtcsPreviewDark() {
+    CaseForgeTheme(isDarkMode = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
             ReportScreen(
                 state = EngineState(

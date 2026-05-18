@@ -21,6 +21,8 @@ import com.caseforge.scanner.ui.theme.CaseForgeTheme
  * - Title indicating actuation is active
  * - Warning message to watch the vehicle for expected response
  * - Guidance to dismiss if anything looks wrong
+ *
+ * All text and colors routed through MaterialTheme (C1 requirement).
  */
 @Composable
 fun ActuationScreen(

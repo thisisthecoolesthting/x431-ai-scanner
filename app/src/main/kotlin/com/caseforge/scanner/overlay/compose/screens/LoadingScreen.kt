@@ -19,6 +19,8 @@ import com.caseforge.scanner.ui.theme.CaseForgeTheme
  * - Large circular progress indicator
  * - Title describing the operation
  * - Subtitle with current menu path or status
+ *
+ * All text and colors routed through MaterialTheme (C1 requirement).
  */
 @Composable
 fun LoadingScreen(

@@ -13,8 +13,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.awaitFirstDown
+import androidx.compose.ui.input.pointer.awaitLongPressOrCancellation
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.caseforge.scanner.data.SettingsRepo
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.HealthState
 import com.caseforge.scanner.engine.ScreenKind
@@ -31,25 +36,67 @@ import com.caseforge.scanner.ui.theme.CaseForgeTheme
  * Root composable rendered inside the full-screen overlay window. This is what the
  * technician actually sees all day — X431 is hidden behind it.
  *
+ * Composition order (merging C1, C2, D1):
+ * 1. D1: Modifier.pointerInput detects 3-second long-press on dead space
+ * 2. C2: if (!overlayOnboardingSeen) show OverlayOnboarding gate, else continue
+ * 3. A4 + C1: CaseForgeTheme + Surface with A3 health banner + OverlayTopBar + ScreenRouter
+ *
  * Reads [engineState] (live from the scraper) and delegates rendering to the appropriate
  * screen composable in screens/. All user actions emit [UiAction] events through callbacks.
  *
  * Preserves A3's errorBanner slot at the very top of the overlay column, above the
  * [OverlayTopBar]. The banner is shown only when [HealthState.isHealthy] is false.
+ *
+ * All colors and text styles are routed through MaterialTheme.colorScheme and
+ * MaterialTheme.typography (C1 requirement).
  */
 @Composable
 fun OverlayRoot(
     engineState: EngineState,
     alpha: Float,
+    settingsRepo: SettingsRepo,
     onMinimize: () -> Unit,
     onDismiss: () -> Unit,
     onPeek: () -> Unit,
     onCapability: (String) -> Unit,
+    onEmergencyDismiss: () -> Unit,
     healthState: HealthState? = null,
 ) {
+    // C2: Gate onboarding on first launch
+    if (!settingsRepo.overlayOnboardingSeen) {
+        OverlayOnboarding(
+            onComplete = { dontShowAgain ->
+                // Persist the flag; "Don't show again" and "Got it" both trigger this
+                settingsRepo.overlayOnboardingSeen = true
+            },
+        )
+        return
+    }
+
+    // Normal overlay content (A4 + C1 + D1 below)
     CaseForgeTheme(mode = "dark") {
         Surface(
-            modifier = Modifier.fillMaxSize().alpha(alpha),
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(alpha)
+                .pointerInput(Unit) {
+                    // D1: 3-second press-and-hold on dead space dismisses the overlay.
+                    // Buttons and interactive elements consume press events first (pointerEventPass = Main),
+                    // so this only fires on non-interactive areas (gaps, empty space).
+                    awaitPointerEventScope {
+                        while (true) {
+                            val down = awaitFirstDown(pass = PointerEventPass.Main)
+                            val longPress = awaitLongPressOrCancellation(
+                                down.id,
+                                timeoutMillis = 3000
+                            )
+                            if (longPress != null) {
+                                // 3-second hold completed without cancellation or drag.
+                                onEmergencyDismiss()
+                            }
+                        }
+                    }
+                },
             color = MaterialTheme.colorScheme.background,
         ) {
             Column(Modifier.fillMaxSize()) {
@@ -161,7 +208,7 @@ private fun OverlayTopBar(
     TopAppBar(
         title = {
             Column {
-                Text("Launch AI", fontWeight = FontWeight.Bold)
+                Text("Together Scanners AI", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
                 Text(
                     state.screen::class.simpleName ?: "—",
                     style = MaterialTheme.typography.labelSmall,

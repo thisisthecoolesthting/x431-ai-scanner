@@ -13,6 +13,14 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 /**
  * Stores secrets (Claude API key) in EncryptedSharedPreferences, and non-secret prefs
  * (model choice, kill switch state, autonomous mode toggle) in plain SharedPreferences.
+ *
+ * Merged from:
+ * - A6: overlayOnX431, overlayOnX431Flow, setOverlayOnX431
+ * - C2: overlayOnboardingSeen, overlayOnboardingSeenFlow, setOverlayOnboardingSeen
+ * - D1: emergencyDismissHintSeen (property only, no Flow)
+ *
+ * All three overlay properties follow identical structural pattern: property getter/setter +
+ * optional Flow-backed reactive view + optional suspend writer.
  */
 class SettingsRepo(context: Context) {
     private val master = MasterKey.Builder(context)
@@ -113,6 +121,46 @@ class SettingsRepo(context: Context) {
         overlayOnX431 = value
     }
 
+    // ---- C2: overlayOnboardingSeen ----
+
+    /**
+     * When true, the onboarding overlay is skipped on subsequent launches.
+     * Default false — first-run only shows onboarding.
+     */
+    var overlayOnboardingSeen: Boolean
+        get() = prefs.getBoolean(K_OVERLAY_ONBOARDING_SEEN, false)
+        set(value) { prefs.edit().putBoolean(K_OVERLAY_ONBOARDING_SEEN, value).apply() }
+
+    /**
+     * Reactive view of [overlayOnboardingSeen]. Backed by a SharedPreferences listener so every
+     * collector sees the latest value immediately on subscription and on every change.
+     */
+    val overlayOnboardingSeenFlow: Flow<Boolean> = callbackFlow {
+        // Emit the current value immediately so collectors don't wait for the first change.
+        trySend(overlayOnboardingSeen)
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == K_OVERLAY_ONBOARDING_SEEN) trySend(overlayOnboardingSeen)
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.distinctUntilChanged()
+
+    /** Coroutine-friendly writer; delegates to the property setter. */
+    suspend fun setOverlayOnboardingSeen(value: Boolean) {
+        overlayOnboardingSeen = value
+    }
+
+    // ---- D1: emergencyDismissHintSeen ----
+
+    /**
+     * Tracks whether the user has already seen a hint/tip about the 3-second long-press
+     * emergency dismiss gesture. Set to true after showing a one-time nudge.
+     * Default false — hint eligible on first launch.
+     */
+    var emergencyDismissHintSeen: Boolean
+        get() = prefs.getBoolean(K_EMERGENCY_DISMISS_HINT_SEEN, false)
+        set(value) { prefs.edit().putBoolean(K_EMERGENCY_DISMISS_HINT_SEEN, value).apply() }
+
     companion object {
         private const val K_API_KEY = "claude_api_key"
         private const val K_MODEL = "claude_model"
@@ -125,6 +173,8 @@ class SettingsRepo(context: Context) {
         private const val K_THEME = "theme_mode"
         private const val K_WIZARD = "wizard_complete"
         private const val K_OVERLAY_ON_X431 = "overlay_on_x431"   // A6
+        private const val K_OVERLAY_ONBOARDING_SEEN = "overlay_onboarding_seen"   // C2
+        private const val K_EMERGENCY_DISMISS_HINT_SEEN = "emergency_dismiss_hint_seen"   // D1
 
         const val DEFAULT_AGENT_NOTES = """About this app
 ==============
