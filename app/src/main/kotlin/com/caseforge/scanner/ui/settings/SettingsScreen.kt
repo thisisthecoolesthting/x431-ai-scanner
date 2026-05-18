@@ -28,6 +28,7 @@ fun SettingsScreen(
     settings: SettingsRepo,
     onBack: () -> Unit,
     onOpenDataExport: (() -> Unit)? = null,
+    onOpenDirectVciProbe: (() -> Unit)? = null,
 ) {
     var apiKey by remember { mutableStateOf(settings.claudeApiKey) }
     var keyVisible by remember { mutableStateOf(false) }
@@ -68,18 +69,23 @@ fun SettingsScreen(
                     else { voice=false; settings.voiceEnabled=false } }) },
             )
             ListItem(headlineContent = { Text("Confirm bidirectional tests") }, trailingContent = { Switch(checked = approval, onCheckedChange = { approval = it; settings.requireApproval = it }) })
-            ListItem(
-                headlineContent = { Text("Direct VCI (experimental)") },
-                supportingContent = { Text("Bypass X431 and talk to the dongle over Bluetooth. Spike branch only until wire format is confirmed.") },
-                trailingContent = { Switch(checked = directVci, onCheckedChange = { directVci = it; settings.directVciExperimental = it }) },
-            )
             ListItem(headlineContent = { Text("Show overlay on X431") }, trailingContent = { Switch(checked = overlayOnX431, onCheckedChange = { overlayOnX431 = it; settings.overlayOnX431 = it }) })
             ListItem(headlineContent = { Text("Kill switch") }, trailingContent = { Switch(checked = kill, onCheckedChange = { kill = it; settings.killSwitch = it }) })
 
-            if (onOpenDataExport != null) {
-                Card(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Data and offline AI", style = MaterialTheme.typography.titleSmall)
+            Card(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Developer / Experimental", style = MaterialTheme.typography.titleSmall)
+                    ListItem(
+                        headlineContent = { Text("Direct VCI (experimental)") },
+                        supportingContent = { Text("Bypass X431; generic OBD-II over Bluetooth dongle.") },
+                        trailingContent = { Switch(checked = directVci, onCheckedChange = { directVci = it; settings.directVciExperimental = it }) },
+                    )
+                    if (directVci && onOpenDirectVciProbe != null) {
+                        OutlinedButton(onClick = onOpenDirectVciProbe, modifier = Modifier.fillMaxWidth()) {
+                            Text("Open Direct VCI probe")
+                        }
+                    }
+                    if (onOpenDataExport != null) {
                         Text(
                             stringResource(R.string.export_screen_body),
                             style = MaterialTheme.typography.bodySmall,

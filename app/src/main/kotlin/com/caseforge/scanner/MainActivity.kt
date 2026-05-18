@@ -151,6 +151,7 @@ class MainActivity : ComponentActivity() {
                                 onOpenHistory = { route = "history" },
                                 onOpenLog = { route = "log" },
                                 onOpenNotes = { route = "notes" },
+                                directVciStandalone = app.settings.directVciExperimental,
                                 onTakeOverX431 = {
                                     if (!Settings.canDrawOverlays(this@MainActivity)) {
                                         startActivity(Intent(
@@ -158,7 +159,9 @@ class MainActivity : ComponentActivity() {
                                             android.net.Uri.parse("package:$packageName")
                                         ))
                                     } else {
-                                        ScannerAccessibilityService.instance()?.bringX431ToFront()
+                                        if (!app.settings.directVciExperimental) {
+                                            ScannerAccessibilityService.instance()?.bringX431ToFront()
+                                        }
                                         FullScreenOverlayService.start(this@MainActivity)
                                     }
                                 },
@@ -209,10 +212,18 @@ class MainActivity : ComponentActivity() {
                                 settings = app.settings,
                                 onBack = { route = "home" },
                                 onOpenDataExport = { route = "export_data" },
+                                onOpenDirectVciProbe = if (app.settings.directVciExperimental) {
+                                    { route = "direct_vci" }
+                                } else {
+                                    null
+                                },
                             )
                             "export_data" -> com.caseforge.scanner.ui.transfer.ExportDataScreen(
                                 actionLog = app.actionLog,
                                 onBack = { route = if (app.settings.wizardComplete) "home" else "wizard" },
+                            )
+                            "direct_vci" -> com.caseforge.scanner.ui.obd.DirectVciProbeScreen(
+                                onBack = { route = "settings" },
                             )
                             "history" -> HistoryScreen(db = app.db, onBack = { route = "home" })
                             "log" -> ActionLogScreen(actionLog = app.actionLog, onBack = { route = "home" })

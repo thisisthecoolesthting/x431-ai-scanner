@@ -1,32 +1,34 @@
-# Phase 2 VCI Spike Verdict
+# Direct VCI spike verdict (branch `spike/direct-vci`)
 
-**Branch:** `spike/direct-vci` (not merged to main)  
-**Date:** 2026-05-18
+**Date:** 2026-05-18  
+**Branch:** `spike/direct-vci` (not merged to `main` without operator approval)
 
-## Status: RUNTIME VALIDATION PENDING
+## Shipped on spike branch
 
-### Shipped on spike branch
+- `app/src/main/kotlin/com/caseforge/scanner/vci/` — VciFrame, VciOpcodes, VciSocketClient, VciCommunicator (from F10 drafts, package `com.caseforge.scanner.vci`)
+- Settings toggle `directVciExperimental` + **Direct VCI probe** screen (bonded VCI connect, Mode 03 read attempt, hex/binary transport switch)
+- `scripts/frida-vci-intercept.js` — runtime capture hooks for LocalSocket + BT OutputStream
 
-- `VciFrame`, `VciSocketClient`, `VciOpcodes`, `VciCommunicator` (from decompile + open-protocol heuristics)
-- `scripts/frida-vci-intercept.js` for tablet packet capture
-- Settings toggle **Direct VCI (experimental)** — defaults off
-- Full wire-format notes in `docs/VCI-SPIKE-REPORT.md`
+## Confidence (from decompile + spike code)
 
-### Confirmed from decompile
+| Item | Status |
+|------|--------|
+| SPP UUID `00001101-0000-1000-8000-00805F9B34FB` | HIGH (tb/a.java) |
+| Frame: 2-byte header + BE opcode + BE length + payload + XOR checksum | HIGH |
+| Checksum XOR over opcode+length+payload | HIGH |
+| Header magic 0x55 0xAA | INFERRED — try first; Frida required |
+| SPP payload raw binary vs hex-ASCII | UNKNOWN — probe UI toggles `useHexEncoding` |
 
-- SPP UUID `00001101-0000-1000-8000-00805F9B34FB`
-- Frame layout: 2-byte header + BE opcode + BE length + payload + XOR checksum
-- Hex-ASCII encoding used on LocalSocket IPC layer (may or may not apply at raw SPP)
+## Tablet proof still required
 
-### Still unknown (requires Frida on live tablet)
+`VciCommunicator.readDtcs()` against a vehicle with X431 **not** running must be validated on the workshop tablet. Until then:
 
-1. Header magic bytes (placeholder `0x55 0xAA`)
-2. Raw binary vs hex-ASCII on direct SPP
-3. Handshake opcode sequence before Mode 03
+- **Verdict:** SPIKE READY FOR TABLET — not PRODUCTION MERGE.
+- Copy this summary to private repo `together-decompile/findings/020-vci-spike-result.md` after field test.
 
-### Next steps
+## Next operator step
 
-1. Run Frida script during a normal X431 scan; log 50+ frames
-2. Flip `useHexEncoding` on `VciSocketClient` based on capture
-3. Attempt `VciCommunicator.readDtcs()` with X431 **not** running
-4. Ricky approves merge to main only after successful bench/vehicle read
+1. Install APK from `spike/direct-vci` CI artifact (or merge after Ricky approves).
+2. Enable **Direct VCI (experimental)** in Settings → **Open Direct VCI probe**.
+3. Run Frida capture during a normal X431 scan; confirm header + transport.
+4. Re-test probe with hex toggle if DTC list is empty.
