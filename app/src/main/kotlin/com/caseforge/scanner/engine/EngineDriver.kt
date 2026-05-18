@@ -189,6 +189,26 @@ class EngineDriver(
     /**
      * Trigger a bidirectional actuation test identified by [testId].
      */
+    suspend fun runCapabilityForSequence(id: String, params: Map<String, String> = emptyMap()): CapabilityResult {
+        val resolved = when (id) {
+            "injector_cutout", "injector_restore", "evap_vent_close" -> "actuation"
+            "clear_dtc" -> "clear_dtcs"
+            else -> id
+        }
+        val cap = capabilities.find(resolved) ?: return CapabilityResult(false, "missing $id")
+        actionLog.event("sequence.capability", "$id->$resolved")
+        val r = runCapability(cap.id)
+        return CapabilityResult(r.isSuccess, r.fold({ it.toString() }, { it.message ?: "fail" }))
+    }
+
+    suspend fun queryPid(pid: String): String? {
+        refreshState()
+        val k = pid.removePrefix("0x").lowercase()
+        return state.value.liveData[k]?.toString() ?: state.value.liveData[pid]?.toString()
+    }
+
+    fun notifyUser(message: String) = actionLog.event("sequence.prompt", message.take(500))
+
     suspend fun actuate(testId: String): Result<ActuationResult> {
         val cap = capabilities.find("actuation")
             ?: return Result.failure(EngineException.CapabilityNotFound("actuation"))

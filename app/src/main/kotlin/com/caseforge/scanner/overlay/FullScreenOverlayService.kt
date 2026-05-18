@@ -34,13 +34,17 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.caseforge.scanner.App
-import com.caseforge.scanner.agent.NextTestSuggester
 import com.caseforge.scanner.agent.RecallFlagger
 import com.caseforge.scanner.agent.ScannerAccessibilityService
-import com.caseforge.scanner.engine.ScreenKind
-import com.caseforge.scanner.ai.ClaudeClient
+import com.caseforge.scanner.data.SequenceDefinitions
 import com.caseforge.scanner.data.SettingsRepo
+import com.caseforge.scanner.engine.CapabilityRegistry
+import com.caseforge.scanner.engine.EngineDriver
 import com.caseforge.scanner.engine.EngineScraper
+import com.caseforge.scanner.engine.sequences.SequenceRunner
+import com.caseforge.scanner.engine.sequences.SequenceResult
+import com.caseforge.scanner.engine.sequences.TestSequence
+import kotlinx.coroutines.flow.MutableStateFlow
 import com.caseforge.scanner.engine.EngineHealthMonitor
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.ScreenKind
@@ -143,12 +147,13 @@ class FullScreenOverlayService : Service(),
     private val ui = Handler(Looper.getMainLooper())
     private val engineState   = mutableStateOf(EngineState.EMPTY)
     private val peekModeAlpha = mutableStateOf(1.0f) // 1.0 = fully opaque, 0.0 = peek
-    private var lastPostScanSignature: String? = null
     private val recallFlagger = RecallFlagger()
     private var lastRecallSignature: String? = null
     private val voiceUiState = mutableStateOf(VoiceMode.State.IDLE)
     private val voiceLastPhrase = mutableStateOf("")
     private var voiceCommander: VoiceCommander? = null
+    private val activeSequence = mutableStateOf<TestSequence?>(null)
+    private var sequenceRunner: SequenceRunner? = null
 
     // A3: health monitor — created in onCreate, started/stopped alongside the service.
     private lateinit var monitor: EngineHealthMonitor
@@ -254,6 +259,9 @@ class FullScreenOverlayService : Service(),
                     onPeek       = { togglePeek() },
                     onCapability = { id -> dispatchCapability(id) },
                     onUiAction = { handleUiAction(it) },
+                    activeSequence = activeSequence.value,
+                    sequenceRunner = sequenceRunner,
+                    onSequenceComplete = { onSequenceFinished(it) },
                     onEmergencyDismiss = { requestEmergencyDismiss() },
                     healthState  = healthState,
                     voiceEnabled = settingsRepo.voiceEnabled && hasRecordAudioPermission(),
@@ -350,14 +358,17 @@ class FullScreenOverlayService : Service(),
                         // evaluate X431 foreground state without any manifest permissions.
                         monitor.notifyForegroundPackage(snap.pkg)
                         val prev = engineState.value
-                        val newState = EngineScraper.scrape(snap)
+                        val scraped = EngineScraper.scrape(snap)
+                        val newState = if (prev.screen is ScreenKind.SequenceRunner) {
+                            scraped.copy(screen = prev.screen)
+                        } else {
+                            scraped
+                        }
                         engineState.value = newState
 
                         if (newState.screen is ScreenKind.FullScanResults) {
-                            maybeRunPostScanAnalysis(prev, newState)
                             maybeFetchRecalls(prev, newState)
                         } else {
-                            lastPostScanSignature = null
                             lastRecallSignature = null
                         }
 
@@ -386,6 +397,89 @@ class FullScreenOverlayService : Service(),
                 engineState.value = engineState.value.copy(recallMatches = matches)
             }
         }
+    }
+
+    private fun syncVoiceCommander() {
+        val enabled = settingsRepo.voiceEnabled && hasRecordAudioPermission()
+        if (enabled) {
+            if (voiceCommander == null) {
+                voiceCommander = VoiceCommander(
+                    context = this,
+                    engineCallback = object : VoiceCommander.EngineCallback {
+                        override fun onReadCodes() = dispatchCapability("read_dtcs")
+                        override fun onClearCodes() = dispatchCapability("clear_dtcs")
+                        override fun onGraphPid(pidLabel: String) = dispatchCapability("live_data")
+                        override fun onRunCapability(capabilityId: String) = dispatchCapability(capabilityId)
+                        override fun onDismiss() = stopSelf()
+                        override fun onPeek() = togglePeek()
+                        override fun onHelp() = Unit
+                        override fun onVoiceStateChanged(state: VoiceMode.State) {
+                            voiceUiState.value = state
+                        }
+                        override fun onLastPhraseChanged(phrase: String) {
+                            voiceLastPhrase.value = phrase
+                        }
+                    },
+                )
+                voiceCommander?.start()
+            }
+        } else {
+            voiceCommander?.stop()
+            voiceCommander = null
+            voiceUiState.value = VoiceMode.State.IDLE
+            voiceLastPhrase.value = ""
+        }
+    }
+
+    private fun hasRecordAudioPermission(): Boolean =
+        ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) ==
+            PackageManager.PERMISSION_GRANTED
+
+    private fun handleUiAction(action: UiAction) {
+        when (action) {
+            is UiAction.TapCapability -> dispatchCapability(action.capabilityId)
+            is UiAction.RunSequence -> launchSequence(action.sequenceId)
+            UiAction.AcceptSuggestedTest -> dispatchCapability("live_data")
+            UiAction.DeclineSuggestedTest -> Unit
+        }
+    }
+
+    private fun launchSequence(sequenceId: String) {
+        val seq = SequenceDefinitions.byId(sequenceId) ?: run {
+            engineState.value = engineState.value.copy(errorBanner = "Unknown sequence: $sequenceId")
+            return
+        }
+        val a11y = ScannerAccessibilityService.instance() ?: run {
+            engineState.value = engineState.value.copy(errorBanner = "Accessibility not running.")
+            return
+        }
+        a11y.bringX431ToFront()
+        val app = application as App
+        sequenceRunner = SequenceRunner(
+            EngineDriver(
+                a11y = a11y,
+                capabilities = object : CapabilityRegistry {
+                    override fun find(id: String) = com.caseforge.scanner.engine.CapabilityMap.byId(id)
+                },
+                scraper = EngineScraper,
+                state = MutableStateFlow(engineState.value),
+                actionLog = app.actionLog,
+            ),
+        )
+        activeSequence.value = seq
+        engineState.value = engineState.value.copy(screen = ScreenKind.SequenceRunner(sequenceId), errorBanner = null)
+        app.actionLog.event("sequence.start", "id=$sequenceId")
+    }
+
+    private fun onSequenceFinished(result: SequenceResult) {
+        val app = application as App
+        app.actionLog.event("sequence.complete", "${result.sequenceId} pass=${result.passed} ${result.summary}")
+        result.stepResults.forEachIndexed { i, s ->
+            app.actionLog.event("sequence.step", "#$i ${s.step.label} ok=${s.passed}")
+        }
+        sequenceRunner = null
+        activeSequence.value = null
+        engineState.value = engineState.value.copy(screen = ScreenKind.DiagnoseMenu)
     }
 
     // ---------- user-triggered capability execution ----------
