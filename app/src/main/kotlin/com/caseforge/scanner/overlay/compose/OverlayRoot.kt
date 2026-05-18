@@ -134,6 +134,8 @@ fun OverlayRoot(
                     onDismiss = onDismiss,
                 )
 
+                LiveActivityTicker(engineState = engineState)
+
                 // Engine-level error banner (e.g. capability dispatch failures).
                 engineState.errorBanner?.let { msg ->
                     ErrorBanner(msg)

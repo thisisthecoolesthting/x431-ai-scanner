@@ -25,8 +25,19 @@ class App : Application() {
             "com.cnlaunch.x431padv",
             "com.cnlaunch.x431pro",
             "com.cnlaunch.x431pro3",
-            "com.cnlaunch.x431padv2"
+            "com.cnlaunch.x431padv2",
         )
+
+        fun isX431Foreground(context: android.content.Context): Boolean {
+            return runCatching {
+                val usm = context.getSystemService(USAGE_STATS_SERVICE) as? UsageStatsManager
+                    ?: return@runCatching false
+                val now = System.currentTimeMillis()
+                val stats = usm.queryUsageStats(UsageStatsManager.INTERVAL_BEST, now - 5000, now)
+                val foregroundPkg = stats.maxByOrNull { it.lastTimeUsed }?.packageName
+                foregroundPkg in X431_PACKAGES
+            }.getOrDefault(false)
+        }
     }
 
     lateinit var settings: SettingsRepo
@@ -48,6 +59,7 @@ class App : Application() {
         settings = SettingsRepo(this)
         CnlaunchAssetIndex.load(this)
         actionLog = AgentActionLog(this)
+        AgentStatus.startObservingActionLog(actionLog, scope)
         db = AppDatabase.get(this)
         tts = AgentTts(this)
         com.caseforge.scanner.agent.AcousticTool.attach(this)
@@ -84,6 +96,7 @@ class App : Application() {
 
     private fun checkAndRestartOverlayIfNeeded() {
         runCatching {
+            if (settings.directVciExperimental) return@runCatching
             if (!settings.overlayOnX431) return@runCatching
             if (FullScreenOverlayService.isRunning) return@runCatching
             if (!isX431ForegroundNow()) return@runCatching
@@ -94,12 +107,5 @@ class App : Application() {
         }
     }
 
-    private fun isX431ForegroundNow(): Boolean = runCatching {
-        val usm = getSystemService(USAGE_STATS_SERVICE) as? UsageStatsManager
-            ?: return@runCatching false
-        val now = System.currentTimeMillis()
-        val stats = usm.queryUsageStats(UsageStatsManager.INTERVAL_BEST, now - 5000, now)
-        val foregroundPkg = stats.maxByOrNull { it.lastTimeUsed }?.packageName
-        foregroundPkg in X431_PACKAGES
-    }.getOrNull() ?: false
+    private fun isX431ForegroundNow(): Boolean = isX431Foreground(this)
 }

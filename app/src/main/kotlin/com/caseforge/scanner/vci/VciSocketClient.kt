@@ -76,7 +76,7 @@ import java.util.UUID
  */
 class VciSocketClient(
     private val context: Context,
-    private val bluetoothAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter(),
+    private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter(),
     /** When true, frames are hex-encoded before send and hex-decoded on receive. */
     val useHexEncoding: Boolean = false,
     /** Socket read timeout in milliseconds. Mirrors LocalSocketClient.timeout. */
@@ -101,7 +101,7 @@ class VciSocketClient(
          * "98943" prefix is used for MaxFlight/special mode filtering.
          * Standard VCI units typically appear as "CRP*", "X431*", "DBSCAR*".
          */
-        val VCI_NAME_PREFIXES = listOf("CRP", "X431", "DBSCAR", "Launch", "98943")
+        val VCI_NAME_PREFIXES = listOf("VCI", "CRP", "X431", "DBSCAR", "Launch", "98943")
     }
 
     // ------------------------------------------------------------------
@@ -155,6 +155,15 @@ class VciSocketClient(
     @SuppressLint("MissingPermission")
     @RequiresPermission(allOf = [Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN])
     suspend fun connect(macAddress: String): Result<Unit> {
+        Log.i(TAG, "connect($macAddress) state=${_connectionState.value}")
+        if (bluetoothAdapter == null) {
+            Log.e(TAG, "BluetoothAdapter.getDefaultAdapter() is null")
+            return Result.failure(VciException.ConnectionFailed(macAddress, "No Bluetooth adapter"))
+        }
+        if (bluetoothAdapter?.isEnabled != true) {
+            Log.e(TAG, "Bluetooth radio disabled")
+            return Result.failure(VciException.ConnectionFailed(macAddress, "Bluetooth is off"))
+        }
         if (_connectionState.value == ConnectionState.CLOSED) {
             return Result.failure(IllegalStateException("Client is closed; create a new instance"))
         }
@@ -171,30 +180,62 @@ class VciSocketClient(
 
     @SuppressLint("MissingPermission")
     private suspend fun connectDevice(device: BluetoothDevice): Result<Unit> {
-        // Cancel discovery before connecting (required by Android BT API, mirrors tb.a)
-        bluetoothAdapter.cancelDiscovery()
+        Log.i(TAG, "connectDevice name=${device.name} mac=${device.address}")
+        bluetoothAdapter?.cancelDiscovery()
 
         return try {
-            val sock = device.createRfcommSocketToServiceRecord(SPP_UUID)
-            // Fallback: createInsecureRfcommSocketToServiceRecord for unpaired devices
+            Log.i(TAG, "createRfcommSocketToServiceRecord $SPP_UUID")
+            val sock = try {
+                device.createRfcommSocketToServiceRecord(SPP_UUID)
+            } catch (e: Exception) {
+                Log.e(TAG, "createRfcommSocket failed: ${e.message}", e)
+                throw e
+            }
+            Log.i(TAG, "socket.connect() timeout=${socketTimeoutMs}ms …")
             withTimeout(socketTimeoutMs.toLong()) {
                 sock.connect()
             }
+            Log.i(TAG, "socket.connect() OK isConnected=${sock.isConnected}")
 
             socket = sock
             outputStream = sock.outputStream
             _connectionState.value = ConnectionState.CONNECTED
 
-            Log.i(TAG, "Connected to VCI: ${device.name} / ${device.address}")
+            val probe = probeFirstBytes(sock)
+            Log.i(TAG, "Connected to VCI: ${device.name} / ${device.address}; probe=$probe")
 
-            // Start receive loop
             startReceiveLoop(sock)
 
             Result.success(Unit)
         } catch (e: IOException) {
+            Log.e(TAG, "connect IO failure: ${e.message}", e)
             _connectionState.value = ConnectionState.DISCONNECTED
             Result.failure(VciException.ConnectionFailed(device.address, e.message ?: "IO"))
+        } catch (e: Exception) {
+            Log.e(TAG, "connect failure: ${e.message}", e)
+            _connectionState.value = ConnectionState.DISCONNECTED
+            Result.failure(VciException.ConnectionFailed(device.address, e.message ?: e.javaClass.simpleName))
         }
+    }
+
+    /** Non-blocking peek at input stream after connect (may return 0 bytes if idle). */
+    private fun probeFirstBytes(sock: BluetoothSocket): String {
+        return try {
+            val available = sock.inputStream.available()
+            if (available <= 0) return "0 bytes available (idle — normal)"
+            val n = minOf(available, 8)
+            val buf = ByteArray(n)
+            val read = sock.inputStream.read(buf)
+            if (read <= 0) "read=$read" else buf.take(read).joinToString(" ") { b -> "%02X".format(b) }
+        } catch (e: Exception) {
+            "peek failed: ${e.message}"
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    fun listBondedDevices(): List<Pair<String, String>> {
+        val adapter = bluetoothAdapter ?: return emptyList()
+        return adapter.bondedDevices.map { (it.name ?: "?") to it.address }
     }
 
     // ------------------------------------------------------------------
@@ -411,7 +452,8 @@ class VciSocketClient(
     @SuppressLint("MissingPermission")
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun findBondedVciDevices(): List<BluetoothDevice> {
-        return bluetoothAdapter.bondedDevices
+        val adapter = bluetoothAdapter ?: return emptyList()
+        return adapter.bondedDevices
             .filter { device ->
                 val name = device.name ?: return@filter false
                 VCI_NAME_PREFIXES.any { prefix -> name.startsWith(prefix, ignoreCase = true) }

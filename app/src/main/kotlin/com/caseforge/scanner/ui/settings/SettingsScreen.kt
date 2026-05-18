@@ -29,6 +29,7 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onOpenDataExport: (() -> Unit)? = null,
     onOpenDirectVciProbe: (() -> Unit)? = null,
+    onOpenVciDiagnostics: (() -> Unit)? = null,
 ) {
     var apiKey by remember { mutableStateOf(settings.claudeApiKey) }
     var keyVisible by remember { mutableStateOf(false) }
@@ -44,6 +45,32 @@ fun SettingsScreen(
     val context = LocalContext.current
     val recordAudioLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         voice = granted; settings.voiceEnabled = granted
+    }
+    val btConnectLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { results ->
+        if (results[Manifest.permission.BLUETOOTH_CONNECT] == true) {
+            directVci = true
+            settings.directVciExperimental = true
+        }
+    }
+
+    fun enableDirectVciWithPermissions() {
+        val perms = buildList {
+            add(Manifest.permission.BLUETOOTH_CONNECT)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                add(Manifest.permission.BLUETOOTH_SCAN)
+            }
+        }
+        val missing = perms.any {
+            ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
+        }
+        if (missing) {
+            btConnectLauncher.launch(perms.toTypedArray())
+        } else {
+            directVci = true
+            settings.directVciExperimental = true
+        }
     }
 
     Column(Modifier.fillMaxSize()) {
@@ -78,8 +105,24 @@ fun SettingsScreen(
                     ListItem(
                         headlineContent = { Text("Direct VCI (experimental)") },
                         supportingContent = { Text("Bypass X431; generic OBD-II over Bluetooth dongle.") },
-                        trailingContent = { Switch(checked = directVci, onCheckedChange = { directVci = it; settings.directVciExperimental = it }) },
+                        trailingContent = {
+                            Switch(
+                                checked = directVci,
+                                onCheckedChange = { on ->
+                                    if (on) enableDirectVciWithPermissions()
+                                    else {
+                                        directVci = false
+                                        settings.directVciExperimental = false
+                                    }
+                                },
+                            )
+                        },
                     )
+                    if (directVci && onOpenVciDiagnostics != null) {
+                        OutlinedButton(onClick = onOpenVciDiagnostics, modifier = Modifier.fillMaxWidth()) {
+                            Text("Direct VCI connection diagnostics")
+                        }
+                    }
                     if (directVci && onOpenDirectVciProbe != null) {
                         OutlinedButton(onClick = onOpenDirectVciProbe, modifier = Modifier.fillMaxWidth()) {
                             Text("Open Direct VCI probe")

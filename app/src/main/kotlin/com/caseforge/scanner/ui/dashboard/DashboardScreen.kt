@@ -35,6 +35,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.BuildConfig
 import com.caseforge.scanner.agent.AgentStatus
+import com.caseforge.scanner.data.SettingsRepo
+import kotlinx.coroutines.flow.flowOf
 
 /**
  * Unified diagnostic dashboard. Becomes the app's main view. Three regions:
@@ -60,8 +62,13 @@ fun DashboardScreen(
     onOpenNotes: () -> Unit,
     onCheckUpdate: () -> Unit,
     onTakeOverX431: () -> Unit = {},
+    settings: SettingsRepo? = null,
     directVciStandalone: Boolean = false,
 ) {
+    val directVciLive by (settings?.directVciExperimentalFlow ?: flowOf(directVciStandalone))
+        .collectAsState(initial = directVciStandalone)
+    val standalone = settings != null && directVciLive
+
     val running by AgentStatus.running.collectAsState()
     val step by AgentStatus.step.collectAsState()
     val activity by AgentStatus.activity.collectAsState()
@@ -131,11 +138,11 @@ IconButton(onClick = onOpenNotes) {
                     Icon(Icons.Default.Layers, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        if (directVciStandalone) "Connect to VCI (experimental)"
+                        if (standalone) "Connect to VCI"
                         else "Take over X431 (custom UI)",
                     )
                 }
-                if (directVciStandalone) {
+                if (standalone) {
                     Text(
                         "Our UI only—the X431 app will not launch. Grant overlay permission when prompted.",
                         style = MaterialTheme.typography.bodySmall,
