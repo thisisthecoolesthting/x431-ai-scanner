@@ -7,4 +7,21 @@
         when the X431 app is in the foreground.
     </string>
     <string name="accessibility_service_summary">Drives the X431 app on your behalf</string>
+
+    <string name="export_screen_title">Export tablet data to PC</string>
+    <string name="export_screen_body">Starts a short-lived server on this tablet. On a PC on the same Wi‑Fi, open the URL, enter the pass code, and download cnlaunch-bundle.zip. The server stops after download or 10 minutes idle.</string>
+    <string name="export_start_server">Start export server</string>
+    <string name="export_stop_server">Stop server</string>
+    <string name="export_pass_code_label">Pass code: %1$s</string>
+    <string name="export_qr_content_description">QR code for export URL</string>
+    <string name="export_status_running">Server running — waiting for PC download.</string>
+    <string name="export_status_stopped">Server stopped.</string>
+    <string name="export_status_auto_stopped">Server stopped (idle timeout or download finished).</string>
+    <string name="export_error_no_wifi">Connect the tablet to Wi‑Fi (not cellular only) before exporting.</string>
+    <string name="export_error_no_cnlaunch">cnlaunch folder not found at /sdcard/cnlaunch/</string>
+    <string name="export_error_start_failed">Could not start export server.</string>
+    <string name="export_wizard_title">Send tablet data to PC</string>
+    <string name="export_wizard_subtitle">Recommended for offline AI — exports the cnlaunch folder over your shop Wi‑Fi. You can do this later from Settings.</string>
+    <string name="export_wizard_action">Open export</string>
+    <string name="export_settings_entry">Export tablet data to PC</string>
 </resources>

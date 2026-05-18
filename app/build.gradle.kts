@@ -102,6 +102,12 @@ dependencies {
     implementation("androidx.camera:camera-camera2:1.3.4")
     implementation("androidx.camera:camera-lifecycle:1.3.4")
     implementation("androidx.camera:camera-view:1.3.4")
+
+    implementation("org.nanohttpd:nanohttpd:2.3.1")
+    implementation("com.google.zxing:core:3.5.3")
+
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
 }
 
 tasks.matching { it.name == "assembleDebug" }.configureEach {

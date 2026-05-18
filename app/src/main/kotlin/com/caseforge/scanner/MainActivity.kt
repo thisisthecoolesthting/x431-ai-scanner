@@ -111,6 +111,7 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onGrantCapture = { requestProjection() },
                                 onStartBubble = { startBubble() },
+                                onOpenDataExport = { route = "export_data" },
                                 onFinish = {
                                     app.settings.wizardComplete = true
                                     route = "dashboard"
@@ -207,6 +208,11 @@ class MainActivity : ComponentActivity() {
                             "settings" -> SettingsScreen(
                                 settings = app.settings,
                                 onBack = { route = "home" },
+                                onOpenDataExport = { route = "export_data" },
+                            )
+                            "export_data" -> com.caseforge.scanner.ui.transfer.ExportDataScreen(
+                                actionLog = app.actionLog,
+                                onBack = { route = if (app.settings.wizardComplete) "home" else "wizard" },
                             )
                             "history" -> HistoryScreen(db = app.db, onBack = { route = "home" })
                             "log" -> ActionLogScreen(actionLog = app.actionLog, onBack = { route = "home" })

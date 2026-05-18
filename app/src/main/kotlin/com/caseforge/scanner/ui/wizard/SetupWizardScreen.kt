@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.caseforge.scanner.BuildConfig
+import com.caseforge.scanner.R
+import androidx.compose.ui.res.stringResource
 import com.caseforge.scanner.agent.ScannerAccessibilityService
 import com.caseforge.scanner.data.SettingsRepo
 
@@ -41,6 +43,7 @@ fun SetupWizardScreen(
     onGrantOverlay: () -> Unit,
     onGrantCapture: () -> Unit,
     onStartBubble: () -> Unit,
+    onOpenDataExport: () -> Unit = {},
     onFinish: () -> Unit,
 ) {
     val ctx = LocalContext.current
@@ -155,6 +158,15 @@ fun SetupWizardScreen(
                 subtitle = "Lets the agent send screenshots when accessibility text is ambiguous.",
                 actionLabel = "Grant",
                 onAction = { onGrantCapture() },
+                optional = true,
+            )
+
+            WizStep(
+                done = false,
+                title = stringResource(R.string.export_wizard_title),
+                subtitle = stringResource(R.string.export_wizard_subtitle),
+                actionLabel = stringResource(R.string.export_wizard_action),
+                onAction = onOpenDataExport,
                 optional = true,
             )
 
