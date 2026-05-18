@@ -75,3 +75,13 @@ Move all the wizard's permission requests into the main screen — request lazil
 When merged, post in chat: **"Single-screen detached UI shipped — task 203 server is up — ready for the cnlaunch data folder."** Then wait for Ricky's data upload before starting task 205.
 
 Move this prompt to `cursor-dispatch/done/`.
+
+# Notes from Cursor
+
+- Merged PR #10 → `main` @ `7e288b3` (squash). CI green after import fix `b1ff44c`.
+- Added `ui/main/*`: MainScreen, ActionTile, ConnectionDrawer, StandaloneVciController, RecallsScreen; MainActivity routes to `main` by default.
+- `directVciExperimental` + `wizardComplete` default **true** in SettingsRepo.
+- Legacy wizard/dashboard/home routes removed from MainActivity navigation (files kept in tree).
+- Connection drawer: Bluetooth connect + diagnostics; USB noted as task 202.
+- Service/Bidirectional tiles open ModuleListScreen (Service category) / ActuationScreen.
+- **205 blocked** until operator confirms cnlaunch LAN upload.
