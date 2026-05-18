@@ -2,6 +2,8 @@ name: Build APK
 
 on:
   push:
+    branches: [ main, master, feat/lan-data-export ]
+  pull_request:
     branches: [ main, master ]
   workflow_dispatch:
 
