@@ -189,7 +189,7 @@ class VciSocketClient(
 
             socket = sock
             outputStream = sock.outputStream
-            _connectionState.value = ConnectionState.CONNECTED
+            _connectionState.value = VciTransport.ConnectionState.CONNECTED
 
             val probe = probeFirstBytes(sock)
             Log.i(TAG, "Connected to VCI: ${device.name} / ${device.address}; probe=$probe")

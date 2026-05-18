@@ -47,6 +47,7 @@ class VciUsbClient(
     override val frames: Flow<VciFrame> = _frameChannel.receiveAsFlow()
 
     private var serialPort: UsbSerialPort? = null
+    private var usbOut: OutputStream? = null
     private var readerJob: Job? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -101,6 +102,7 @@ class VciUsbClient(
                 port.setParameters(baudRate, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
             }
             serialPort = port
+            usbOut = UsbSerialOutputStream(port)
             _connectionState.value = VciTransport.ConnectionState.CONNECTED
             startReceiveLoop(port)
             Log.i(TAG, "USB connected vid=${device.vendorId} pid=${device.productId}")
@@ -132,8 +134,7 @@ class VciUsbClient(
 
     private fun startReceiveLoop(port: UsbSerialPort) {
         readerJob?.cancel()
-        val input = port.inputStream
-        val output = port.outputStream
+        val input = UsbSerialInputStream(port)
         readerJob = VciFramePump.startReceiveJob(
             scope = scope,
             inputStream = input,
