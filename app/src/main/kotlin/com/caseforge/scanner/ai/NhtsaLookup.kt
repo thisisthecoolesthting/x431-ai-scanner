@@ -18,6 +18,8 @@ class NhtsaLookup {
         .readTimeout(20, TimeUnit.SECONDS)
         .build()
 
+    fun decodeVehicle(vin: String): Vehicle? = runCatching { decode(vin) }.getOrNull()
+
     /** Returns a compact JSON-string summary the agent can read back. */
     fun decodeAndRecalls(vin: String): String {
         val vehicle = runCatching { decode(vin) }.getOrNull()

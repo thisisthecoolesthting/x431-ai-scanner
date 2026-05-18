@@ -144,6 +144,8 @@ class FullScreenOverlayService : Service(),
     private val engineState   = mutableStateOf(EngineState.EMPTY)
     private val peekModeAlpha = mutableStateOf(1.0f) // 1.0 = fully opaque, 0.0 = peek
     private var lastPostScanSignature: String? = null
+    private val recallFlagger = RecallFlagger()
+    private var lastRecallSignature: String? = null
     private val voiceUiState = mutableStateOf(VoiceMode.State.IDLE)
     private val voiceLastPhrase = mutableStateOf("")
     private var voiceCommander: VoiceCommander? = null
@@ -353,8 +355,10 @@ class FullScreenOverlayService : Service(),
 
                         if (newState.screen is ScreenKind.FullScanResults) {
                             maybeRunPostScanAnalysis(prev, newState)
+                            maybeFetchRecalls(prev, newState)
                         } else {
                             lastPostScanSignature = null
+                            lastRecallSignature = null
                         }
 
                         // D2: persist state on every screen transition
