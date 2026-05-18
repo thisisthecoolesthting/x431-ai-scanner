@@ -1,0 +1,6 @@
+{
+  "read_dtcs": ["Diagnose", "Read DTCs"],
+  "clear_dtcs": ["Diagnose", "Clear DTCs"],
+  "full_scan": ["Diagnose", "Auto Scan"],
+  "live_data": ["Diagnose", "Live Data"]
+}

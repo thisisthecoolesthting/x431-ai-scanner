@@ -124,7 +124,7 @@ class VciCommunicator(
                 VciException.Timeout(KnownOpcode.OBD_MODE03_DTC_REQ, requestTimeoutMs)
             )
 
-        val dtcs = parseDtcPayload(responseFrame.payload)
+        val dtcs = parseDtcPayload(responseFrame.payload).map { enrichDescription(it) }
         Log.i(TAG, "readDtcs: found ${dtcs.size} DTCs")
         Result.success(dtcs)
     }
@@ -313,7 +313,7 @@ class VciCommunicator(
 
         val response = awaitResponse(KnownOpcode.OBD_MODE03_DTC_RESP)
         val dtcs = response?.let { parseDtcPayload(it.payload) } ?: emptyList()
-        Result.success(dtcs.map { it.copy(code = "PENDING:${it.code}") })
+        Result.success(dtcs.map { enrichDescription(it.copy(code = "PENDING:${it.code}")) })
     }
 
     // ------------------------------------------------------------------
@@ -560,6 +560,12 @@ class VciCommunicator(
     }
 
     private val VIN_REGEX = Regex("[A-HJ-NPR-Z0-9]{17}")
+
+    private fun enrichDescription(dtc: Dtc): Dtc {
+        if (dtc.description != null) return dtc
+        val desc = CnlaunchAssetIndex.describeDtc("OBD-II", dtc.code)
+        return if (desc != null) dtc.copy(description = desc) else dtc
+    }
 
     // ------------------------------------------------------------------
     // safeRequest — error boundary (mirrors EngineDriver.safeRun)

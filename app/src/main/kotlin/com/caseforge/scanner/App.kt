@@ -9,6 +9,7 @@ import com.caseforge.scanner.agent.AgentTts
 import com.caseforge.scanner.data.AppDatabase
 import com.caseforge.scanner.data.SettingsRepo
 import com.caseforge.scanner.overlay.FullScreenOverlayService
+import com.caseforge.scanner.vci.CnlaunchAssetIndex
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -45,6 +46,7 @@ class App : Application() {
         Log.i(TAG, "Application.onCreate()")
 
         settings = SettingsRepo(this)
+        CnlaunchAssetIndex.load(this)
         actionLog = AgentActionLog(this)
         db = AppDatabase.get(this)
         tts = AgentTts(this)

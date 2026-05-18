@@ -9,7 +9,7 @@
     <string name="accessibility_service_summary">Drives the X431 app on your behalf</string>
 
     <string name="export_screen_title">Export tablet data to PC</string>
-    <string name="export_screen_body">Starts a short-lived server on this tablet. On a PC on the same Wi‑Fi, open the URL, enter the pass code, and download cnlaunch-bundle.zip. The server stops after download or 10 minutes idle.</string>
+    <string name="export_screen_body">Starts a short-lived server on this tablet. On a PC on the same Wi‑Fi, open the URL, enter the pass code, and download cnlaunch-bundle.zip. Run scripts/build_cnlaunch_assets.py on the PC, then rebuild or push assets to cnlaunch-assets. Server stops after download or 10 minutes idle.</string>
     <string name="export_start_server">Start export server</string>
     <string name="export_stop_server">Stop server</string>
     <string name="export_pass_code_label">Pass code: %1$s</string>
