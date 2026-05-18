@@ -100,6 +100,23 @@ class SettingsRepo(context: Context) {
         get() = prefs.getString(K_VCI_TRANSPORT, "auto") ?: "auto"
         set(value) { prefs.edit().putString(K_VCI_TRANSPORT, value.lowercase()).apply() }
 
+    /**
+     * Standalone link picker: `auto`, `elm327_usb`, `launch_usb`, `launch_bt`, `elm327_bt`.
+     * Default `auto` tries ELM327 USB cable first, then Launch VCI USB; Bluetooth only if enabled.
+     */
+    var linkTransport: String
+        get() = prefs.getString(K_LINK_TRANSPORT, "auto") ?: "auto"
+        set(value) { prefs.edit().putString(K_LINK_TRANSPORT, value.lowercase()).apply() }
+
+    /** When false, the app never scans or connects Bluetooth (USB-only default). */
+    var bluetoothTransportEnabled: Boolean
+        get() = prefs.getBoolean(K_BT_TRANSPORT_ENABLED, false)
+        set(value) { prefs.edit().putBoolean(K_BT_TRANSPORT_ENABLED, value).apply() }
+
+    var bluetoothPairingHintSeen: Boolean
+        get() = prefs.getBoolean(K_BT_PAIRING_HINT_SEEN, false)
+        set(value) { prefs.edit().putBoolean(K_BT_PAIRING_HINT_SEEN, value).apply() }
+
     /** User-picked bonded device when name does not match [VciSocketClient.VCI_NAME_PREFIXES]. */
     var vciSelectedBtAddress: String?
         get() = prefs.getString(K_VCI_BT_ADDRESS, null)?.takeIf { it.isNotBlank() }
@@ -223,6 +240,9 @@ class SettingsRepo(context: Context) {
         private const val K_VOICE = "voice_enabled"
         private const val K_DIRECT_VCI = "direct_vci_experimental"
         private const val K_VCI_TRANSPORT = "vci_transport_mode"
+        private const val K_LINK_TRANSPORT = "link_transport"
+        private const val K_BT_TRANSPORT_ENABLED = "bluetooth_transport_enabled"
+        private const val K_BT_PAIRING_HINT_SEEN = "bluetooth_pairing_hint_seen"
         private const val K_VCI_BT_ADDRESS = "vci_bt_address"
         private const val K_VCI_HDR0 = "vci_header_byte0"
         private const val K_VCI_HDR1 = "vci_header_byte1"

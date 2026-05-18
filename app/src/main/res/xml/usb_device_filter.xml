@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Permissive: any USB device — narrows after Launch VID/PID is known -->
+    <!-- Generic ELM327 USB-OBD adapters (task 206) -->
+    <usb-device vendor-id="1027" product-id="24577" /> <!-- FTDI 0403:6001 -->
+    <usb-device vendor-id="6790" product-id="29987" /> <!-- CH340 1a86:7523 -->
+    <usb-device vendor-id="1659" product-id="8963" />  <!-- PL2303 067b:2303 -->
+    <usb-device vendor-id="4292" product-id="60000" /> <!-- CP21xx 10c4:ea60 -->
+    <!-- Launch VCI and other serial (task 202) — permissive fallback -->
     <usb-device />
 </resources>
