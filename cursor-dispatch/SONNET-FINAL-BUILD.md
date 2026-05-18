@@ -47,3 +47,31 @@ Then hand back to Ricky for go-to-market.
 ---
 
 **Stop reading. Go to task 203.**
+
+
+---
+
+# URGENT ADDENDUM — READ FIRST
+
+Ricky reports recent builds still default to Bluetooth and never offer USB. Task 202 (USB OTG transport) was filed but missing from the Sonnet directive's order. Fixing now.
+
+## Corrected execution order
+
+0. Task 201 — standalone bugs (CTA, live ticker, VCI no-connect diagnostics). This builds the diagnostics surface task 202 plugs into.
+1. Task 202 — USB OTG VCI transport. MANDATORY. Many techs cannot Bluetooth-pair the VCI dongle. USB cable must:
+   - Show Android "Open Together with this USB device?" prompt on attach
+   - Connect via USB serial (CDC-ACM / FTDI / CH340 / PL2303 / CP21xx — usb-serial-for-android covers all)
+   - Appear in the Connection drawer transport picker as "USB" alongside "Bluetooth"
+   - Be tried FIRST in Auto mode
+2. Task 203 — Fix LAN file-transfer server
+3. Task 204 — Single-screen detached UI. Connection drawer MUST expose both USB and Bluetooth.
+4. Task 205 — cnlaunch data integration (triggered when Ricky uploads)
+
+## Why 202 is non-negotiable
+
+Cable is the reliable workshop connection: no pairing, no dropouts, faster, works on broken-BT tablets. You may not ship 204 without 202 merged.
+
+If 203/204 already shipped without 202, do not roll back. Land 202 next and follow-up the Connection drawer to add the USB row.
+
+---
+
