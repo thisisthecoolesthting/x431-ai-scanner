@@ -24,7 +24,9 @@ import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.R
 import com.caseforge.scanner.agent.AgentActionLog
 import com.caseforge.scanner.transfer.CnlaunchZipper
+import com.caseforge.scanner.transfer.LanExportConfig
 import com.caseforge.scanner.transfer.LanFileServer
+import com.caseforge.scanner.transfer.LanPushUploader
 import com.caseforge.scanner.transfer.LanSelfTest
 import com.caseforge.scanner.transfer.NetworkInterfaceHelper
 import kotlinx.coroutines.Dispatchers
@@ -58,6 +60,8 @@ fun ExportDataScreen(
     var selfTestResult by remember { mutableStateOf<String?>(null) }
     var selfTestBusy by remember { mutableStateOf(false) }
     var startBusy by remember { mutableStateOf(false) }
+    var pushBusy by remember { mutableStateOf(false) }
+    var pushResult by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
 
     DisposableEffect(Unit) {
@@ -137,14 +141,33 @@ fun ExportDataScreen(
 
     fun runSelfTest() {
         val port = serverRef?.boundPort ?: return
+        val host = selectedHost ?: return
         selfTestBusy = true
         scope.launch {
-            val r = LanSelfTest.healthCheckLocalhost(port)
+            val r = LanSelfTest.healthCheck(host, port)
             selfTestResult = r.fold(
                 onSuccess = { it },
                 onFailure = { ctx.getString(R.string.export_self_test_fail, it.message ?: "failed") },
             )
             selfTestBusy = false
+        }
+    }
+
+    fun pushToOfficePc() {
+        error = null
+        pushResult = null
+        if (!zipper.exists) {
+            error = ctx.getString(R.string.export_error_no_cnlaunch)
+            return
+        }
+        pushBusy = true
+        scope.launch {
+            val r = LanPushUploader.pushToOfficePc(ctx, zipper) { }
+            pushResult = r.fold(
+                onSuccess = { ctx.getString(R.string.export_push_ok, it) },
+                onFailure = { ctx.getString(R.string.export_push_fail, it.message ?: "failed") },
+            )
+            pushBusy = false
         }
     }
 
@@ -201,6 +224,29 @@ fun ExportDataScreen(
             }
 
             Text(stringResource(R.string.export_screen_body), style = MaterialTheme.typography.bodyMedium)
+            Text(
+                stringResource(R.string.export_pc_host_label, LanExportConfig.RECEIVER_PC_HOST),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                stringResource(R.string.export_push_receiver_hint),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Button(
+                onClick = { pushToOfficePc() },
+                enabled = !pushBusy && zipper.exists,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    if (pushBusy) stringResource(R.string.export_push_busy)
+                    else stringResource(R.string.export_push_to_pc),
+                )
+            }
+            pushResult?.let {
+                Text(it, style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace)
+            }
+            HorizontalDivider()
             Text(stringResource(R.string.export_firewall_hint), style = MaterialTheme.typography.bodySmall)
             Text(stringResource(R.string.export_ap_isolation_hint), style = MaterialTheme.typography.bodySmall)
 
@@ -251,7 +297,17 @@ fun ExportDataScreen(
             }
 
             if (listening && publicUrl != null) {
+                Text(
+                    stringResource(R.string.export_pc_browser_hint),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
                 Text(publicUrl!!, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.SemiBold)
+                Text(
+                    "PC ${LanExportConfig.RECEIVER_PC_HOST} → paste tablet URL above (not the PC IP)",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                )
                 qrBitmap?.let { bmp ->
                     Image(
                         bitmap = bmp.asImageBitmap(),

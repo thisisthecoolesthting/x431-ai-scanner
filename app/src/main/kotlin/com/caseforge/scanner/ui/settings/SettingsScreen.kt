@@ -19,6 +19,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.caseforge.scanner.BuildConfig
 import com.caseforge.scanner.R
 import com.caseforge.scanner.data.SettingsRepo
 import androidx.compose.ui.res.stringResource
@@ -30,6 +31,7 @@ fun SettingsScreen(
     onOpenDataExport: (() -> Unit)? = null,
     onOpenDirectVciProbe: (() -> Unit)? = null,
     onOpenVciDiagnostics: (() -> Unit)? = null,
+    onCheckUpdate: (() -> Unit)? = null,
 ) {
     var apiKey by remember { mutableStateOf(settings.claudeApiKey) }
     var keyVisible by remember { mutableStateOf(false) }
@@ -76,6 +78,19 @@ fun SettingsScreen(
     Column(Modifier.fillMaxSize()) {
         TopAppBar(title = { Text("Settings") }, navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } })
         Column(Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Card(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        stringResource(R.string.build_info_label, BuildConfig.BUILD_INFO),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    if (onCheckUpdate != null) {
+                        Button(onClick = onCheckUpdate, modifier = Modifier.fillMaxWidth()) {
+                            Text(stringResource(R.string.check_for_update))
+                        }
+                    }
+                }
+            }
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Anthropic API key", style = MaterialTheme.typography.titleSmall)
