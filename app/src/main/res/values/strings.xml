@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Launch AI</string>
+    <string name="accessibility_service_description">
+        Lets the Launch AI agent see and operate the Launch X431 app: read the on-screen
+        diagnostic UI, tap menus, run scans, and respond to live data. The agent activates only
+        when the X431 app is in the foreground.
+    </string>
+    <string name="accessibility_service_summary">Drives the X431 app on your behalf</string>
+</resources>
