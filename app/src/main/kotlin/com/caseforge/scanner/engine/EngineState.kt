@@ -47,6 +47,7 @@ sealed class ScreenKind {
     @Serializable object DtcDetail : ScreenKind()
     @Serializable object LiveDataView : ScreenKind()
     @Serializable object ActuationTest : ScreenKind()
+    @Serializable data class SequenceRunner(val sequenceId: String) : ScreenKind()
     @Serializable object Settings : ScreenKind()
     @Serializable data class Dialog(val text: String) : ScreenKind()
     @Serializable data class Unknown(val hint: String) : ScreenKind()

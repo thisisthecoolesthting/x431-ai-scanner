@@ -40,6 +40,8 @@ data class ActuationResult(
     val log: List<String>,
 )
 
+data class CapabilityResult(val success: Boolean, val output: String)
+
 enum class Severity { Red, Amber, Gray }
 
 // ---------------------------------------------------------------------------

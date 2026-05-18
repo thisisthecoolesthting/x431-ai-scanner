@@ -150,7 +150,15 @@ fun ModuleListScreen(
             ) {
                 pair.forEach { cap ->
                     OutlinedCard(
-                        onClick = { onAction(UiAction.TapCapability(cap.id)) },
+                        onClick = {
+                            onAction(
+                                if (selectedCategory == CapabilityMap.Category.Sequences) {
+                                    UiAction.RunSequence(cap.id)
+                                } else {
+                                    UiAction.TapCapability(cap.id)
+                                },
+                            )
+                        },
                         modifier = Modifier.weight(1f),
                         shape = TogetherCardShape,
                         colors = CardDefaults.outlinedCardColors(

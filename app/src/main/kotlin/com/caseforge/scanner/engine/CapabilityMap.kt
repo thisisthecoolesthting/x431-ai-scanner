@@ -1,5 +1,7 @@
 package com.caseforge.scanner.engine
 
+import com.caseforge.scanner.data.SequenceDefinitions
+
 /**
  * Declarative descriptors for every X431 diagnostic capability Launch AI knows how to drive.
  *
@@ -31,7 +33,7 @@ object CapabilityMap {
         val note: String? = null,
     )
 
-    enum class Category { Scan, Codes, LiveData, Service, Bidirectional, Programming, Coding, Module }
+    enum class Category { Scan, Codes, LiveData, Service, Bidirectional, Programming, Coding, Module, Sequences }
 
     // -------- Baseline (universal-ish across X431 PRO / PROS / V+) --------
 
@@ -187,7 +189,7 @@ object CapabilityMap {
             timeoutSec = 1800,
             note = "Online programming requires Launch subscription + reliable wifi.",
         ),
-    )
+    ) + SequenceDefinitions.asCapabilities()
 
     fun byId(id: String): Capability? = ALL.firstOrNull { it.id == id }
     fun byCategory(c: Category): List<Capability> = ALL.filter { it.category == c }

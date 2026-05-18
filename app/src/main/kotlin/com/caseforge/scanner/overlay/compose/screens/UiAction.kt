@@ -14,6 +14,8 @@ sealed class UiAction {
      */
     data class TapCapability(val capabilityId: String) : UiAction()
 
+    data class RunSequence(val sequenceId: String) : UiAction()
+
     data object AcceptSuggestedTest : UiAction()
 
     data object DeclineSuggestedTest : UiAction()
