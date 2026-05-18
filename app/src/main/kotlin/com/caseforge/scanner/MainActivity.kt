@@ -320,6 +320,7 @@ class MainActivity : ComponentActivity() {
                     val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
                     val summary = outcome.summary
                     val symptomToPersist = if (symptom == Prompts.FULL_SCAN_SENTINEL) null else symptom
+                    val geo = com.caseforge.scanner.location.SessionLocationCapture.capture(applicationContext)
                     val sessionId = app.db.sessionDao().insertSession(
                         SessionEntity(
                             vin = vin,
@@ -333,6 +334,8 @@ class MainActivity : ComponentActivity() {
                                 outcome.transcript
                             ),
                             scope = scope,
+                            latitude = geo.latitude,
+                            longitude = geo.longitude,
                         )
                     )
                     extractDtcs(summary).forEach { dtc ->

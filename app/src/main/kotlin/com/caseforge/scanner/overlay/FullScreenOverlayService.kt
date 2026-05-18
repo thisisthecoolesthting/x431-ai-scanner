@@ -38,6 +38,7 @@ import com.caseforge.scanner.agent.NextTestSuggester
 import com.caseforge.scanner.agent.RecallFlagger
 import com.caseforge.scanner.agent.ScannerAccessibilityService
 import com.caseforge.scanner.ai.ClaudeClient
+import com.caseforge.scanner.ai.OfflineDiagFallback
 import com.caseforge.scanner.data.AppDatabase
 import com.caseforge.scanner.engine.CapabilityMap
 import com.caseforge.scanner.engine.DtcCorrelator
@@ -426,7 +427,14 @@ class FullScreenOverlayService : Service(),
 
         val app = applicationContext as App
         val key = app.settings.claudeApiKey
-        if (key.isBlank()) return
+        if (key.isBlank()) {
+            OfflineDiagFallback.suggest(newState)?.let { offlineHint ->
+                engineState.value = engineState.value.copy(
+                    errorBanner = offlineHint,
+                )
+            }
+            return
+        }
 
         engineState.value = newState.copy(
             nextTestLoading = true,

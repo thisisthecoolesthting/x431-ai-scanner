@@ -16,7 +16,7 @@ import com.caseforge.scanner.evidence.Evidence
         RepairOrderEntity::class,
         Evidence::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 @TypeConverters(EvidenceConverters::class)

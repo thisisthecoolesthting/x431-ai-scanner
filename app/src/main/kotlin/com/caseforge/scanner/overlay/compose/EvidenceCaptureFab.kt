@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.evidence.EvidenceType
 
@@ -23,7 +24,7 @@ fun EvidenceCaptureFab(
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = Spacing.Space16, bottom = Spacing.Space72),
+                    .padding(end = Spacing.Space16, bottom = 72.dp),
                 verticalArrangement = Arrangement.spacedBy(Spacing.Space8),
             ) {
                 listOf(

@@ -19,6 +19,8 @@ data class SessionEntity(
      * to pull the most recent full-scan run.
      */
     val scope: String = "diagnostic",
+    val latitude: Double? = null,
+    val longitude: Double? = null,
 )
 
 @Entity(tableName = "dtcs")
