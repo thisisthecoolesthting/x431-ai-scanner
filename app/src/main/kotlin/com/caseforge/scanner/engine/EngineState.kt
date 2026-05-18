@@ -50,7 +50,14 @@ sealed class ScreenKind {
     @Serializable object DtcDetail : ScreenKind()
     @Serializable object LiveDataView : ScreenKind()
     @Serializable object ActuationTest : ScreenKind()
-    @Serializable data class SequenceRunner(val sequenceId: String) : ScreenKind()
+    @Serializable
+    data class SequenceRunner(
+        val sequenceId: String,
+        val stepIndex: Int = 0,
+        val totalSteps: Int = 0,
+        val title: String = "",
+        val awaitingPrompt: Boolean = false,
+    ) : ScreenKind()
     @Serializable object Settings : ScreenKind()
     @Serializable data class Dialog(val text: String) : ScreenKind()
     @Serializable data class Unknown(val hint: String) : ScreenKind()

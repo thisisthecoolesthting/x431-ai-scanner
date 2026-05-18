@@ -90,7 +90,7 @@ fun SequenceRunnerScreen(
         ) {
             Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(Spacing.Space8))
-            Text("Advance")
+            Text(if (runner?.awaitingPrompt == true) "Continue" else "Advance")
         }
     }
 }
