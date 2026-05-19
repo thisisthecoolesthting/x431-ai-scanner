@@ -4,6 +4,7 @@
 
 .DESCRIPTION
   Unzips to decompile/work/, inventories files, probes magic bytes on DB-like files,
+  detects cnlaunch-style roots, lists largest files, sniffs small text configs,
   writes markdown + JSON under decompile/findings/.
 
 .PARAMETER ZipPath
@@ -22,6 +23,11 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
 $inbox = Join-Path $repoRoot "decompile\inbox"
 $workRoot = Join-Path $repoRoot "decompile\work"
 $findings = Join-Path $repoRoot "decompile\findings"
+
+$TextSniffMaxBytes = 65536
+$TextSniffReadBytes = 2048
+$TextSniffMaxFiles = 24
+$LargestFileCount = 20
 
 if (-not (Test-Path $findings)) { New-Item -ItemType Directory -Path $findings -Force | Out-Null }
 if (-not (Test-Path $workRoot)) { New-Item -ItemType Directory -Path $workRoot -Force | Out-Null }
@@ -55,10 +61,139 @@ function Get-FileKind {
 function Redact-Name {
     param([string] $Raw)
     $n = [System.IO.Path]::GetFileName($Raw)
-    $n = $n -replace "(?i)cnlaunch|x431|launch\s*pad", "oem"
+    $n = $n -replace "(?i)cnlaunch|x431|launch\s*pad|together\s*car\s*works|tcw", "oem"
     $n = $n -replace "(?i)com\.[a-z0-9_.]{4,}", "app"
-    if ($n.Length -gt 52) { $n = $n.Substring(0, 48) + "…" }
+    if ($n.Length -gt 52) { $n = $n.Substring(0, 48) + "..." }
     return $n
+}
+
+function Redact-RelPath {
+    param(
+        [string] $FullPath,
+        [string] $Root
+    )
+    $rel = $FullPath
+    if ($FullPath.StartsWith($Root, [StringComparison]::OrdinalIgnoreCase)) {
+        $rel = $FullPath.Substring($Root.Length).TrimStart("\", "/")
+    }
+    $parts = $rel -split "[\\/]"
+    $out = @()
+    foreach ($p in $parts) {
+        if ([string]::IsNullOrWhiteSpace($p)) { continue }
+        $rp = $p -replace "(?i)cnlaunch|x431|launchpad|launch\s*pad|together\s*car\s*works", "oem"
+        $rp = $rp -replace "(?i)com\.[a-z0-9_.]{4,}", "app"
+        if ($rp.Length -gt 40) { $rp = $rp.Substring(0, 36) + "..." }
+        $out += $rp
+    }
+    if ($out.Count -eq 0) { return "(root)" }
+    return ($out -join "/")
+}
+
+function Redact-TextSnippet {
+    param([string] $Text)
+    if ([string]::IsNullOrEmpty($Text)) { return "" }
+    $t = $Text
+    $t = $t -replace "(?i)cnlaunch|x431|launch\s*pad|together\s*car\s*works|tcw", "oem"
+    $t = $t -replace "(?i)com\.[a-z0-9_.]{4,}", "app.pkg"
+    $t = $t -replace "[\r\n]+", " "
+    if ($t.Length -gt 240) { $t = $t.Substring(0, 236) + "..." }
+    return $t
+}
+
+function Find-OemDataRoots {
+    param(
+        [string] $ExtractDir,
+        [System.IO.FileInfo[]] $AllFiles
+    )
+    $roots = [System.Collections.Generic.List[object]]::new()
+    $seen = @{}
+
+    $dirs = Get-ChildItem -Path $ExtractDir -Recurse -Directory -ErrorAction SilentlyContinue
+    foreach ($d in $dirs) {
+        $leaf = $d.Name
+        if ($leaf -match "^(?i)cnlaunch$|^(?i)cn_launch$|^(?i)launchpad$|^(?i)x431") {
+            $key = $d.FullName.ToLowerInvariant()
+            if ($seen.ContainsKey($key)) { continue }
+            $seen[$key] = $true
+            $fileCount = 0
+            $byteSum = 0L
+            foreach ($f in $AllFiles) {
+                if ($f.FullName.StartsWith($d.FullName, [StringComparison]::OrdinalIgnoreCase)) {
+                    $fileCount++
+                    $byteSum += $f.Length
+                }
+            }
+            $roots.Add([ordered]@{
+                relPath = Redact-RelPath -FullPath $d.FullName -Root $ExtractDir
+                leafName = (Redact-Name $leaf)
+                fileCount = $fileCount
+                totalBytes = $byteSum
+            })
+        }
+    }
+
+    if ($roots.Count -eq 0) {
+        $hints = @("cnlaunch", "x431", "launch", "oem", "vehicle", "diag")
+        foreach ($h in $hints) {
+            $match = $dirs | Where-Object { $_.Name -match $h } | Select-Object -First 3
+            foreach ($d in $match) {
+                $key = $d.FullName.ToLowerInvariant()
+                if ($seen.ContainsKey($key)) { continue }
+                $seen[$key] = $true
+                $fileCount = 0
+                $byteSum = 0L
+                foreach ($f in $AllFiles) {
+                    if ($f.FullName.StartsWith($d.FullName, [StringComparison]::OrdinalIgnoreCase)) {
+                        $fileCount++
+                        $byteSum += $f.Length
+                    }
+                }
+                $roots.Add([ordered]@{
+                    relPath = Redact-RelPath -FullPath $d.FullName -Root $ExtractDir
+                    leafName = (Redact-Name $d.Name)
+                    fileCount = $fileCount
+                    totalBytes = $byteSum
+                    note = "fuzzy-match"
+                })
+            }
+        }
+    }
+
+    return $roots
+}
+
+function Get-TextSniffs {
+    param(
+        [string] $ExtractDir,
+        [System.IO.FileInfo[]] $AllFiles
+    )
+    $sniffs = [System.Collections.Generic.List[object]]::new()
+    $extOk = @(".xml", ".ini", ".json")
+    $candidates = $AllFiles |
+        Where-Object { $extOk -contains $_.Extension.ToLowerInvariant() -and $_.Length -le $TextSniffMaxBytes } |
+        Sort-Object Length |
+        Select-Object -First $TextSniffMaxFiles
+
+    foreach ($f in $candidates) {
+        $readLen = [Math]::Min([int]$f.Length, $TextSniffReadBytes)
+        $bytes = New-Object byte[] $readLen
+        $fs = [System.IO.File]::OpenRead($f.FullName)
+        try {
+            $got = $fs.Read($bytes, 0, $readLen)
+        } finally {
+            $fs.Dispose()
+        }
+        if ($got -le 0) { continue }
+        $raw = [System.Text.Encoding]::UTF8.GetString($bytes, 0, $got)
+        $preview = Redact-TextSnippet -Text $raw
+        $sniffs.Add([ordered]@{
+            name = Redact-Name $f.Name
+            relPath = Redact-RelPath -FullPath $f.FullName -Root $ExtractDir
+            sizeBytes = $f.Length
+            preview = $preview
+        })
+    }
+    return $sniffs
 }
 
 if ([string]::IsNullOrWhiteSpace($ZipPath)) {
@@ -81,7 +216,7 @@ if ([string]::IsNullOrWhiteSpace($ZipPath) -or -not (Test-Path $ZipPath)) {
     $stubId = Get-Date -Format "yyyyMMdd-HHmmss"
     $stubMd = Join-Path $findings "$stubId-waiting-for-share-zip.md"
     @"
-# Share-zip decompile — waiting for input
+# Share-zip decompile -- waiting for input
 
 **Status:** lane started; **no zip on disk yet.**
 
@@ -101,7 +236,7 @@ powershell -ExecutionPolicy Bypass -File scripts\analyze-share-export.ps1
 
 ## Tablet reminder
 
-Home → **Share** → **Export & share (free)** → save to PC.
+Home -> **Share** -> **Export & share (free)** -> save to PC.
 "@ | Set-Content -Path $stubMd -Encoding UTF8
     Write-Host ""
     Write-Host "Wrote: $stubMd" -ForegroundColor Green
@@ -134,7 +269,7 @@ Get-ChildItem -Path $extractDir -Directory -ErrorAction SilentlyContinue | ForEa
     $topLevelDirs += $_.Name
 }
 
-$files = Get-ChildItem -Path $extractDir -Recurse -File -ErrorAction SilentlyContinue
+$files = @(Get-ChildItem -Path $extractDir -Recurse -File -ErrorAction SilentlyContinue)
 foreach ($f in $files) {
     $totalFiles++
     $totalBytes += $f.Length
@@ -158,12 +293,27 @@ foreach ($f in $files) {
             $magic = Get-MagicLabel -Head $head
             $dbProbes.Add([ordered]@{
                 name = Redact-Name $f.Name
+                relPath = Redact-RelPath -FullPath $f.FullName -Root $extractDir
                 sizeBytes = $f.Length
                 magic = $magic
             })
         } finally { $fs.Dispose() }
     }
 }
+
+$oemRoots = Find-OemDataRoots -ExtractDir $extractDir -AllFiles $files
+$largestFiles = $files |
+    Sort-Object Length -Descending |
+    Select-Object -First $LargestFileCount |
+    ForEach-Object {
+        [ordered]@{
+            name = Redact-Name $_.Name
+            relPath = Redact-RelPath -FullPath $_.FullName -Root $extractDir
+            sizeBytes = $_.Length
+            kind = (Get-FileKind -Name $_.Name)
+        }
+    }
+$textSniffs = Get-TextSniffs -ExtractDir $extractDir -AllFiles $files
 
 $report = [ordered]@{
     id = $stamp
@@ -178,6 +328,9 @@ $report = [ordered]@{
     kindCounts = $kindCounts
     kindBytes = $kindBytes
     sampleNames = $samples
+    oemDataRoots = $oemRoots
+    largestFiles = $largestFiles
+    textSniffs = $textSniffs
     databaseProbes = $dbProbes
     notes = @(
         "Shallow inventory only; proprietary DB contents are not committed.",
@@ -188,16 +341,33 @@ $report = [ordered]@{
 $jsonPath = Join-Path $findings "$stamp-share-export-report.json"
 $mdPath = Join-Path $findings "$stamp-share-export-report.md"
 
-$report | ConvertTo-Json -Depth 6 | Set-Content -Path $jsonPath -Encoding UTF8
+$report | ConvertTo-Json -Depth 8 | Set-Content -Path $jsonPath -Encoding UTF8
 
 $extLines = ($extCounts.GetEnumerator() | Sort-Object Value -Descending | Select-Object -First 15 | ForEach-Object { "- .$($_.Key): $($_.Value)" }) -join "`n"
 if (-not $extLines) { $extLines = "- (none)" }
-$dbLines = ($dbProbes | ForEach-Object { "- $($_.name) ($([math]::Round($_.sizeBytes/1KB)) KB) magic=$($_.magic)" }) -join "`n"
+$dbLines = ($dbProbes | ForEach-Object { "- $($_.name) ($([math]::Round($_.sizeBytes/1KB)) KB) magic=$($_.magic) path=$($_.relPath)" }) -join "`n"
 if (-not $dbLines) { $dbLines = "- (no database-like extensions in this zip)" }
 $dirLines = if ($topLevelDirs.Count -gt 0) { ($topLevelDirs | ForEach-Object { "- $_" }) -join "`n" } else { "- (flat zip)" }
 
+$rootLines = ($oemRoots | ForEach-Object {
+    $note = ""
+    if ($_.note) { $note = " ($($_.note))" }
+    "- $($_.relPath) | files=$($_.fileCount) | $([math]::Round($_.totalBytes/1MB, 2)) MB$note"
+}) -join "`n"
+if (-not $rootLines) { $rootLines = "- (no cnlaunch-style folder found; check fuzzy matches or flat export)" }
+
+$largeLines = ($largestFiles | ForEach-Object {
+    "- $($_.relPath) | $($_.name) | $([math]::Round($_.sizeBytes/1KB, 1)) KB | $($_.kind)"
+}) -join "`n"
+if (-not $largeLines) { $largeLines = "- (none)" }
+
+$sniffLines = ($textSniffs | ForEach-Object {
+    "- $($_.relPath) ($([math]::Round($_.sizeBytes/1KB, 1)) KB): ``$($_.preview)``"
+}) -join "`n"
+if (-not $sniffLines) { $sniffLines = "- (no small xml/ini/json under $TextSniffMaxBytes bytes)" }
+
 @"
-# Share-export analysis — $stamp
+# Share-export analysis -- $stamp
 
 | Field | Value |
 |-------|-------|
@@ -210,6 +380,10 @@ $dirLines = if ($topLevelDirs.Count -gt 0) { ($topLevelDirs | ForEach-Object { "
 ## Top-level folders
 
 $dirLines
+
+## OEM data roots (cnlaunch-style)
+
+$rootLines
 
 ## By kind
 
@@ -224,9 +398,17 @@ $dirLines
 
 $extLines
 
+## Largest files (top $LargestFileCount, redacted paths)
+
+$largeLines
+
 ## Database probes (magic bytes)
 
 $dbLines
+
+## Text sniff (xml/ini/json, first 2 KB, redacted)
+
+$sniffLines
 
 ## Redacted name samples
 
@@ -234,8 +416,8 @@ $((($samples | ForEach-Object { "- $_" }) -join "`n"))
 
 ## Next step
 
-1. Identify the primary ``cnlaunch`` (or oem) data root inside the extract tree.
-2. Open largest **sqlite** candidate in DB Browser locally — do not commit the DB.
+1. Confirm primary OEM data root from table above.
+2. Open largest **sqlite** candidate in DB Browser locally -- do not commit the DB.
 3. Add ``findings/${stamp}-schema-notes.md`` with table names only.
 "@ | Set-Content -Path $mdPath -Encoding UTF8
 

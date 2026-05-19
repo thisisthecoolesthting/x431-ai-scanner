@@ -34,8 +34,17 @@ Extracted trees stay in **`decompile/work/`** (gitignored). Only **reports** and
 
 - Unzip and mirror `OemDataMiner`-style inventory (extensions, DB vs catalog vs report buckets).
 - Magic-byte probe on database-like files (SQLite, ZIP, gzip, etc.).
+- **cnlaunch-style root detection** (exact + fuzzy folder walk).
+- **Top 20 largest files** (redacted paths).
+- **Text sniff** on small `.xml` / `.ini` / `.json` (first 2 KB, redacted).
 - Redacted path samples (no full proprietary paths in git).
 - **Does not** ship decompiled source or cracked DB contents to the repo.
+
+Probe reference: `decompile/findings/002-analyzer-capabilities.md`.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\analyze-share-export-smoke.ps1
+```
 
 ## Vendor redaction (committed files)
 
