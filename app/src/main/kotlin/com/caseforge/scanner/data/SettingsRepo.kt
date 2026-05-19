@@ -5,6 +5,8 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.caseforge.scanner.BuildConfig
+import com.caseforge.scanner.transfer.DEFAULT_RECEIVER_HOST
+import com.caseforge.scanner.transfer.DEFAULT_RECEIVER_PORT
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -159,6 +161,26 @@ class SettingsRepo(context: Context) {
         get() = prefs.getString(K_NOTES, DEFAULT_AGENT_NOTES) ?: DEFAULT_AGENT_NOTES
         set(value) { prefs.edit().putString(K_NOTES, value).apply() }
 
+    // ---- Transfer: receiver PC settings ----
+
+    /** IP or hostname of the office PC running lan-export-receiver.ps1. */
+    var receiverPcHost: String
+        get() = prefs.getString(K_RECEIVER_PC_HOST, DEFAULT_RECEIVER_HOST) ?: DEFAULT_RECEIVER_HOST
+        set(value) { prefs.edit().putString(K_RECEIVER_PC_HOST, value.trim()).apply() }
+
+    /** Port that lan-export-receiver.ps1 is listening on. Default 8765. */
+    var receiverPcPort: Int
+        get() = prefs.getInt(K_RECEIVER_PC_PORT, DEFAULT_RECEIVER_PORT)
+        set(value) { prefs.edit().putInt(K_RECEIVER_PC_PORT, value).apply() }
+
+    /**
+     * When true, the uploader falls back to the legacy multipart/form-data body instead of raw
+     * Content-Length streaming. Disabled by default — opt-in from Settings for back-compat only.
+     */
+    var useMultipartFallback: Boolean
+        get() = prefs.getBoolean(K_USE_MULTIPART_FALLBACK, false)
+        set(value) { prefs.edit().putBoolean(K_USE_MULTIPART_FALLBACK, value).apply() }
+
     // ---- A6: overlayOnX431 ----
 
     /**
@@ -251,6 +273,9 @@ class SettingsRepo(context: Context) {
         private const val K_NOTES = "agent_notes"
         private const val K_THEME = "theme_mode"
         private const val K_WIZARD = "wizard_complete"
+        private const val K_RECEIVER_PC_HOST = "receiver_pc_host"
+        private const val K_RECEIVER_PC_PORT = "receiver_pc_port"
+        private const val K_USE_MULTIPART_FALLBACK = "use_multipart_fallback"
         private const val K_OVERLAY_ON_X431 = "overlay_on_x431"   // A6
         private const val K_OVERLAY_ONBOARDING_SEEN = "overlay_onboarding_seen"   // C2
         private const val K_EMERGENCY_DISMISS_HINT_SEEN = "emergency_dismiss_hint_seen"   // D1
