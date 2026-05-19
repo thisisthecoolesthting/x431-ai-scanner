@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="240dp"
+    android:height="160dp"
+    android:viewportWidth="240"
+    android:viewportHeight="160">
+    <!-- Clipboard body -->
+    <path
+        android:fillColor="#F4F6F8"
+        android:strokeColor="#0F1620"
+        android:strokeWidth="2"
+        android:pathData="M75,45 L165,45 Q175,45 175,55 L175,130 Q175,140 165,140 L75,140 Q65,140 65,130 L65,55 Q65,45 75,45 Z" />
+    <!-- Clip -->
+    <path
+        android:fillColor="#0B5FFF"
+        android:strokeColor="#0F1620"
+        android:strokeWidth="2"
+        android:pathData="M105,38 L135,38 Q145,38 145,48 L145,55 L95,55 L95,48 Q95,38 105,38 Z" />
+    <!-- Lines on clipboard -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#D6DCE5"
+        android:strokeWidth="2"
+        android:pathData="M85,75 L155,75" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#D6DCE5"
+        android:strokeWidth="2"
+        android:pathData="M85,90 L155,90" />
+    <!-- Green checkmark -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#10A26A"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M95,105 L110,120 L145,85" />
+</vector>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="240dp"
+    android:height="160dp"
+    android:viewportWidth="240"
+    android:viewportHeight="160">
+    <!-- Empty folder -->
+    <path
+        android:fillColor="#0B5FFF"
+        android:strokeColor="#0F1620"
+        android:strokeWidth="2"
+        android:pathData="M60,55 L95,55 L105,65 L180,65 Q190,65 190,75 L190,120 Q190,130 180,130 L60,130 Q50,130 50,120 L50,65 Q50,55 60,55 Z" />
+    <!-- Folder tab -->
+    <path
+        android:fillColor="#0B5FFF"
+        android:strokeColor="#0F1620"
+        android:strokeWidth="2"
+        android:pathData="M60,55 L95,55 L95,65 L60,65 Z" />
+    <!-- Downward arrow -->
+    <path
+        android:fillColor="#FF7A1A"
+        android:pathData="M120,35 L135,55 L127,55 L127,75 L113,75 L113,55 L105,55 Z" />
+    <!-- Dashed hint line -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#0F1620"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M120,80 L120,100" />
+</vector>
