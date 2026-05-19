@@ -2,157 +2,272 @@
 
 package com.caseforge.scanner.ui.diag
 
-import android.Manifest
 import android.content.pm.PackageManager
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import com.caseforge.scanner.App
-import com.caseforge.scanner.vci.VciConnectionDiagnostics
-import com.caseforge.scanner.vci.VciConnector
-import com.caseforge.scanner.vci.VciDiagnosticStep
-import com.caseforge.scanner.vci.BluetoothVciClient
-import com.caseforge.scanner.vci.OemUsbVciClient
+import com.caseforge.scanner.agent.ScannerAccessibilityService
+import com.caseforge.scanner.data.SettingsRepo
+import com.caseforge.scanner.oem.OemDataIndex
+import com.caseforge.scanner.pc.PcAssistantClient
+import com.caseforge.scanner.pc.PcHealthInfo
+import com.caseforge.scanner.pc.PcProcessState
+import com.caseforge.scanner.pc.PcProcessStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun VciDiagnosticsScreen(onBack: () -> Unit) {
-    val ctx = LocalContext.current
-    val app = ctx.applicationContext as App
-    val settings = app.settings
+fun VciDiagnosticsScreen(
+    settings: SettingsRepo,
+    vin: String?,
+    batteryVoltage: String? = null,
+    onBack: () -> Unit,
+    onOpenTransferLog: (() -> Unit)? = null,
+) {
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val pcClient = remember(settings) { PcAssistantClient(settings) }
 
-    var steps by remember { mutableStateOf<List<VciDiagnosticStep>>(emptyList()) }
-    var busy by remember { mutableStateOf(false) }
-    var bonded by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
-    var selectedMac by remember { mutableStateOf(settings.vciSelectedBtAddress) }
-    var transportMode by remember { mutableStateOf(settings.vciTransportMode) }
-    var usbAttached by remember { mutableStateOf(0) }
+    val resolvedVin = vin?.takeIf { it.isNotBlank() } ?: settings.lastVin
+    val resolvedVoltage = batteryVoltage
+        ?: settings.lastBatteryVoltage?.let { "%.1f V".format(it) }
 
-    val permLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions(),
-    ) { results ->
-        if (results[Manifest.permission.BLUETOOTH_CONNECT] == true) {
-            scope.launch { refreshBonded(ctx) { bonded = it } }
+    var oemLines by remember { mutableStateOf<List<String>>(emptyList()) }
+    var oemBusy by remember { mutableStateOf(true) }
+
+    var pcLines by remember { mutableStateOf<List<String>>(emptyList()) }
+    var pcBusy by remember { mutableStateOf(true) }
+
+    val oemAppInstalled = remember(context) { detectOemDiagInstalled(context.packageManager) }
+
+    fun refreshOem() {
+        oemBusy = true
+        scope.launch {
+            val summary = withContext(Dispatchers.IO) { OemDataIndex.scan() }
+            oemLines = summary.displayLines() + listOf(
+                "Scan took ${summary.scanDurationMs} ms · ${summary.rootsChecked} root(s) checked",
+            )
+            oemBusy = false
         }
     }
 
-    fun ensurePerms(then: () -> Unit) {
-        val perms = buildList {
-            add(Manifest.permission.BLUETOOTH_CONNECT)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) add(Manifest.permission.BLUETOOTH_SCAN)
+    fun refreshPc() {
+        pcBusy = true
+        scope.launch {
+            val host = settings.receiverPcHost
+            val port = settings.receiverPcPort
+            val healthResult = pcClient.health()
+            val statusResult = pcClient.processStatus()
+            pcLines = buildPcDisplayLines(host, port, healthResult.getOrNull(), statusResult.getOrNull())
+                .ifEmpty {
+                    listOf(
+                        "Receiver: unreachable at $host:$port",
+                        healthResult.exceptionOrNull()?.message?.let { "Health: ${it.take(120)}" }
+                            ?: "Start scripts\\lan-export-receiver.ps1 on the office PC.",
+                    )
+                }
+            pcBusy = false
         }
-        val missing = perms.any {
-            ContextCompat.checkSelfPermission(ctx, it) != PackageManager.PERMISSION_GRANTED
-        }
-        if (missing) permLauncher.launch(perms.toTypedArray()) else then()
     }
 
     LaunchedEffect(Unit) {
-        usbAttached = withContext(Dispatchers.IO) { OemUsbVciClient(ctx).listAttachedDevices().size }
-        if (VciConnectionDiagnostics.hasBluetoothConnectPermission(ctx)) {
-            bonded = withContext(Dispatchers.IO) { BluetoothVciClient(ctx).listBondedDevices() }
-        }
+        refreshOem()
+        refreshPc()
     }
 
     Column(Modifier.fillMaxSize()) {
         TopAppBar(
-            title = { Text("Direct VCI diagnostics") },
+            title = { Text("Diagnostics & capability") },
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                 }
             },
+            actions = {
+                TextButton(
+                    onClick = {
+                        refreshOem()
+                        refreshPc()
+                    },
+                    enabled = !oemBusy && !pcBusy,
+                ) {
+                    Text("Refresh")
+                }
+            },
         )
         Column(
-            Modifier.padding(16.dp).fillMaxSize(),
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                "Transport: Auto tries USB OTG first, then Bluetooth. Force-stop the OEM diagnostic app before connecting.",
-                style = MaterialTheme.typography.bodyMedium,
+            CapabilitySummaryCard(
+                title = "OEM vehicle data inventory",
+                lines = oemLines,
+                busy = oemBusy,
             )
-            Text("USB serial devices attached: $usbAttached", style = MaterialTheme.typography.bodySmall)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("auto" to "Auto", "usb" to "USB", "bluetooth" to "Bluetooth").forEach { (id, label) ->
-                    FilterChip(
-                        selected = transportMode == id,
-                        onClick = {
-                            transportMode = id
-                            settings.vciTransportMode = id
-                        },
-                        label = { Text(label) },
-                    )
+
+            CapabilitySummaryCard(
+                title = "PC assistant",
+                lines = pcLines,
+                busy = pcBusy,
+            )
+
+            SecurityReadinessCard(
+                vin = resolvedVin,
+                batteryVoltage = resolvedVoltage,
+                oemAppInstalled = oemAppInstalled,
+            )
+
+            if (onOpenTransferLog != null) {
+                OutlinedButton(
+                    onClick = onOpenTransferLog,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Open transfer log")
                 }
+            } else {
+                CapabilitySummaryCard(
+                    title = "Transfer log",
+                    lines = listOf(
+                        "Transfer log route not wired from this entry point.",
+                        "Open Settings → Send vehicle database, then use the log button there.",
+                    ),
+                )
             }
-            Button(
-                onClick = {
-                    ensurePerms {
-                        scope.launch {
-                            busy = true
-                            steps = withContext(Dispatchers.IO) {
-                                VciConnectionDiagnostics.runChain(
-                                    ctx,
-                                    settings,
-                                    tryLiveConnect = true,
-                                    macOverride = selectedMac,
-                                    transportMode = transportMode,
-                                )
-                            }
-                            busy = false
-                        }
-                    }
-                },
-                enabled = !busy,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(if (busy) "Running…" else "Run diagnostics")
-            }
-            if (bonded.isNotEmpty()) {
-                Text("Pick Bluetooth VCI if no prefix match:", style = MaterialTheme.typography.titleSmall)
-                bonded.forEach { (name, mac) ->
-                    FilterChip(
-                        selected = selectedMac == mac,
-                        onClick = {
-                            selectedMac = mac
-                            settings.vciSelectedBtAddress = mac
-                        },
-                        label = { Text("$name ($mac)") },
-                    )
-                }
-            }
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                items(steps) { s ->
-                    ListItem(
-                        headlineContent = {
-                            Text(
-                                s.name,
-                                color = if (s.pass) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.error,
-                            )
-                        },
-                        supportingContent = { Text(s.detail) },
-                    )
-                }
-            }
+
+            Text(
+                "Inventory lines are redacted (no full paths or vendor package names). " +
+                    "Together does not read, store, or transmit immobilizer PINs.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
 
-private suspend fun refreshBonded(ctx: android.content.Context, onResult: (List<Pair<String, String>>) -> Unit) {
-    val list = withContext(Dispatchers.IO) { BluetoothVciClient(ctx).listBondedDevices() }
-    onResult(list)
+@Composable
+private fun SecurityReadinessCard(
+    vin: String?,
+    batteryVoltage: String?,
+    oemAppInstalled: Boolean,
+) {
+    val vinReady = vin?.length == 17
+    val voltageReady = settingsVoltageReady(batteryVoltage)
+
+    CapabilitySummaryCard(
+        title = "Security workflow readiness",
+        lines = buildList {
+            add(readinessLine("VIN on file", vinReady, vin ?: "Scan or enter a 17-character VIN"))
+            add(
+                readinessLine(
+                    "Battery voltage",
+                    voltageReady,
+                    batteryVoltage ?: "Connect OBD and confirm 12.4 V or higher",
+                ),
+            )
+            add(
+                readinessLine(
+                    "OEM diagnostic app",
+                    oemAppInstalled,
+                    if (oemAppInstalled) "Installed on this tablet" else "Not detected — install OEM diag before security work",
+                ),
+            )
+            add("Owner authorization: confirm you own the vehicle or have written owner approval before key/security procedures.")
+            add("PIN boundary: use only PINs from an authorized dealer or OEM account; Together will not extract or type immobilizer PINs.")
+        },
+    )
+}
+
+private fun readinessLine(label: String, ready: Boolean, detail: String): String =
+    "${if (ready) "✓" else "○"} $label — $detail"
+
+private fun settingsVoltageReady(formatted: String?): Boolean {
+    if (formatted.isNullOrBlank()) return false
+    val numeric = formatted.replace(Regex("[^0-9.]"), "").toFloatOrNull() ?: return false
+    return numeric >= 12.4f
+}
+
+private fun detectOemDiagInstalled(pm: PackageManager): Boolean =
+    ScannerAccessibilityService.OEM_DIAG_PACKAGES.any { pkg ->
+        runCatching { pm.getPackageInfo(pkg, 0); true }.getOrDefault(false)
+    }
+
+private fun buildPcDisplayLines(
+    host: String,
+    port: Int,
+    health: PcHealthInfo?,
+    process: PcProcessStatus?,
+): List<String> = buildList {
+    add("Endpoint: $host:$port")
+    if (health != null) {
+        add(
+            if (health.ok) "Receiver: online (${health.latencyMs} ms)"
+            else "Receiver: reported unhealthy",
+        )
+        if (health.name.isNotBlank()) add("Service: ${health.name}")
+        if (health.version.isNotBlank()) add("Version: ${health.version}")
+        if (health.freeBytes > 0) {
+            add("Disk free: ${formatBytesForPc(health.freeBytes)}")
+        }
+        redactedSavePathLine(health.savePath)?.let { add(it) }
+    }
+    if (process != null) {
+        add("Process lane: ${process.state.toDisplayLabel()}")
+        if (process.capabilities.isNotEmpty()) {
+            add("Capabilities: ${process.capabilities.joinToString(", ")}")
+        }
+        process.activeJobId?.let { add("Active job: ${it.take(24)}") }
+        if (process.progress in 1..99) add("Progress: ${process.progress}%")
+        if (process.message.isNotBlank()) add(process.message.take(160))
+    }
+}
+
+private fun redactedSavePathLine(savePath: String): String? {
+    if (savePath.isBlank()) return null
+    val leaf = savePath.substringAfterLast('\\').substringAfterLast('/')
+    return if (leaf.isNotBlank()) "Save folder: …/$leaf" else "Save folder: configured"
+}
+
+private fun PcProcessState.toDisplayLabel(): String = when (this) {
+    PcProcessState.IDLE -> "idle"
+    PcProcessState.QUEUED -> "queued"
+    PcProcessState.PROCESSING -> "processing"
+    PcProcessState.COMPLETE -> "complete"
+    PcProcessState.ERROR -> "error"
+    PcProcessState.UNKNOWN -> "unknown"
+}
+
+// Local helper — OemDataSummary.formatBytes is internal to companion
+private fun formatBytesForPc(bytes: Long): String = when {
+    bytes < 1024 -> "$bytes B"
+    bytes < 1024 * 1024 -> "${bytes / 1024} KB"
+    bytes < 1024 * 1024 * 1024 -> "${bytes / (1024 * 1024)} MB"
+    else -> String.format("%.1f GB", bytes / (1024.0 * 1024.0 * 1024.0))
 }
