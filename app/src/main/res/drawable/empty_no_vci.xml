@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="240dp"
+    android:height="160dp"
+    android:viewportWidth="240"
+    android:viewportHeight="160">
+    <!-- Dashboard panel -->
+    <path
+        android:fillColor="#F4F6F8"
+        android:strokeColor="#0F1620"
+        android:strokeWidth="2"
+        android:pathData="M40,50 L200,50 Q210,50 210,60 L210,120 Q210,130 200,130 L40,130 Q30,130 30,120 L30,60 Q30,50 40,50 Z" />
+    <!-- OBD-II port trapezoid -->
+    <path
+        android:fillColor="#0B5FFF"
+        android:strokeColor="#0F1620"
+        android:strokeWidth="2"
+        android:pathData="M95,75 L145,75 L140,105 L100,105 Z" />
+    <!-- Port pins -->
+    <path
+        android:fillColor="#0F1620"
+        android:pathData="M108,82 L112,82 L112,86 L108,86 Z" />
+    <path
+        android:fillColor="#0F1620"
+        android:pathData="M118,82 L122,82 L122,86 L118,86 Z" />
+    <path
+        android:fillColor="#0F1620"
+        android:pathData="M128,82 L132,82 L132,86 L128,86 Z" />
+    <!-- Unplugged cable -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FF7A1A"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M155,90 C170,90 175,75 185,65" />
+    <path
+        android:fillColor="#FF7A1A"
+        android:pathData="M180,58 L192,65 L180,72 Z" />
+</vector>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="240dp"
+    android:height="160dp"
+    android:viewportWidth="240"
+    android:viewportHeight="160">
+    <!-- PC monitor -->
+    <path
+        android:fillColor="#F4F6F8"
+        android:strokeColor="#0F1620"
+        android:strokeWidth="2"
+        android:pathData="M55,40 L185,40 Q195,40 195,50 L195,100 Q195,110 185,110 L55,110 Q45,110 45,100 L45,50 Q45,40 55,40 Z" />
+    <!-- Screen -->
+    <path
+        android:fillColor="#0B5FFF"
+        android:pathData="M55,48 L185,48 L185,95 L55,95 Z" />
+    <!-- Stand -->
+    <path
+        android:fillColor="#0F1620"
+        android:pathData="M110,110 L130,110 L130,125 L110,125 Z" />
+    <path
+        android:fillColor="#0F1620"
+        android:pathData="M95,125 L145,125 L145,130 L95,130 Z" />
+    <!-- Wi-Fi arc (broken) -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FF7A1A"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M160,55 Q175,70 160,85" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FF7A1A"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M168,62 Q178,72 168,82" />
+    <!-- Slash through Wi-Fi -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#D63B3B"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M155,50 L175,90" />
+</vector>
