@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.ScreenKind
 import com.caseforge.scanner.overlay.compose.Spacing
-import com.caseforge.scanner.ui.theme.CaseForgeTheme
+import com.caseforge.scanner.ui.theme.TogetherCarWorksTheme
 
 /**
  * Renders live data stream: PIDs polled from the engine as key-value cards with units.
@@ -76,7 +76,7 @@ fun LiveDataScreen(
 @Preview(showBackground = true)
 @Composable
 private fun LiveDataScreenEmptyPreview() {
-    CaseForgeTheme(mode = "dark") {
+    TogetherCarWorksTheme(mode = "dark") {
         Surface(color = MaterialTheme.colorScheme.background) {
             LiveDataScreen(
                 state = EngineState(
@@ -92,7 +92,7 @@ private fun LiveDataScreenEmptyPreview() {
 @Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun LiveDataScreenWithDataPreviewDark() {
-    CaseForgeTheme(isDarkMode = true) {
+    TogetherCarWorksTheme(isDarkMode = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
             LiveDataScreen(
                 state = EngineState(

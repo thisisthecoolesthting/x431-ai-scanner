@@ -117,14 +117,14 @@ object VciConnectionDiagnostics {
         )
         if (!permOk) return steps
 
-        val x431Up = App.isX431Foreground(context)
+        val oemDiagUp = App.isOemDiagForeground(context)
         step(
-            "X431 not holding foreground",
-            !x431Up,
-            if (x431Up) {
-                "X431 is foreground — force-stop X431 so it releases the VCI SPP socket"
+            "OEM diagnostic app not holding foreground",
+            !oemDiagUp,
+            if (oemDiagUp) {
+                "OEM diagnostic app is foreground — force-stop the OEM diagnostic app so it releases the VCI SPP socket"
             } else {
-                "X431 not in foreground"
+                "OEM diagnostic app not in foreground"
             },
         )
 

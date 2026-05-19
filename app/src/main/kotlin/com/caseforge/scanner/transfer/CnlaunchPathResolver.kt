@@ -17,7 +17,7 @@ object CnlaunchPathResolver {
         val hasData: Boolean get() = fileCount > 0 && totalBytes > 0
     }
 
-    private val X431_PACKAGES = listOf(
+    private val OEM_DIAG_PACKAGES = listOf(
         "com.cnlaunch.x431padv",
         "com.cnlaunch.x431padv2",
         "com.cnlaunch.diagnose.x431pro",
@@ -39,7 +39,7 @@ object CnlaunchPathResolver {
         for (base in bases) {
             roots += File(base, "cnlaunch")
         }
-        for (pkg in X431_PACKAGES) {
+        for (pkg in OEM_DIAG_PACKAGES) {
             roots += File(storage, "Android/data/$pkg/files/cnlaunch")
             roots += File(storage, "Android/data/$pkg/cnlaunch")
             roots += File("/storage/emulated/0/Android/data/$pkg/files/cnlaunch")

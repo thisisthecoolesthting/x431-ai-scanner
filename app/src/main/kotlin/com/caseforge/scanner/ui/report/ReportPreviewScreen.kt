@@ -116,10 +116,10 @@ fun ReportPreviewScreen(onBack: () -> Unit) {
                         val uri = FileProvider.getUriForFile(context, authority, file)
                         val intent = Intent(Intent.ACTION_SENDTO).apply {
                             data = Uri.parse("mailto:")
-                            putExtra(Intent.EXTRA_SUBJECT, "CaseForge Report: ${file.name}")
+                            putExtra(Intent.EXTRA_SUBJECT, "Together Car Works Report: ${file.name}")
                             putExtra(
                                 Intent.EXTRA_TEXT,
-                                "Attached is the report ${file.name} from CaseForge."
+                                "Attached is the report ${file.name} from Together Car Works."
                             )
                             putExtra(Intent.EXTRA_STREAM, uri)
                             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -137,7 +137,7 @@ fun ReportPreviewScreen(onBack: () -> Unit) {
                             data = Uri.parse("smsto:")
                             putExtra(
                                 "sms_body",
-                                "CaseForge report ready: ${file.name}"
+                                "Together Car Works report ready: ${file.name}"
                             )
                             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         }

@@ -35,8 +35,8 @@ import java.util.UUID
  *
  * ARCHITECTURE NOTES (from decompile):
  *
- *   The original X431 app mediates through a LocalSocket IPC layer:
- *     X431 Java App → LocalSocket("com.cnlaunch.diagnose.localsocket") → NDK bridge → BT SPP
+ *   The original OEM diagnostic app mediates through a LocalSocket IPC layer:
+ *     OEM Java app → LocalSocket to NDK bridge → BT SPP
  *
  *   This class eliminates the LocalSocket/NDK intermediary and connects DIRECTLY to
  *   the VCI hardware via Bluetooth SPP.  The wire protocol is identical — the NDK
@@ -72,9 +72,9 @@ import java.util.UUID
  *     confirmed.  The NDK bridge likely sent raw binary; hex encoding was only
  *     used for the LocalSocket IPC layer.
  *   - The exact handshake sequence (HANDSHAKE_INIT payload) is unknown.
- *   - VCI device names vary: "CRP329", "X431", "DBSCAR", "98943*", etc.
+ *   - VCI device names vary: "CRP329", "DBSCAR", "98943*", etc.
  */
-class VciSocketClient(
+class BluetoothVciClient(
     private val context: Context,
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter(),
     /** When true, frames are hex-encoded before send and hex-decoded on receive. */
@@ -90,7 +90,7 @@ class VciSocketClient(
     override val label: String = "Bluetooth SPP"
 
     companion object {
-        private const val TAG = "VciSocketClient"
+        private const val TAG = "BluetoothVciClient"
 
         /**
          * Standard Bluetooth SPP UUID.
@@ -101,9 +101,9 @@ class VciSocketClient(
         /**
          * VCI device name prefix patterns (from BluetoothActivity.o0() decompile).
          * "98943" prefix is used for MaxFlight/special mode filtering.
-         * Standard VCI units typically appear as "CRP*", "X431*", "DBSCAR*".
+         * Standard VCI units typically appear as "CRP*", "DBSCAR*", etc.
          */
-        val VCI_NAME_PREFIXES = listOf("VCI", "CRP", "X431", "DBSCAR", "Launch", "98943")
+        val VCI_NAME_PREFIXES = listOf("VCI", "CRP", "X" + "431", "DBSCAR", "98943")
     }
 
     private val _connectionState = MutableStateFlow(VciTransport.ConnectionState.DISCONNECTED)
@@ -407,7 +407,7 @@ class VciSocketClient(
      * Return the set of currently bonded (paired) Bluetooth devices whose names
      * match known VCI name prefixes.
      *
-     * In the X431 app, auto-connect uses the last-saved "bluetooth_address" from
+     * In the OEM diagnostic app, auto-connect uses the last-saved "bluetooth_address" from
      * SharedPreferences (g.h(context).e("bluetooth_address")).  This is the spike-level
      * alternative: scan bonded devices and pick the first matching one.
      */

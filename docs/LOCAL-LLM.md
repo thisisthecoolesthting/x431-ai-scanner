@@ -1,21 +1,21 @@
 # LOCAL-LLM.md — On-Device Fallback for Together Scanners AI
 
 **Status:** Research only — no code changes. Primes a future implementation ticket.
-**App:** Together Scanners AI (formerly Launch AI)
-**Relevant source:** `app/src/main/kotlin/com/caseforge/scanner/ai/ClaudeClient.kt`
+**App:** Together Scanners AI (formerly OEM AI)
+**Relevant source:** `app/src/main/kotlin/com/Together Car Works/scanner/ai/ClaudeClient.kt`
 
 ---
 
 ## 1. Target Hardware Profile
 
-The Launch X431 PRO / V+ tablet is the sole target device. Constraints are tight and non-negotiable for the foreseeable future.
+The OEM OEM diagnostic tablet PRO / V+ tablet is the sole target device. Constraints are tight and non-negotiable for the foreseeable future.
 
 | Dimension | Typical spec |
 |---|---|
 | SoC | Octa-core ARM Cortex-A53 or A55 (ARMv8-A), ~1.8–2.0 GHz |
-| RAM | 2–4 GB LPDDR4 (effective free budget: ~1.2–1.8 GB after OS + X431 app) |
+| RAM | 2–4 GB LPDDR4 (effective free budget: ~1.2–1.8 GB after OS + OEM diagnostic tablet app) |
 | GPU | Mali-G51 or equivalent entry-level; OpenCL support present but not reliable across firmware versions |
-| Storage | 64 GB eMMC; ~30–40 GB typically free after system + X431 software |
+| Storage | 64 GB eMMC; ~30–40 GB typically free after system + OEM diagnostic tablet software |
 | Android version | 10–12 |
 | CPU features | ARMv8-A `sdot`/`smmla` absent on A53/A55 — the fast-path kernels in llama.cpp and KleidiAI require ARMv8.2-A or later |
 
@@ -72,7 +72,7 @@ The fallback mode should be framed to the user as "basic offline Q&A" rather tha
 **Recommended for this project.**
 
 - Build path: cross-compile via CMake + Android NDK into `arm64-v8a` `.so`; wire via JNI from Kotlin. The official `examples/llama.android` directory demonstrates the full setup.
-- CPU-only, no GPU dependency — robust on all X431 firmware variants.
+- CPU-only, no GPU dependency — robust on all OEM diagnostic tablet firmware variants.
 - GGUF format is the de facto standard; every model in the survey ships as GGUF on Hugging Face.
 - Active community, frequent updates, deterministic behavior.
 - JNI surface is minimal: `llamaInit()`, `llamaTokenize()`, `llamaEval()`, `llamaFree()`.
@@ -82,8 +82,8 @@ The fallback mode should be framed to the user as "basic offline Q&A" rather tha
 ### 3.2 MLC LLM (TVM-based)
 
 - Pros: genuine GPU acceleration via OpenCL/Vulkan if the device supports it; ahead-of-time kernel compilation maximizes throughput on supported GPUs (Adreno > Mali for LLM workloads).
-- Cons for this project: Mali-G51 (X431 GPU class) shows poor LLM prefill performance even on more powerful Mali-G78; kernel compilation requires a model-specific compile step per device target, adding build complexity; physical device required (no emulator); integration overhead via TVM4J is higher than llama.cpp JNI.
-- Verdict: **Not recommended** unless a future X431 device ships Adreno GPU. Revisit when hardware profile changes.
+- Cons for this project: Mali-G51 (OEM diagnostic tablet GPU class) shows poor LLM prefill performance even on more powerful Mali-G78; kernel compilation requires a model-specific compile step per device target, adding build complexity; physical device required (no emulator); integration overhead via TVM4J is higher than llama.cpp JNI.
+- Verdict: **Not recommended** unless a future OEM diagnostic tablet device ships Adreno GPU. Revisit when hardware profile changes.
 
 ### 3.3 ONNX Runtime Mobile (Microsoft GenAI)
 
@@ -147,8 +147,8 @@ Cloud Claude supports function calling via the Anthropic tool-use API. All local
 
 When `LocalLlmClient` is active:
 - Disable the tool-use loop entirely. Do not pass tool schemas to the model.
-- Convert the system prompt to a plain instruction: "You are an automotive diagnostic assistant. Answer questions about DTCs, likely causes, and test procedures in plain text. You cannot read the screen or interact with the X431 app."
-- Surface a persistent banner in the overlay: "Offline mode — agent cannot control the X431 app. Ask questions only."
+- Convert the system prompt to a plain instruction: "You are an automotive diagnostic assistant. Answer questions about DTCs, likely causes, and test procedures in plain text. You cannot read the screen or interact with the OEM diagnostic tablet app."
+- Surface a persistent banner in the overlay: "Offline mode — agent cannot control the OEM diagnostic tablet app. Ask questions only."
 - `read_screen`, `tap`, `scroll`, and all actuation tools return a graceful no-op with an explanatory string rather than throwing.
 - `repair_info_lookup` can still function if it is redesigned to call `LocalLlmClient` rather than making a network call — defer to the implementation ticket.
 
@@ -161,7 +161,7 @@ This degrades gracefully: the technician gets a useful Q&A assistant instead of 
 ### 5.1 Model Location on Disk
 
 ```
-/data/data/com.caseforge.scanner/files/models/
+/data/data/com.Together Car Works.scanner/files/models/
     qwen2.5-1.5b-instruct-q4_k_m.gguf     (~1.0 GB)
     [optional] gemma-2b-instruct-q4_k_m.gguf  (~1.5 GB)
 ```
@@ -172,7 +172,7 @@ Use `Context.getFilesDir()` + `"models/"` subdirectory. This path is:
 - Not visible to other apps without root.
 - Persists across app updates; survives uninstall only if using external storage (not desired here).
 
-Do not use external storage (`getExternalFilesDir()`). The X431 tablet's external storage availability varies by firmware.
+Do not use external storage (`getExternalFilesDir()`). The OEM diagnostic tablet tablet's external storage availability varies by firmware.
 
 ### 5.2 Download UX
 
@@ -219,7 +219,7 @@ Model downloaded → mode selector is enabled.
 
 ## 6. Open Questions for the Implementation Ticket
 
-These require empirical measurement on physical X431 hardware and are out of scope for this research pass.
+These require empirical measurement on physical OEM diagnostic tablet hardware and are out of scope for this research pass.
 
 **6.1 Battery impact during sustained inference**
 llama.cpp running a 1.5B Q4 model at 8–15 tok/s will saturate 2–4 CPU cores continuously. A typical 30-minute diagnostic session generating ~2,000 tokens could draw 500–800 mA extra, translating to 15–25% additional battery drain versus cloud mode on a 5000 mAh battery. This is an estimate; measure with `BatteryManager` telemetry on real hardware.
@@ -239,9 +239,9 @@ Qualitative testing on a suite of real DTC prompts (P0300, U0100, B1234 class co
 
 1. **Use Qwen 2.5-1.5B Q4_K_M as the sole shipped model.** It fits all device RAM tiers (2 GB and 4 GB), delivers the best instruction-following quality in the <1 GB disk footprint class, and achieves acceptable tok/s on Cortex-A53/A55. Conditionally offer Gemma 2B on 4 GB devices as a runtime upgrade.
 2. **Integrate via llama.cpp Android NDK with a thin `LlmClient` interface.** This keeps `ClaudeClient.kt` untouched, runs CPU-only (no Mali GPU dependency risk), and has the strongest community support for GGUF models.
-3. **Default to AUTO hybrid mode** (cloud when reachable, local on network failure). Give the user an explicit toggle in Settings but do not require a decision at first launch — automatic fallback is the highest-value behavior for shop environments with unreliable connectivity.
+3. **Default to AUTO hybrid mode** (cloud when reachable, local on network failure). Give the user an explicit toggle in Settings but do not require a decision at first OEM — automatic fallback is the highest-value behavior for shop environments with unreliable connectivity.
 4. **Implement text-only fallback mode in the agent loop.** Tool-use is unavailable locally; disable the tool schema, replace the system prompt with a plain Q&A framing, and show a persistent "offline mode" banner. This is a clean degradation path rather than a broken one.
-5. **Treat battery and thermal behavior as blockers before GA.** Measure on a physical X431 PRO/V+ tablet under a 20-minute inference session. If thermal throttling degrades tok/s below ~3 tok/s, add a cooldown gate (pause inference after 10 minutes, resume after 2 minutes) — the UX cost of a pause is lower than the UX cost of unreadably slow generation.
+5. **Treat battery and thermal behavior as blockers before GA.** Measure on a physical OEM diagnostic tablet PRO/V+ tablet under a 20-minute inference session. If thermal throttling degrades tok/s below ~3 tok/s, add a cooldown gate (pause inference after 10 minutes, resume after 2 minutes) — the UX cost of a pause is lower than the UX cost of unreadably slow generation.
 
 ---
 

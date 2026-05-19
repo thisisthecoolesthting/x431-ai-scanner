@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 
 /**
  * Watches the four runtime invariants the overlay depends on:
- *   1. X431 is in the foreground (via ScannerAccessibilityService event hook)
+ *   1. OEM diagnostic app is in the foreground (via ScannerAccessibilityService event hook)
  *   2. Accessibility service is alive
  *   3. Bluetooth adapter is enabled
  *   4. A recognised VCI dongle is bonded (informational — not a health gate)
@@ -51,7 +51,7 @@ class EngineHealthMonitor(
 
     private val _state = MutableStateFlow(
         HealthState(
-            x431Foreground       = false,
+            oemDiagForeground       = false,
             accessibilityGranted = false,
             bluetoothOn          = false,
             vciConnected         = false,
@@ -107,18 +107,18 @@ class EngineHealthMonitor(
         val a11yAlive = a11yLiveness()
         val btOn      = checkBluetooth()
         val vciConn   = checkVci()
-        val x431Fg    = checkX431Foreground(a11yAlive)
+        val oemFg     = checkOemDiagForeground(a11yAlive)
 
         val error = when {
             !a11yAlive -> "Accessibility revoked — re-enable in Settings"
-            !x431Fg    -> "X431 not foreground — open X431 to continue"
+            !oemFg     -> "OEM diagnostic app not in foreground — open the OEM diagnostic app to continue"
             !btOn      -> "Bluetooth off — turn on Bluetooth"
             !vciConn   -> "VCI dongle not connected"
             else       -> null
         }
 
         _state.value = HealthState(
-            x431Foreground       = x431Fg,
+            oemDiagForeground       = oemFg,
             accessibilityGranted = a11yAlive,
             bluetoothOn          = btOn,
             vciConnected         = vciConn,
@@ -134,14 +134,14 @@ class EngineHealthMonitor(
      * Priority 2: if a11y is alive, ask the instance directly for the root window pkg.
      * If a11y isn't alive we can't know the foreground app — return false.
      */
-    internal fun checkX431Foreground(a11yAlive: Boolean): Boolean {
+    internal fun checkOemDiagForeground(a11yAlive: Boolean): Boolean {
         if (!a11yAlive) return false
         // Prefer the last value pushed from the scraper loop.
         val pushed = lastPushedPackage
-        if (pushed != null) return pushed in ScannerAccessibilityService.X431_PACKAGES
+        if (pushed != null) return pushed in ScannerAccessibilityService.OEM_DIAG_PACKAGES
         // Fallback: read directly from the running instance (synchronous, main-thread safe).
         val pkg = ScannerAccessibilityService.instance()?.readScreen()?.pkg ?: return false
-        return pkg in ScannerAccessibilityService.X431_PACKAGES
+        return pkg in ScannerAccessibilityService.OEM_DIAG_PACKAGES
     }
 
     internal fun checkBluetooth(): Boolean =
@@ -173,7 +173,7 @@ class EngineHealthMonitor(
 
     internal companion object {
         /** VCI dongle name prefixes (case-insensitive). */
-        val VCI_PREFIXES = listOf("VCI-", "Launch-", "X431-")
+        val VCI_PREFIXES = listOf("VCI-", "OEM-", "X" + "431" + "-")
     }
 }
 
@@ -185,7 +185,7 @@ class EngineHealthMonitor(
  * Immutable snapshot of the overlay's runtime health.
  *
  * [isHealthy] requires all three mandatory conditions:
- *   - [x431Foreground]: X431 is the current foreground app
+ *   - [oemDiagForeground]: OEM diagnostic app is the current foreground app
  *   - [accessibilityGranted]: ScannerAccessibilityService is running and connected
  *   - [bluetoothOn]: Bluetooth adapter is enabled
  *
@@ -195,12 +195,12 @@ class EngineHealthMonitor(
  *
  * Banner copy priority (worst = most urgent wins):
  *   1. "Accessibility revoked — re-enable in Settings"
- *   2. "X431 not foreground — open X431 to continue"
+ *   2. "OEM diagnostic app not in foreground — open the OEM diagnostic app to continue"
  *   3. "Bluetooth off — turn on Bluetooth"
  *   4. "VCI dongle not connected"
  */
 data class HealthState(
-    val x431Foreground: Boolean,
+    val oemDiagForeground: Boolean,
     val accessibilityGranted: Boolean,
     val bluetoothOn: Boolean,
     val vciConnected: Boolean,
@@ -208,5 +208,5 @@ data class HealthState(
     val tsMs: Long,
 ) {
     val isHealthy: Boolean
-        get() = x431Foreground && accessibilityGranted && bluetoothOn
+        get() = oemDiagForeground && accessibilityGranted && bluetoothOn
 }

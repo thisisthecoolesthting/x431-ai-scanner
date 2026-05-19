@@ -61,7 +61,7 @@ fun DashboardScreen(
     onOpenLog: () -> Unit,
     onOpenNotes: () -> Unit,
     onCheckUpdate: () -> Unit,
-    onTakeOverX431: () -> Unit = {},
+    onTakeOverOemDiag: () -> Unit = {},
     settings: SettingsRepo? = null,
     directVciStandalone: Boolean = false,
 ) {
@@ -98,7 +98,7 @@ fun DashboardScreen(
     Column(Modifier.fillMaxSize()) {
         // Top app bar with title + settings/history icons
         TopAppBar(
-            title = { Text("Launch AI") },
+            title = { Text("Together Car Works") },
             actions = {
                 IconButton(onClick = { onSpeakToggle(!speakEnabled) }) {
                     Icon(
@@ -129,22 +129,22 @@ IconButton(onClick = onOpenNotes) {
             // Vehicle card
             VehicleCard(detectedVin, vehicleSummary, running, step, activity)
 
-            // Take-over-X431 or direct VCI standalone overlay
+            // Take-over OEM diagnostic app or direct VCI standalone overlay
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Button(
-                    onClick = onTakeOverX431,
+                    onClick = onTakeOverOemDiag,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Icon(Icons.Default.Layers, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Text(
                         if (standalone) "Connect to VCI"
-                        else "Take over X431 (custom UI)",
+                        else "Take over OEM diagnostic app (custom UI)",
                     )
                 }
                 if (standalone) {
                     Text(
-                        "Our UI only—the X431 app will not launch. Grant overlay permission when prompted.",
+                        "Our UI only—the OEM diagnostic app will not launch. Grant overlay permission when prompted.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 4.dp),
@@ -226,7 +226,7 @@ private fun VehicleCard(
                         fontWeight = FontWeight.SemiBold,
                     )
                     Text(
-                        summary ?: "Connect the VCI and open the X431 app to detect a vehicle.",
+                        summary ?: "Connect the VCI and open the OEM diagnostic app to detect a vehicle.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

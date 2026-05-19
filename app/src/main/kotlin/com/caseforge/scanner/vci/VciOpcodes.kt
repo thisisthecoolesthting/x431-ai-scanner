@@ -28,7 +28,7 @@ package com.caseforge.scanner.vci
  *   - HANDSHAKE_INIT: best guess from protocol framing (must verify).
  *   - OBD_MODE01_PID_REQ / OBD_MODE03_DTC_REQ: standard SAE J1979 mode bytes;
  *     the VCI likely uses these as the low byte of the opcode word (common in
- *     Launch protocol dumps from open-source tools).
+ *     OEM VCI protocol dumps from open-source tools).
  *   - All UI_TYPE_* derived values: inferred from DiagnoseConstants string values
  *     cast to Int.  Plausible but unverified.
  */
@@ -47,7 +47,7 @@ enum class KnownOpcode(val value: Int, val direction: Direction, val notes: Stri
 
     /**
      * Initial handshake sent by host → VCI after Bluetooth connects.
-     * STATUS: INFERRED — common framing pattern in Launch tools.
+     * STATUS: INFERRED — common framing pattern in OEM VCI tools.
      * Payload: empty or device serial number bytes.
      * Expected response: HANDSHAKE_ACK (0x0001 assumed).
      */
@@ -69,7 +69,7 @@ enum class KnownOpcode(val value: Int, val direction: Direction, val notes: Stri
 
     /**
      * OBD Mode 01 — show current data / live PIDs.
-     * STATUS: INFERRED from standard OBD-II and common Launch protocol dumps.
+     * STATUS: INFERRED from standard OBD-II and common OEM VCI protocol dumps.
      * Payload: [pid_byte] (1 byte, e.g. 0x0C for RPM, 0x0D for speed).
      */
     OBD_MODE01_PID_REQ(
@@ -136,7 +136,7 @@ enum class KnownOpcode(val value: Int, val direction: Direction, val notes: Stri
         notes = "INFERRED: mode 09 response."
     ),
 
-    // ---- Proprietary / CNLaunch diagnostic commands ----
+    // ---- Proprietary / OEM diagnostic commands ----
 
     /**
      * Full auto-scan trigger.

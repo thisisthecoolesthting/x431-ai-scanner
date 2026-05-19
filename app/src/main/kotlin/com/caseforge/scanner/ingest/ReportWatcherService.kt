@@ -13,11 +13,11 @@ import android.util.Log
 import java.io.File
 
 /**
- * Foreground service that watches the X431 reports directory and notifies the user when a new
- * PDF report drops. The X431 app writes reports here on most versions; we walk a small set of
+ * Foreground service that watches the OEM diagnostic reports directory and notifies the user when a new
+ * PDF report drops. The OEM diagnostic app writes reports here on most versions; we walk a small set of
  * known paths and watch whichever exist.
  *
- * Heads-up: on API 30+ shared storage is locked down. For paths under /Android/data/<x431_pkg>/...
+ * Heads-up: on API 30+ shared storage is locked down. For paths under /Android/data/<oem_pkg>/...
  * you'll likely need either MANAGE_EXTERNAL_STORAGE or the user to use the share-target flow
  * instead. The watcher remains useful for non-scoped paths and devices that pre-date scoped storage.
  */
@@ -27,10 +27,9 @@ class ReportWatcherService : Service() {
         private const val CHANNEL_ID = "report_watcher"
         private const val NOTIFICATION_ID = 1001
         private val CANDIDATE_DIRS = listOf(
-            "cnlaunch/X431PRO/Diagnostic",
-            "cnlaunch/Diagnostic",
-            "cnlaunch/X431PAD/Diagnostic",
-            "Launch/Diagnostic",
+            "oem-vehicle-db/OEMPRO/Diagnostic",
+            "oem-vehicle-db/Diagnostic",
+            "oem-vehicle-db/OEMPAD/Diagnostic",
         )
     }
 
@@ -40,7 +39,7 @@ class ReportWatcherService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        startForeground(NOTIFICATION_ID, buildNotification("Watching for X431 reports…"))
+        startForeground(NOTIFICATION_ID, buildNotification("Watching for OEM diagnostic reports…"))
         startObservers()
     }
 
@@ -81,7 +80,7 @@ class ReportWatcherService : Service() {
         val file = File(dir, name)
         if (!file.exists()) return
         // Post a notification the tech can tap to triage the new report.
-        notify("New X431 report", file.name)
+        notify("New OEM diagnostic app report", file.name)
     }
 
     private fun buildNotification(text: String): Notification {
@@ -92,7 +91,7 @@ class ReportWatcherService : Service() {
             )
         }
         return Notification.Builder(this, CHANNEL_ID)
-            .setContentTitle("Launch AI")
+            .setContentTitle("Together Car Works")
             .setContentText(text)
             .setSmallIcon(android.R.drawable.stat_sys_download_done)
             .setOngoing(true)

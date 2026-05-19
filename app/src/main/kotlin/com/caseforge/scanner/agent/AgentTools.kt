@@ -14,7 +14,7 @@ object AgentTools {
 
     val READ_SCREEN = ClaudeClient.Tool(
         name = "read_screen",
-        description = "Returns a structured snapshot of the X431 app's current screen — all visible " +
+        description = "Returns a structured snapshot of the OEM diagnostic app's current screen — all visible " +
                 "interactive nodes with their text, clickability, and bounds. ALWAYS call this " +
                 "before deciding the next action. Returns JSON.",
         inputSchema = schema { put("type", "object"); putJsonObject("properties") {}; put("additionalProperties", false) }
@@ -156,7 +156,7 @@ object AgentTools {
     val LOOK_AT = ClaudeClient.Tool(
         name = "look_at",
         description = "Ask the tech to point the tablet camera at the engine bay (or wherever) " +
-                "and capture a photo for you to see. Use when on-screen X431 data is ambiguous " +
+                "and capture a photo for you to see. Use when on-screen OEM diagnostic app data is ambiguous " +
                 "and you need physical evidence: connector seated, leak visible, label/part number, " +
                 "wiring tap, aftermarket mod. Returns a JPEG image you can analyze.",
         inputSchema = schema { put("type", "object"); putJsonObject("properties") {} }
@@ -178,9 +178,9 @@ object AgentTools {
     val READ_OBD = ClaudeClient.Tool(
         name = "read_obd",
         description = "Read OBD-II live data or DTCs via a paired Bluetooth ELM327 dongle. " +
-                "Faster than driving X431 UI for plain PIDs. subcommand: connect | pid | dtcs | disconnect. " +
+                "Faster than driving OEM diagnostic UI for plain PIDs. subcommand: connect | pid | dtcs | disconnect. " +
                 "When subcommand=pid, supply pid_hex (e.g. '0C' for RPM, '05' for coolant). " +
-                "Prefer X431 for module-specific (ABS/SRS/TCM) and bidirectional tests.",
+                "Prefer OEM diagnostic app for module-specific (ABS/SRS/TCM) and bidirectional tests.",
         inputSchema = schema {
             put("type", "object")
             putJsonObject("properties") {

@@ -20,7 +20,7 @@ import com.caseforge.scanner.overlay.compose.Spacing
 import com.caseforge.scanner.overlay.compose.TogetherCardShape
 import com.caseforge.scanner.overlay.compose.togetherCardColors
 import com.caseforge.scanner.overlay.compose.togetherCardElevation
-import com.caseforge.scanner.ui.theme.CaseForgeTheme
+import com.caseforge.scanner.ui.theme.TogetherCarWorksTheme
 
 /**
  * Renders scan results: a summary header and a list of diagnostic trouble codes (DTCs).
@@ -163,7 +163,7 @@ private fun DtcCard(dtc: ScrapedDtc) {
 @Preview(showBackground = true)
 @Composable
 private fun ReportScreenCleanPreview() {
-    CaseForgeTheme(mode = "dark") {
+    TogetherCarWorksTheme(mode = "dark") {
         Surface(color = MaterialTheme.colorScheme.background) {
             ReportScreen(
                 state = EngineState(
@@ -179,7 +179,7 @@ private fun ReportScreenCleanPreview() {
 @Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun ReportScreenWithDtcsPreviewDark() {
-    CaseForgeTheme(isDarkMode = true) {
+    TogetherCarWorksTheme(isDarkMode = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
             ReportScreen(
                 state = EngineState(

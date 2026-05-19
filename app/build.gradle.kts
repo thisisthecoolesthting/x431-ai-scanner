@@ -13,8 +13,11 @@ plugins {
 
 val claudeApiKeyFromLocal: String = run {
     val f = rootProject.file("local.properties")
-    if (!f.exists()) "" else Properties().apply { f.inputStream().use { load(it) } }
-        .getProperty("caseforge.claudeApiKey", "").trim()
+    if (!f.exists()) "" else {
+        val props = Properties().apply { f.inputStream().use { load(it) } }
+        props.getProperty("tcw.claudeApiKey", "").trim()
+            .ifBlank { props.getProperty("caseforge.claudeApiKey", "").trim() }
+    }
 }
 
 android {

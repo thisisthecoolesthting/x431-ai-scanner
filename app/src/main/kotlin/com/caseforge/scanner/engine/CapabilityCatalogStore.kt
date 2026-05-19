@@ -73,7 +73,7 @@ class CapabilityCatalogStore(
 ) {
     companion object {
         const val REMOTE_URL =
-            "https://raw.githubusercontent.com/thisisthecoolesthting/x431-ai-scanner/main/capabilities/capabilities.json"
+            "https://raw.githubusercontent.com/thisisthecoolesthting/together-car-works/main/app/src/main/assets/capabilities/capabilities.json"
 
         private const val TAG = "CapabilityCatalogStore"
         private const val CACHE_FILENAME = "capabilities_cache.json"

@@ -16,7 +16,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 
 /**
- * Orchestrates a Claude tool-use loop that drives the X431 app through
+ * Orchestrates a Claude tool-use loop that drives the OEM diagnostic app through
  * [ScannerAccessibilityService]. Each iteration:
  *   1. Send the running conversation to Claude (with our tool list).
  *   2. If Claude returns tool_use blocks, execute them on the accessibility service.

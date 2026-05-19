@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import com.caseforge.scanner.engine.ScrapedDtc
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.ScreenKind
-import com.caseforge.scanner.ui.theme.CaseForgeTheme
+import com.caseforge.scanner.ui.theme.TogetherCarWorksTheme
 
 /**
  * Shared preview fixtures and theme wrappers for @Preview annotations.
@@ -19,7 +19,7 @@ import com.caseforge.scanner.ui.theme.CaseForgeTheme
 
 @Composable
 fun PreviewContainer(content: @Composable () -> Unit) {
-    CaseForgeTheme(mode = "dark") {
+    TogetherCarWorksTheme(mode = "dark") {
         Surface(color = MaterialTheme.colorScheme.background) {
             content()
         }
@@ -101,7 +101,7 @@ val SAMPLE_ENGINE_DIALOG = EngineState(
 )
 
 val SAMPLE_ENGINE_UNKNOWN = EngineState(
-    screen = ScreenKind.Unknown("Some undocumented X431 screen type"),
+    screen = ScreenKind.Unknown("Some undocumented OEM diagnostic app screen type"),
     vehicleVin = "5FNRL6H73LB123456",
     vehicleSummary = "2020 Honda Odyssey",
 )

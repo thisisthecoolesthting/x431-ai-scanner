@@ -87,7 +87,7 @@ fun MainScreen(
 
     Column(Modifier.fillMaxSize()) {
         TopAppBar(
-            title = { Text("Together Scanners AI") },
+            title = { Text("Together Car Works") },
             actions = {
                 val dot = if (vciConnected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                 TextButton(onClick = { showDrawer = true }) {

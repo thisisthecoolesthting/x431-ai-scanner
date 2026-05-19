@@ -82,7 +82,7 @@ fun VciDiagnosticsScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                "Transport: Auto tries USB OTG first, then Bluetooth. Force-stop X431 before connecting.",
+                "Transport: Auto tries USB OTG first, then Bluetooth. Force-stop the OEM diagnostic app before connecting.",
                 style = MaterialTheme.typography.bodyMedium,
             )
             Text("USB serial devices attached: $usbAttached", style = MaterialTheme.typography.bodySmall)

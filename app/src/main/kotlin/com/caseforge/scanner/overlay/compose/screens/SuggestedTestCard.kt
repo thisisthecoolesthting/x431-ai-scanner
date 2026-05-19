@@ -21,7 +21,7 @@ import com.caseforge.scanner.overlay.compose.Spacing
 import com.caseforge.scanner.overlay.compose.TogetherCardShape
 import com.caseforge.scanner.overlay.compose.togetherCardColors
 import com.caseforge.scanner.overlay.compose.togetherCardElevation
-import com.caseforge.scanner.ui.theme.CaseForgeTheme
+import com.caseforge.scanner.ui.theme.TogetherCarWorksTheme
 
 @Composable
 fun SuggestedTestCard(
@@ -103,7 +103,7 @@ fun SuggestedTestCard(
 @Preview(showBackground = true)
 @Composable
 private fun SuggestedTestCardPreview() {
-    CaseForgeTheme(mode = "dark") {
+    TogetherCarWorksTheme(mode = "dark") {
         SuggestedTestCard(
             suggestion = NextTestSuggestion(
                 testName = "Coolant temp live data at operating temp",

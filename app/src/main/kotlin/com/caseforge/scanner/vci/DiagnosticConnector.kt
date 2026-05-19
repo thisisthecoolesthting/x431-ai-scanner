@@ -54,7 +54,7 @@ object DiagnosticConnector {
     ): Result<ActiveLink> {
         VciProtocolConfig.applyFromSettings(settings)
 
-        if (App.isX431Foreground(context)) {
+        if (App.isOemDiagForeground(context)) {
             return Result.failure(
                 IllegalStateException("OEM diagnostic app is in the foreground — force-stop it to free the adapter"),
             )
@@ -136,7 +136,7 @@ object DiagnosticConnector {
             ActiveLink(
                 kind = LinkKind.OEM_USB,
                 port = VciDiagnosticAdapter(comm),
-                detail = "Launch VCI USB",
+                detail = "OEM VCI USB",
                 disconnect = { usb.disconnect() },
                 readVin = { comm.readVin().getOrNull() },
             )

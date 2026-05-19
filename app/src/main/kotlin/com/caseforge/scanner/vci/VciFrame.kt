@@ -1,7 +1,7 @@
 package com.caseforge.scanner.vci
 
 /**
- * Wire-level frame model for the X431 VCI binary protocol.
+ * Wire-level frame model for the OEM VCI binary protocol.
  *
  * Verified frame layout (from CommunicationCOM.comReceiveData + ByteHexHelper decompile):
  *
@@ -122,7 +122,7 @@ data class VciFrame(
          * STATUS: PARTIALLY CONFIRMED.
          * The Java layer does not expose them directly — they are assembled in native
          * code (CommunicationCOM.receiveData JNI).  The values below (0x55 0xAA) are
-         * the most common framing magic in Launch/CNLaunch OBD protocols observed in
+         * the most common framing magic in OEM VCI OBD protocols observed in
          * older open-source implementations and are a reasonable spike placeholder.
          *
          * ACTION REQUIRED: confirm via Frida hook on LocalSocketClient.send() or
@@ -130,7 +130,7 @@ data class VciFrame(
          */
         val DEFAULT_HEADER = byteArrayOf(0x55.toByte(), 0xAA.toByte())
 
-        /** Common Launch/CNLaunch header candidates — swept on tablet via Direct VCI probe. */
+        /** Common OEM VCI header candidates — swept on tablet via Direct VCI probe. */
         val HEADER_CANDIDATES: List<ByteArray> = VciProtocolConfig.HEADER_CANDIDATES
 
         // ------------------------------------------------------------------

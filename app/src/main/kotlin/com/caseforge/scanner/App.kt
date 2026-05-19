@@ -9,7 +9,7 @@ import com.caseforge.scanner.agent.AgentTts
 import com.caseforge.scanner.data.AppDatabase
 import com.caseforge.scanner.data.SettingsRepo
 import com.caseforge.scanner.overlay.FullScreenOverlayService
-import com.caseforge.scanner.vci.CnlaunchAssetIndex
+import com.caseforge.scanner.vci.OemVehicleAssetIndex
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -19,23 +19,23 @@ import java.io.File
 class App : Application() {
 
     companion object {
-        const val TAG = "X431Agent.App"
+        const val TAG = "TcwAgent.App"
 
-        private val X431_PACKAGES = setOf(
+        private val OEM_DIAG_PACKAGES = setOf(
             "com.cnlaunch.x431padv",
             "com.cnlaunch.x431pro",
             "com.cnlaunch.x431pro3",
             "com.cnlaunch.x431padv2",
         )
 
-        fun isX431Foreground(context: android.content.Context): Boolean {
+        fun isOemDiagForeground(context: android.content.Context): Boolean {
             return runCatching {
                 val usm = context.getSystemService(USAGE_STATS_SERVICE) as? UsageStatsManager
                     ?: return@runCatching false
                 val now = System.currentTimeMillis()
                 val stats = usm.queryUsageStats(UsageStatsManager.INTERVAL_BEST, now - 5000, now)
                 val foregroundPkg = stats.maxByOrNull { it.lastTimeUsed }?.packageName
-                foregroundPkg in X431_PACKAGES
+                foregroundPkg in OEM_DIAG_PACKAGES
             }.getOrDefault(false)
         }
     }
@@ -57,7 +57,7 @@ class App : Application() {
         Log.i(TAG, "Application.onCreate()")
 
         settings = SettingsRepo(this)
-        CnlaunchAssetIndex.load(this)
+        OemVehicleAssetIndex.load(this)
         actionLog = AgentActionLog(this)
         AgentStatus.startObservingActionLog(actionLog, scope)
         db = AppDatabase.get(this)
@@ -97,9 +97,9 @@ class App : Application() {
     private fun checkAndRestartOverlayIfNeeded() {
         runCatching {
             if (settings.directVciExperimental) return@runCatching
-            if (!settings.overlayOnX431) return@runCatching
+            if (!settings.overlayOnOemDiag) return@runCatching
             if (FullScreenOverlayService.isRunning) return@runCatching
-            if (!isX431ForegroundNow()) return@runCatching
+            if (!isOemDiagForegroundNow()) return@runCatching
             Log.i(TAG, "Conditions met: restarting overlay.")
             FullScreenOverlayService.start(this)
         }.onFailure { e ->
@@ -107,5 +107,5 @@ class App : Application() {
         }
     }
 
-    private fun isX431ForegroundNow(): Boolean = isX431Foreground(this)
+    private fun isOemDiagForegroundNow(): Boolean = isOemDiagForeground(this)
 }

@@ -594,7 +594,7 @@
       "category": "Codes",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "codes",
         "freeze_frame"
       ],
@@ -615,7 +615,7 @@
       "category": "LiveData",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "livedata",
         "body_module"
       ],
@@ -656,7 +656,7 @@
       "category": "Service",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "service",
         "afm_relearn"
       ],
@@ -677,7 +677,7 @@
       "category": "Bidirectional",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "bidirect",
         "fuel_pump_cmd"
       ],
@@ -698,7 +698,7 @@
       "category": "Bidirectional",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "bidirect",
         "injector_test"
       ],
@@ -719,7 +719,7 @@
       "category": "Bidirectional",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "bidirect",
         "evap_test"
       ],
@@ -740,7 +740,7 @@
       "category": "Bidirectional",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "bidirect",
         "ac_compressor"
       ],
@@ -761,7 +761,7 @@
       "category": "Bidirectional",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "bidirect",
         "cooling_fans"
       ],
@@ -782,7 +782,7 @@
       "category": "Programming",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "programming",
         "key_fob"
       ],
@@ -803,7 +803,7 @@
       "category": "Programming",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "programming",
         "bcm_config"
       ],
@@ -824,7 +824,7 @@
       "category": "Coding",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "coding",
         "parameter"
       ],
@@ -845,7 +845,7 @@
       "category": "Coding",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "coding",
         "feature"
       ],
@@ -866,7 +866,7 @@
       "category": "Coding",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "coding",
         "rpo"
       ],
@@ -887,7 +887,7 @@
       "category": "Module",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "module",
         "trans_adapt"
       ],
@@ -908,7 +908,7 @@
       "category": "Module",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "module",
         "cluster_setup"
       ],
@@ -929,7 +929,7 @@
       "category": "Module",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "module",
         "passlock_relearn"
       ],
@@ -950,7 +950,7 @@
       "category": "Module",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "module",
         "door_window_init"
       ],
@@ -971,7 +971,7 @@
       "category": "Module",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "module",
         "immobilizer_service"
       ],
@@ -992,7 +992,7 @@
       "category": "Module",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "module",
         "sunroof_calib"
       ],
@@ -1013,7 +1013,7 @@
       "category": "LiveData",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "livedata",
         "abs_module"
       ],
@@ -1034,7 +1034,7 @@
       "category": "Service",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "service",
         "headlight_aim"
       ],
@@ -1055,7 +1055,7 @@
       "category": "Coding",
       "path": [
         "gm",
-        "x431",
+        "oem_diag",
         "coding",
         "speed_limiter"
       ],
@@ -3267,7 +3267,7 @@
         "porsche",
         "bentley"
       ],
-      "note": "Read current component protection (CP) and Software Version Management (SVM) status. NOTE: X431 cannot REMOVE protection; requires ODIS with dealership credentials"
+      "note": "Read current component protection (CP) and Software Version Management (SVM) status. NOTE: OEM tablet cannot REMOVE protection; requires ODIS with dealership credentials"
     },
     {
       "id": "vag_immobilizer_key_adapt",
@@ -3370,7 +3370,7 @@
         "porsche",
         "bentley"
       ],
-      "note": "Enter 4-byte security code to unlock ECU for long coding and adaptation. Codes per vehicle VIN; X431 can request auto-unlock via online service"
+      "note": "Enter 4-byte security code to unlock ECU for long coding and adaptation. Codes per vehicle VIN; OEM tablet can request auto-unlock via online service"
     },
     {
       "id": "vag_gateway_module_list",

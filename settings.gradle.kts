@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "x431-ai-scanner"
+rootProject.name = "together-car-works"
 include(":app")

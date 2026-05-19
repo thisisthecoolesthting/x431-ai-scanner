@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Bootstrap the builder machine with all tools needed for X431 decompilation pipeline.
+Bootstrap the builder machine with all tools needed for OEM tablet decompilation pipeline.
 
 .DESCRIPTION
 Installs:
@@ -30,7 +30,7 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
-Write-Host "=== Together Scanners AI X431 Decompile Bootstrap ===" -ForegroundColor Cyan
+Write-Host "=== Together Car Works OEM Decompile Bootstrap ===" -ForegroundColor Cyan
 
 # Helper function: Check if a command exists
 function Test-CommandExists {
@@ -129,7 +129,7 @@ try {
 
 # 6. PowerShell MCP Bridge
 Write-Host "`n[6/7] Checking PowerShell MCP bridge..." -ForegroundColor Yellow
-$mcp_bridge_script = "https://raw.githubusercontent.com/together-scanners-ai/x431-ai-scanner/main/scripts/bootstrap-together-cowork.ps1"
+$mcp_bridge_script = "https://raw.githubusercontent.com/thisisthecoolesthting/together-car-works/main/scripts/bootstrap-together-cowork.ps1"
 if (Test-Path "$env:ProgramFiles\Together\PowerShell.MCP.Bridge.exe") {
     Write-Host "  PowerShell MCP bridge already installed." -ForegroundColor Green
 } else {
@@ -139,7 +139,7 @@ if (Test-Path "$env:ProgramFiles\Together\PowerShell.MCP.Bridge.exe") {
         Invoke-Expression $bridge_script
         Write-Host "  PowerShell MCP bridge installed." -ForegroundColor Green
     } catch {
-        Write-Host "  WARNING: PowerShell MCP bridge install failed. Verify manually or install from x431-ai-scanner repo." -ForegroundColor Yellow
+        Write-Host "  WARNING: PowerShell MCP bridge install failed. Verify manually or install from together-car-works repo." -ForegroundColor Yellow
     }
 }
 

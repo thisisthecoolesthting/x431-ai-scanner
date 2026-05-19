@@ -1,7 +1,0 @@
-{
-  "OBD-II": {
-    "P0300": "Random/Multiple Cylinder Misfire Detected",
-    "P0301": "Cylinder 1 Misfire Detected",
-    "P0420": "Catalyst System Efficiency Below Threshold (Bank 1)"
-  }
-}

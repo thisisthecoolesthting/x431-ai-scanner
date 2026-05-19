@@ -12,7 +12,7 @@ import kotlinx.serialization.json.put
 
 /**
  * [VciDiagnosticPort] backed by ELM327 (USB or Bluetooth). Standalone Together uses this
- * when a generic OBD cable is connected — same surface as Launch [VciDiagnosticAdapter].
+ * when a generic OBD cable is connected — same surface as OEM VCI [VciDiagnosticAdapter].
  */
 class ObdEngineDriver(
     private val elm: ObdElmEngine,
@@ -24,7 +24,7 @@ class ObdEngineDriver(
         "full_scan" -> fullScan().map { buildJsonObject { put("modules", it.modules.size) } }
         "live_data" -> Result.success(buildJsonObject { put("screen", "LiveDataView") })
         "actuation" -> Result.failure(
-            UnsupportedOperationException("Bidirectional actuation requires Launch VCI"),
+            UnsupportedOperationException("Bidirectional actuation requires OEM VCI"),
         )
         else -> Result.failure(UnsupportedOperationException("Unknown capability: $id"))
     }

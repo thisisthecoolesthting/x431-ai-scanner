@@ -22,7 +22,7 @@ import com.caseforge.scanner.App
 import com.caseforge.scanner.vci.VciCommunicator
 import com.caseforge.scanner.vci.VciProtocolConfig
 import com.caseforge.scanner.vci.VciProtocolProbe
-import com.caseforge.scanner.vci.VciSocketClient
+import com.caseforge.scanner.vci.BluetoothVciClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -42,7 +42,7 @@ fun DirectVciProbeScreen(onBack: () -> Unit) {
     }
 
     var status by remember {
-        mutableStateOf("Pair the Launch VCI, connect vehicle ignition ON, then run sweep or single read.")
+        mutableStateOf("Pair the OEM VCI, connect vehicle ignition ON, then run sweep or single read.")
     }
     var busy by remember { mutableStateOf(false) }
     var logText by remember { mutableStateOf("") }
@@ -145,7 +145,7 @@ private suspend fun runProtocolSweep(
     setBusy(true)
     setLog("")
     try {
-        val client = VciSocketClient(ctx)
+        val client = BluetoothVciClient(ctx)
         val devices = withContext(Dispatchers.IO) { client.findBondedVciDevices() }
         if (devices.isEmpty()) {
             setStatus("No bonded VCI found.")
@@ -184,7 +184,7 @@ private suspend fun runSingleRead(
     setLog: (String) -> Unit,
 ) {
     VciProtocolConfig.applyFromSettings(settings)
-    val client = VciSocketClient(ctx, useHexEncoding = useHex)
+    val client = BluetoothVciClient(ctx, useHexEncoding = useHex)
     val communicator = VciCommunicator(client)
     setBusy(true)
     setLog("")
@@ -208,7 +208,7 @@ private suspend fun runSingleRead(
                 if (list.isEmpty()) {
                     setStatus("Connected — empty DTC list (may be valid or wrong opcode/transport).")
                 } else {
-                    setStatus("Read ${list.size} DTC(s) without X431.")
+                    setStatus("Read ${list.size} DTC(s) without the OEM diagnostic app.")
                     setLog(list.joinToString("\n") { it.code })
                 }
             },

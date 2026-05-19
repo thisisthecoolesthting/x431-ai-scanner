@@ -3,12 +3,12 @@ package com.caseforge.scanner.engine
 import com.caseforge.scanner.agent.ScreenSnapshot
 
 /**
- * Pattern-match an X431 accessibility ScreenSnapshot into a typed [EngineState].
+ * Pattern-match an OEM diagnostic app accessibility ScreenSnapshot into a typed [EngineState].
  *
  * Pure function. Never throws. Returns `ScreenKind.Unknown(hint)` for anything we
  * don't recognize, so the BehindCurtainPane can still help the user.
  *
- * Heuristics live here intentionally — when X431 ships an update and a menu changes,
+ * Heuristics live here intentionally — when OEM diagnostic app ships an update and a menu changes,
  * this file is the only one we patch.
  */
 object EngineScraper {
@@ -18,7 +18,7 @@ object EngineScraper {
 
     fun scrape(snapshot: ScreenSnapshot, vinHint: String? = null): EngineState {
         val pkg = snapshot.pkg.orEmpty()
-        if (pkg.isBlank() || pkg !in KNOWN_X431_PKGS) {
+        if (pkg.isBlank() || pkg !in KNOWN_OEM_DIAG_PKGS) {
             return EngineState(
                 screen = ScreenKind.NoEngine,
                 updatedAtMs = System.currentTimeMillis(),
@@ -61,7 +61,7 @@ object EngineScraper {
         needles.any { haystack.contains(it) }
 
     private fun isDialog(snap: ScreenSnapshot): Boolean {
-        // X431 dialogs are short, often contain "OK" / "Cancel" / "Confirm" buttons.
+        // OEM diagnostic app dialogs are short, often contain "OK" / "Cancel" / "Confirm" buttons.
         val buttonish = snap.nodes.count { it.clickable && it.text.length in 1..20 }
         val low = snap.text.lowercase()
         return buttonish <= 4 && (
@@ -84,7 +84,7 @@ object EngineScraper {
             .toList()
     }
 
-    private val KNOWN_X431_PKGS = setOf(
+    private val KNOWN_OEM_DIAG_PKGS = setOf(
         "com.cnlaunch.x431padv",
         "com.cnlaunch.x431padv2",
         "com.cnlaunch.diagnose.x431pro",
@@ -92,6 +92,6 @@ object EngineScraper {
         "com.cnlaunch.x431pro",
         "com.x431.diagnose",
         // Phase-2 clone package — will be populated when we ship the rebrand.
-        "com.caseforge.launchai.engine",
+        "com.caseforge.tcw.engine",
     )
 }

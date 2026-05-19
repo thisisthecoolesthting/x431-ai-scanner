@@ -27,7 +27,7 @@ class VciDiagnosticAdapter(
     "full_scan" -> fullScan().map { buildJsonObject { put("modules", it.modules.size) } }
     "live_data" -> Result.success(buildJsonObject { put("screen", "LiveDataView") })
     "actuation" -> Result.failure(
-      UnsupportedOperationException("OEM actuation requires X431 overlay mode"),
+      UnsupportedOperationException("OEM actuation requires OEM diagnostic overlay mode"),
     )
     else -> Result.failure(UnsupportedOperationException("Unknown capability: $id"))
   }

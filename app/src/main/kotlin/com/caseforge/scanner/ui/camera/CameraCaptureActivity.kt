@@ -48,7 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.caseforge.scanner.agent.CameraTool
-import com.caseforge.scanner.ui.theme.CaseForgeTheme
+import com.caseforge.scanner.ui.theme.TogetherCarWorksTheme
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.Executors
 
@@ -81,7 +81,7 @@ class CameraCaptureActivity : ComponentActivity() {
         }
 
         setContent {
-            CaseForgeTheme {
+            TogetherCarWorksTheme {
                 CaptureUi(
                     onShutter = { takePhoto() },
                     onCancel = { cancelAndFinish() },

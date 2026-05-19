@@ -46,7 +46,7 @@ fun HomeScreen(
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Open Settings to paste your Anthropic key and pick theme.")
                     Button(onClick = onOpenSettings) { Text("Open Settings") }
-                    Text("Enable the Launch AI accessibility service so the agent can see and tap the X431 app.")
+                    Text("Enable the Together Car Works accessibility service so the agent can see and tap the OEM diagnostic app.")
                     OutlinedButton(onClick = onOpenA11y) { Text("Open Accessibility Settings") }
                     Text("Grant screen capture (used when the UI tree alone isn't enough).")
                     OutlinedButton(onClick = onGrantCapture) { Text("Grant Screen Capture") }

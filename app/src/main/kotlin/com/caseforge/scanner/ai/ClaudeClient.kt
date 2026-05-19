@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit
  *
  * Docs: https://docs.claude.com/en/api/messages
  *
- * This is intentionally hand-rolled and dependency-light so it builds on the X431 tablet
+ * This is intentionally hand-rolled and dependency-light so it builds on the OEM diagnostic app tablet
  * without pulling in heavy SDKs. It supports streaming-off (single response) only — that's
  * what the agent loop needs.
  */

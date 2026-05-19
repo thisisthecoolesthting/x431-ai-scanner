@@ -16,7 +16,7 @@ import kotlin.time.Duration.Companion.seconds
 
 /**
  * High-level diagnostic API that mirrors [EngineDriver] but communicates directly
- * with the VCI hardware over Bluetooth SPP — no X431 UI involved.
+ * with the VCI hardware over Bluetooth SPP — no OEM diagnostic UI involved.
  *
  * API PARITY WITH EngineDriver:
  *   readDtcs()   ↔ OBD Mode 03 (stored DTCs)
@@ -30,7 +30,7 @@ import kotlin.time.Duration.Companion.seconds
  *     powertrain DTCs (P0xxx) on any OBD-II compliant vehicle (post-1996 USA,
  *     post-2001 EU).
  *   - Proprietary multi-system scan (reading ABS, SRS, TCM etc.) requires the
- *     CNLaunch framing for the .so-mediated diagnostic session; those opcodes are
+ *     OEM framing for the .so-mediated diagnostic session; those opcodes are
  *     UNKNOWN until packet capture.
  *   - VIN reading (OBD Mode 09) is implemented as a best-effort convenience.
  *   - Actuate() is a STUB — active test opcode is unconfirmed.
@@ -163,7 +163,7 @@ class VciCommunicator(
      * and attempts to read the VIN (Mode 09 info type 02).
      *
      * SPIKE SCOPE: This is a SINGLE-ECU OBD-II scan only.  A real multi-system scan
-     * (ABS, SRS, Transmission etc.) requires the proprietary CNLaunch framing which
+     * (ABS, SRS, Transmission etc.) requires the proprietary OEM framing which
      * is still UNKNOWN.  See SPIKE-REPORT.md.
      *
      * @return [FullScanResult] grouping all found codes under "OBD-II (Mode 03/07)".
@@ -242,7 +242,7 @@ class VciCommunicator(
      * [KnownOpcode.PROPRIETARY_ACTIVE_TEST] value (0x0009) is inferred from
      * DiagnoseConstants.FEEDBACK_ACTIVITYTEST = "9" but NOT verified from wire captures.
      *
-     * The X431 app sends an actuation request after navigating to the active test screen
+     * The OEM diagnostic app sends an actuation request after navigating to the active test screen
      * and the user selects a component.  The [testId] here mirrors what EngineDriver.actuate()
      * accepts — it's opaque until we capture the actual framing.
      *
@@ -562,7 +562,7 @@ class VciCommunicator(
 
     private fun enrichDescription(dtc: Dtc): Dtc {
         if (dtc.description != null) return dtc
-        val desc = CnlaunchAssetIndex.describeDtc("OBD-II", dtc.code)
+        val desc = OemVehicleAssetIndex.describeDtc("OBD-II", dtc.code)
         return if (desc != null) dtc.copy(description = desc) else dtc
     }
 

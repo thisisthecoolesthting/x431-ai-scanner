@@ -31,9 +31,9 @@ object VciConnector {
     ): Result<ConnectResult> {
         VciProtocolConfig.applyFromSettings(settings)
 
-        if (App.isX431Foreground(context)) {
+        if (App.isOemDiagForeground(context)) {
             return Result.failure(
-                IllegalStateException("X431 is in the foreground — force-stop X431 to free the VCI"),
+                IllegalStateException("OEM diagnostic app is in the foreground — force-stop the OEM diagnostic app to free the VCI"),
             )
         }
 

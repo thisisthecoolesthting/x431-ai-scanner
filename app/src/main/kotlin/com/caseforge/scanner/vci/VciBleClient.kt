@@ -15,7 +15,7 @@ import java.util.UUID
 import kotlin.coroutines.resume
 
 /**
- * BLE fallback when classic SPP fails (newer Launch VCIs).
+ * BLE fallback when classic SPP fails (newer OEM VCIs).
  * Service/characteristic UUIDs from decompile (sb.b.java).
  */
 class VciBleClient(private val context: Context) {

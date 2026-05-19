@@ -36,8 +36,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 /**
- * Foreground service that shows a draggable bubble over the X431 app.
- * Tap = start an agent session against whatever the X431 app is showing right now.
+ * Foreground service that shows a draggable bubble over the OEM diagnostic app.
+ * Tap = start an agent session against whatever the OEM diagnostic app is showing right now.
  * Tap again while the agent is running = stop it (kill-switch).
  * Long-press (>800ms) = launch FullScreenOverlayService.
  */
@@ -66,7 +66,7 @@ class OverlayService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        startForeground(NOTIFICATION_ID, notif("Launch AI bubble running — tap to triage"))
+        startForeground(NOTIFICATION_ID, notif("Together Car Works bubble running — tap to triage"))
         wm = getSystemService(WINDOW_SERVICE) as WindowManager
         addBubble()
     }
@@ -311,7 +311,7 @@ class OverlayService : Service() {
             )
         }
         return Notification.Builder(this, CHANNEL_ID)
-            .setContentTitle("Launch AI")
+            .setContentTitle("Together Car Works")
             .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_menu_search)
             .setOngoing(true)
