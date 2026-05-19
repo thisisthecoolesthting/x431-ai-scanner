@@ -416,8 +416,17 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         "recalls" -> RecallsScreen(
-                            vin = engineState.vehicleVin,
+                            initialVin = engineState.vehicleVin ?: app.settings.lastVin,
                             onBack = { route = "main" },
+                            onUseVinForRecalls = { vin ->
+                                app.settings.lastVin = vin
+                                toast(getString(R.string.recalls_vin_saved_recalls, vin))
+                            },
+                            onUseVinForSession = { vin ->
+                                app.settings.lastVin = vin
+                                latestDetectedVin = vin
+                                toast(getString(R.string.recalls_vin_saved_session, vin))
+                            },
                         )
                         "security" -> SecurityFunctionsScreen(
                             vin = engineState.vehicleVin,

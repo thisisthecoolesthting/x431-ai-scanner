@@ -94,4 +94,20 @@
     <string name="settings_receiver_multipart">Use multipart upload fallback</string>
     <string name="settings_show_advanced">Show advanced</string>
     <string name="settings_hide_advanced">Hide advanced</string>
+
+    <!-- Recalls / VIN capture (CU7) -->
+    <string name="recalls_screen_title">Recalls / TSB</string>
+    <string name="recalls_vin_entry_heading">Vehicle identification</string>
+    <string name="recalls_vin_entry_hint">Enter the 17-character VIN from the door jamb or windshield, or scan it with the camera. Validation runs on the tablet — no network required.</string>
+    <string name="recalls_vin_label">VIN</string>
+    <string name="recalls_vin_placeholder">1HGCM82633A004352</string>
+    <string name="recalls_scan_vin_button">Scan VIN with camera</string>
+    <string name="recalls_use_for_recalls">Use this VIN for recalls</string>
+    <string name="recalls_use_for_session">Use this VIN for session</string>
+    <string name="recalls_lookup_heading">NHTSA recalls</string>
+    <string name="recalls_lookup_empty">Choose a valid VIN above to prepare a recalls lookup.</string>
+    <string name="recalls_lookup_vin">Active VIN: %1$s</string>
+    <string name="recalls_lookup_offline_placeholder">Recalls fetch is not wired in this build. Your VIN is saved locally; open recalls again when NHTSA lookup is enabled.</string>
+    <string name="recalls_vin_saved_recalls">VIN saved for recalls: %1$s</string>
+    <string name="recalls_vin_saved_session">VIN saved for session: %1$s</string>
 </resources>
