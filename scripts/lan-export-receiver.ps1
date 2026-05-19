@@ -110,6 +110,19 @@ try {
                 Send-Json $resp 200 $body
             }
 
+            # GET /process/status — PC-assisted processing stub (Wave2 DX7)
+            elseif ($method -eq "GET" -and $path -eq "/process/status") {
+                $body = '{"ok":true,"state":"idle","capabilities":["upload","health","process_stub"],"activeJobId":null,"progress":0,"message":"Receiver ready; full PC processing worker not wired yet."}'
+                Send-Json $resp 200 $body
+            }
+
+            # POST /process/start — accept job; no worker yet
+            elseif ($method -eq "POST" -and $path -eq "/process/start") {
+                $jobId = "stub-" + [guid]::NewGuid().ToString("N").Substring(0, 12)
+                $body = "{`"ok`":true,`"jobId`":`"$jobId`",`"state`":`"queued`",`"message`":`"Accepted (stub — no worker running yet)`"}"
+                Send-Json $resp 202 $body
+            }
+
             # HEAD /upload?name=<fn>  — resume probe
             elseif ($method -eq "HEAD" -and $path -eq "/upload") {
                 $name = $query["name"]
