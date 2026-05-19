@@ -17,10 +17,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.R
+import com.caseforge.scanner.data.SettingsRepo
 
-/** Settings entry — same one-tap send as the home screen card. */
+/** Data Transfer screen — hosts the OneTapSendCard only. */
 @Composable
-fun ExportDataScreen(onBack: () -> Unit) {
+fun ExportDataScreen(
+    settings: SettingsRepo,
+    onBack: () -> Unit,
+    onOpenTransferLog: (() -> Unit)? = null,
+) {
     Column(Modifier.fillMaxSize()) {
         TopAppBar(
             title = { Text(stringResource(R.string.export_screen_title)) },
@@ -30,9 +35,10 @@ fun ExportDataScreen(onBack: () -> Unit) {
                 }
             },
         )
-        CnlaunchOneTapSendCard(
+        OneTapSendCard(
+            settings = settings,
             modifier = Modifier.padding(16.dp),
-            onSent = { onBack() },
+            onOpenTransferLog = onOpenTransferLog,
         )
     }
 }
