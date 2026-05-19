@@ -1,4 +1,4 @@
-package com.caseforge.scanner.agent
+﻿package com.caseforge.scanner.agent
 
 import android.app.PendingIntent
 import android.content.Context
@@ -10,6 +10,11 @@ import android.provider.Settings
 import android.util.Log
 import androidx.core.content.FileProvider
 import com.caseforge.scanner.BuildConfig
+import com.caseforge.scanner.ui.updates.UpdateHistory
+import com.caseforge.scanner.ui.updates.UpdaterPhase
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
@@ -27,6 +32,8 @@ import java.util.concurrent.TimeUnit
 object Updater {
 
     private const val TAG = "Updater"
+    private const val APK_FILENAME = "tcw-latest.apk"
+    private const val PROGRESS_EMIT_BYTES = 65_536L
     private const val LATEST_RELEASE_URL =
         "https://api.github.com/repos/thisisthecoolesthting/x431-ai-scanner/releases/tags/latest"
     private const val APK_URL =
@@ -38,12 +45,36 @@ object Updater {
         .followRedirects(true)
         .build()
 
+    private val _phase = MutableStateFlow<UpdaterPhase>(UpdaterPhase.Idle)
+    val phase: StateFlow<UpdaterPhase> = _phase.asStateFlow()
+
+    @Volatile
+    internal var pendingInstallVersion: String = "—"
+
+    @Volatile
+    internal var pendingInstallSha: String = "—"
+
+    @Volatile
+    internal var pendingDownloadBytes: Long = 0L
+
     data class Info(val sha: String, val body: String, val publishedAt: String)
 
     class UpdateException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
+    private fun userAgent(): String = "Together-Car-Works/${BuildConfig.VERSION_NAME}"
+
+    private fun apkFile(context: Context): File {
+        val dir = context.getExternalFilesDir(null) ?: context.filesDir
+        return File(dir, APK_FILENAME)
+    }
+
+    private fun buildRequest(url: String): Request.Builder =
+        Request.Builder()
+            .url(url)
+            .header("User-Agent", userAgent())
+
     fun checkLatest(): Info {
-        val req = Request.Builder().url(LATEST_RELEASE_URL)
+        val req = buildRequest(LATEST_RELEASE_URL)
             .header("Accept", "application/vnd.github+json")
             .get()
             .build()
@@ -64,6 +95,30 @@ object Updater {
         return !current.contains(info.sha)
     }
 
+    fun checkForUpdate(context: Context): Info {
+        _phase.value = UpdaterPhase.Checking
+        return try {
+            val info = checkLatest()
+            _phase.value = if (isNewer(info)) {
+                UpdaterPhase.UpdateAvailable(
+                    versionName = info.sha,
+                    downloadUrl = APK_URL,
+                    notes = info.body,
+                )
+            } else {
+                UpdaterPhase.NoUpdate
+            }
+            info
+        } catch (e: Exception) {
+            val msg = e.message ?: e.javaClass.simpleName
+            _phase.value = UpdaterPhase.Failed(
+                message = "Update check failed — $msg",
+                hint = "Check your network connection and try again.",
+            )
+            throw if (e is UpdateException) e else UpdateException(msg, e)
+        }
+    }
+
     fun needsInstallPermission(context: Context): Boolean =
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
             !context.packageManager.canRequestPackageInstalls()
@@ -76,16 +131,71 @@ object Updater {
         context.startActivity(intent)
     }
 
-    fun downloadAndInstall(context: Context, onProgress: (String) -> Unit) {
-        if (needsInstallPermission(context)) {
+    fun validateApkFile(file: File) {
+        if (!file.exists() || file.length() < 100_000) {
             throw UpdateException(
-                "Allow \"Install unknown apps\" for Together, then tap Check for update again.",
+                "Downloaded file too small (${file.length()} bytes) — not a valid APK.",
             )
         }
+        FileInputStream(file).use { input ->
+            val magic = ByteArray(4)
+            if (input.read(magic) != 4 || magic[0] != 0x50.toByte() || magic[1] != 0x4B.toByte()) {
+                throw UpdateException("Downloaded file is not a ZIP/APK (wrong signature bytes).")
+            }
+        }
+    }
 
-        onProgress("Downloading APK…")
-        val out = File(context.getExternalFilesDir(null), "launch-ai-latest.apk")
-        val req = Request.Builder().url(APK_URL).get().build()
+    fun downloadAndInstall(context: Context, onProgress: (String) -> Unit) {
+        val currentPhase = _phase.value
+        val version = when (currentPhase) {
+            is UpdaterPhase.UpdateAvailable -> currentPhase.versionName
+            else -> "—"
+        }
+        downloadAndInstall(context, APK_URL, version, version, onProgress)
+    }
+
+    fun downloadAndInstall(
+        context: Context,
+        downloadUrl: String,
+        versionName: String,
+        sha: String,
+        onProgress: (String) -> Unit,
+    ) {
+        if (needsInstallPermission(context)) {
+            _phase.value = UpdaterPhase.PermissionRequired
+            return
+        }
+
+        pendingInstallVersion = versionName.ifBlank { "—" }
+        pendingInstallSha = sha.ifBlank { "—" }
+
+        try {
+            onProgress("Downloading APK…")
+            val out = apkFile(context)
+            downloadApk(context, downloadUrl, out)
+
+            validateApkFile(out)
+            pendingDownloadBytes = out.length()
+
+            onProgress("Installing…")
+            _phase.value = UpdaterPhase.Installing
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                installWithPackageInstaller(context, out, onProgress)
+            } else {
+                launchViewInstallIntent(context, out)
+            }
+        } catch (e: Exception) {
+            val msg = e.message ?: e.javaClass.simpleName
+            _phase.value = UpdaterPhase.Failed(
+                message = "Update failed — $msg",
+                hint = "Tap Retry or copy the log for support.",
+            )
+            throw if (e is UpdateException) e else UpdateException(msg, e)
+        }
+    }
+
+    private fun downloadApk(context: Context, url: String, out: File) {
+        val req = buildRequest(url).get().build()
         http.newCall(req).execute().use { resp ->
             if (!resp.isSuccessful) {
                 throw UpdateException("Download HTTP ${resp.code}")
@@ -97,30 +207,27 @@ object Updater {
                     "Download returned HTML, not an APK — check the latest GitHub release asset.",
                 )
             }
-            out.outputStream().use { sink -> body.byteStream().copyTo(sink) }
-        }
-
-        validateApkFile(out)
-
-        onProgress("Installing…")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            installWithPackageInstaller(context, out, onProgress)
-        } else {
-            launchViewInstallIntent(context, out)
-        }
-    }
-
-    private fun validateApkFile(file: File) {
-        if (!file.exists() || file.length() < 100_000) {
-            throw UpdateException(
-                "Downloaded file too small (${file.length()} bytes) — not a valid APK.",
-            )
-        }
-        FileInputStream(file).use { input ->
-            val magic = ByteArray(4)
-            if (input.read(magic) != 4 || magic[0] != 0x50.toByte() || magic[1] != 0x4B.toByte()) {
-                throw UpdateException("Downloaded file is not a ZIP/APK (wrong signature bytes).")
+            val total = body.contentLength().coerceAtLeast(0L)
+            _phase.value = UpdaterPhase.Downloading(0L, total, APK_FILENAME)
+            var bytesRead = 0L
+            var lastEmit = 0L
+            val buffer = ByteArray(8192)
+            out.outputStream().use { sink ->
+                body.byteStream().use { input ->
+                    while (true) {
+                        val read = input.read(buffer)
+                        if (read == -1) break
+                        sink.write(buffer, 0, read)
+                        bytesRead += read
+                        if (bytesRead - lastEmit >= PROGRESS_EMIT_BYTES || bytesRead == total) {
+                            _phase.value = UpdaterPhase.Downloading(bytesRead, total, APK_FILENAME)
+                            lastEmit = bytesRead
+                        }
+                    }
+                }
             }
+            pendingDownloadBytes = bytesRead
+            _phase.value = UpdaterPhase.Downloading(bytesRead, total.coerceAtLeast(bytesRead), APK_FILENAME)
         }
     }
 
@@ -170,18 +277,24 @@ object Updater {
         }
         context.startActivity(intent)
     }
-}
 
-/**
- * Receives PackageInstaller result; logs status for debugging.
- */
-class InstallResultReceiver : android.content.BroadcastReceiver() {
-    override fun onReceive(context: Context?, intent: Intent?) {
-        val status = intent?.getIntExtra(PackageInstaller.EXTRA_STATUS, -1) ?: return
-        val msg = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
+    internal fun onInstallResult(context: Context?, status: Int, msg: String?) {
         when (status) {
-            PackageInstaller.STATUS_SUCCESS ->
-                Log.i("Updater", "Install succeeded")
+            PackageInstaller.STATUS_SUCCESS -> {
+                val version = pendingInstallVersion
+                val sha = pendingInstallSha
+                _phase.value = UpdaterPhase.Installed(version, sha)
+                context?.let { ctx ->
+                    UpdateHistory.append(
+                        ctx,
+                        versionName = version,
+                        versionCode = BuildConfig.VERSION_CODE,
+                        sha = sha,
+                        downloadBytes = pendingDownloadBytes,
+                    )
+                }
+                AgentStatus.setActivity("Together Car Works update installed — restart to apply")
+            }
             PackageInstaller.STATUS_FAILURE,
             PackageInstaller.STATUS_FAILURE_ABORTED,
             PackageInstaller.STATUS_FAILURE_BLOCKED,
@@ -190,22 +303,43 @@ class InstallResultReceiver : android.content.BroadcastReceiver() {
             PackageInstaller.STATUS_FAILURE_INVALID,
             PackageInstaller.STATUS_FAILURE_STORAGE,
             -> {
-                Log.e("Updater", "Install failed status=$status msg=$msg")
-                AgentStatus.setActivity(
-                    installFailureHint(status, msg),
-                )
+                val (message, hint) = installFailurePhase(status, msg)
+                _phase.value = UpdaterPhase.Failed(message, hint)
+                AgentStatus.setActivity("$message $hint")
+                Log.e(TAG, "Install failed status=$status msg=$msg")
             }
         }
     }
 
-    private fun installFailureHint(status: Int, msg: String?): String {
-        val detail = msg?.take(120).orEmpty()
+    private fun installFailurePhase(status: Int, msg: String?): Pair<String, String> {
+        val detail = msg?.take(200).orEmpty()
         return when (status) {
             PackageInstaller.STATUS_FAILURE_CONFLICT,
             PackageInstaller.STATUS_FAILURE_INVALID,
             ->
-                "Update failed: signature mismatch. Uninstall this app once, install the latest APK from GitHub, then in-app updates will work. $detail"
-            else -> "Update failed ($status): $detail"
+                "App not installed — signature mismatch" to
+                    "Uninstall the current Together Car Works build, then try again."
+            PackageInstaller.STATUS_FAILURE_STORAGE ->
+                "App not installed — not enough storage" to
+                    "Free up space then retry."
+            else ->
+                "App not installed — error $status" to
+                    (if (detail.isNotBlank()) {
+                        "$detail Copy this message for support."
+                    } else {
+                        "Copy the update log for support."
+                    })
         }
+    }
+}
+
+/**
+ * Receives PackageInstaller result; updates [Updater.phase] and logs status.
+ */
+class InstallResultReceiver : android.content.BroadcastReceiver() {
+    override fun onReceive(context: Context?, intent: Intent?) {
+        val status = intent?.getIntExtra(PackageInstaller.EXTRA_STATUS, -1) ?: return
+        val msg = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
+        Updater.onInstallResult(context, status, msg)
     }
 }
