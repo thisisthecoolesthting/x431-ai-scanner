@@ -45,6 +45,11 @@ object Updater {
 
     private fun userAgent(): String = "Together-Car-Works/${BuildConfig.VERSION_NAME}"
 
+    private fun apkFile(context: Context): File {
+        val dir = context.getExternalFilesDir(null) ?: context.filesDir
+        return File(dir, APK_FILENAME)
+    }
+
     fun checkLatest(): Info {
         val req = Request.Builder().url(LATEST_RELEASE_URL)
             .header("User-Agent", userAgent())
@@ -88,7 +93,7 @@ object Updater {
         }
 
         onProgress("Downloading APKΓÇª")
-        val out = File(context.getExternalFilesDir(null), APK_FILENAME)
+        val out = apkFile(context)
         val req = Request.Builder().url(APK_URL)
             .header("User-Agent", userAgent())
             .get()
