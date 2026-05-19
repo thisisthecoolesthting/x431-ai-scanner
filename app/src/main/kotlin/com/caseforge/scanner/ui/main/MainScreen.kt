@@ -46,6 +46,7 @@ fun MainScreen(
     onLiveData: () -> Unit,
     onService: () -> Unit,
     onBidirectional: () -> Unit,
+    onSecurity: () -> Unit,
     onRecalls: () -> Unit,
     onHistory: () -> Unit,
     onNotes: () -> Unit,
@@ -192,6 +193,22 @@ fun MainScreen(
                         "History",
                         "Past sessions",
                         onClick = onHistory,
+                        modifier = Modifier.weight(1f),
+                        enabled = gridEnabled,
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    ActionTile(
+                        "Security & Keys",
+                        "Authorized OEM workflow",
+                        onClick = onSecurity,
+                        modifier = Modifier.weight(1f),
+                        enabled = gridEnabled,
+                    )
+                    ActionTile(
+                        "Diagnostics",
+                        "Probe and support logs",
+                        onClick = onDiagnostics,
                         modifier = Modifier.weight(1f),
                         enabled = gridEnabled,
                     )

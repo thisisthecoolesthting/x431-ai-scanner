@@ -57,6 +57,7 @@ import com.caseforge.scanner.ui.main.MainScreen
 import com.caseforge.scanner.ui.main.RecallsScreen
 import com.caseforge.scanner.ui.main.StandaloneVciController
 import com.caseforge.scanner.ui.notes.AgentNotesScreen
+import com.caseforge.scanner.ui.security.SecurityFunctionsScreen
 import com.caseforge.scanner.ui.settings.SettingsScreen
 import com.caseforge.scanner.ui.theme.TogetherCarWorksTheme
 import com.caseforge.scanner.ui.triage.TriageScreen
@@ -218,6 +219,7 @@ class MainActivity : ComponentActivity() {
                             },
                             onService = { route = "service" },
                             onBidirectional = { route = "bidirectional" },
+                            onSecurity = { route = "security" },
                             onRecalls = { route = "recalls" },
                             onHistory = { route = "history" },
                             onNotes = { route = "notes" },
@@ -272,6 +274,17 @@ class MainActivity : ComponentActivity() {
                         "recalls" -> RecallsScreen(
                             vin = engineState.vehicleVin,
                             onBack = { route = "main" },
+                        )
+                        "security" -> SecurityFunctionsScreen(
+                            vin = engineState.vehicleVin,
+                            batteryVoltage = null,
+                            onBack = { route = "main" },
+                            onOpenOemApp = {
+                                if (!openOemDiagnosticApp()) {
+                                    toast("OEM diagnostic app not found on this tablet")
+                                }
+                            },
+                            onOpenDiagnostics = { route = "vci_diagnostics" },
                         )
                         "settings" -> SettingsScreen(
                             settings = app.settings,
@@ -515,6 +528,17 @@ class MainActivity : ComponentActivity() {
 
     private fun toast(msg: String) {
         runOnUiThread { Toast.makeText(this, msg, Toast.LENGTH_LONG).show() }
+    }
+
+    private fun openOemDiagnosticApp(): Boolean {
+        val intent = ScannerAccessibilityService.OEM_DIAG_PACKAGES
+            .asSequence()
+            .mapNotNull { packageManager.getLaunchIntentForPackage(it) }
+            .firstOrNull()
+            ?: return false
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
+        return true
     }
 
     private fun jsonStringOrNull(obj: JsonObject?, key: String): String? {
