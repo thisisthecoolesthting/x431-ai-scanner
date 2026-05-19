@@ -52,8 +52,8 @@ class SettingsRepo(context: Context) {
     var model: String
         get() {
             val stored = prefs.getString(K_MODEL, "").orEmpty()
-            // Auto-migrate older default that we shipped pre-#10 — some accounts return 404 for it.
-            return if (stored.isBlank() || stored == "claude-sonnet-4-6") "claude-sonnet-4-5" else stored
+            // Auto-migrate older defaults to the current env-configured Sonnet family target.
+            return if (stored.isBlank() || stored == "claude-sonnet-4-5") DEFAULT_MODEL else stored
         }
         set(value) { prefs.edit().putString(K_MODEL, value).apply() }
 
@@ -382,6 +382,7 @@ class SettingsRepo(context: Context) {
         private const val K_FAST_LAST_GOOD_BT_ADDRESS = "fast_last_good_bt_address"       // DX8
         private const val K_FAST_LAST_GOOD_TRANSPORT = "fast_last_good_transport"         // DX8
         private const val K_HOME_MODE = "home_mode"
+        private const val DEFAULT_MODEL = "claude-sonnet-4-6"
 
         const val DEFAULT_AGENT_NOTES = """About this app
 ==============
