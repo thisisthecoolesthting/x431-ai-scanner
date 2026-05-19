@@ -52,4 +52,22 @@
     <string name="export_self_test_fail">FAIL: %1$s</string>
     <string name="export_firewall_hint">If the PC shows ERR_CONNECTION_TIMED_OUT, allow inbound TCP on the port shown above in Windows Firewall (create an inbound allow rule for that port).</string>
     <string name="export_ap_isolation_hint">If the tablet self-test passes but the PC cannot connect, your router may have Wi‑Fi client isolation enabled.</string>
+
+    <!-- TCW K1: new strings — old strings above are kept for back-compat (K2 sweep will clean up) -->
+    <string name="tcw_export_screen_title">Data Transfer</string>
+    <string name="tcw_export_card_title">Vehicle Data → Office PC</string>
+    <string name="tcw_export_one_tap_button">Send to PC</string>
+    <string name="tcw_export_send_again_button">Send again</string>
+    <string name="tcw_export_resume_button">Resume upload</string>
+    <string name="tcw_export_pc_ready">PC ready · %1$s · %2$d MB free · %3$dms</string>
+    <string name="tcw_export_pc_offline">PC offline (%1$s:%2$d)</string>
+    <string name="tcw_export_need_files_access">Together needs All files access to read the vehicle databases the OEM diagnostic app saved. Tap below and flip the switch for Together Car Works.</string>
+    <string name="tcw_export_allow_files">Allow file access</string>
+    <string name="tcw_export_rescan">Rescan</string>
+    <string name="tcw_export_no_databases">No vehicle databases on this tablet yet. Open the diagnostic app, connect to a vehicle, then try again.</string>
+    <string name="tcw_export_log_screen_title">Transfer Log</string>
+    <string name="tcw_export_log_copy_all">Copy all</string>
+    <string name="tcw_export_log_email">Email to support</string>
+    <string name="tcw_export_log_clear">Clear</string>
+    <string name="tcw_export_log_empty">No log entries yet.</string>
 </resources>

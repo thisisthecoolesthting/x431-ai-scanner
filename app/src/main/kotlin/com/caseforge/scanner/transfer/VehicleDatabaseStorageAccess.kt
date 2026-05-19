@@ -10,7 +10,7 @@ import androidx.core.content.ContextCompat
 import android.Manifest
 import android.content.pm.PackageManager
 
-object CnlaunchStorageAccess {
+object VehicleDatabaseStorageAccess {
 
     fun needsAllFilesAccess(): Boolean =
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()

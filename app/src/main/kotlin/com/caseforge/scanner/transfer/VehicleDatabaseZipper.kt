@@ -9,40 +9,44 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 /**
- * Streams cnlaunch data into a zip. Resolves the real X431 folder and refuses empty exports.
+ * Streams vehicle database files into a zip archive.
+ * Resolves the real OEM storage folder and refuses empty exports.
  */
-class CnlaunchZipper(
-    private val sourceRoot: File = CnlaunchPathResolver.bestRootOrDefault(),
+class VehicleDatabaseZipper(
+    private val sourceRoot: File = VehicleDatabasePathResolver.bestRootOrDefault(),
 ) {
 
     data class ZipProgress(val bytesWritten: Long, val filesZipped: Int)
 
-    class EmptyCnlaunchException(
-        val inventory: CnlaunchPathResolver.Inventory,
+    class EmptyVehicleDatabaseException(
+        val inventory: VehicleDatabasePathResolver.Inventory,
     ) : Exception(emptyMessage(inventory)) {
         companion object {
-            fun emptyMessage(inv: CnlaunchPathResolver.Inventory): String =
+            fun emptyMessage(inv: VehicleDatabasePathResolver.Inventory): String =
                 buildString {
-                    append("No readable files in cnlaunch (")
+                    append("No readable files in vehicle database (")
                     append(inv.fileCount)
                     append(" files, ")
                     append(inv.totalBytes / 1024)
                     append(" KB at ")
                     append(inv.root.absolutePath)
                     append("). ")
-                    append("Grant “All files access” for Together in Settings, confirm X431 has downloaded databases, then retry. Tried: ")
+                    append("Grant \"All files access\" for Together Car Works in Settings, ")
+                    append("connect to a vehicle in the diagnostic app to download databases, then retry. ")
+                    append("Tried: ")
                     append(inv.pathsTried.take(5).joinToString())
                 }
         }
     }
 
-    val inventory: CnlaunchPathResolver.Inventory get() = CnlaunchPathResolver.scan().let {
-        if (it.root.absolutePath == sourceRoot.absolutePath) it
-        else {
-            val (c, b) = countAt(sourceRoot)
-            it.copy(root = sourceRoot, fileCount = c, totalBytes = b)
+    val inventory: VehicleDatabasePathResolver.Inventory
+        get() = VehicleDatabasePathResolver.scan().let {
+            if (it.root.absolutePath == sourceRoot.absolutePath) it
+            else {
+                val (c, b) = countAt(sourceRoot)
+                it.copy(root = sourceRoot, fileCount = c, totalBytes = b)
+            }
         }
-    }
 
     val exists: Boolean get() = sourceRoot.isDirectory
 
@@ -52,7 +56,7 @@ class CnlaunchZipper(
 
     fun zipProgressFlow(output: OutputStream): Flow<ZipProgress> = flow {
         val inv = inventory
-        if (!inv.hasData) throw EmptyCnlaunchException(inv)
+        if (!inv.hasData) throw EmptyVehicleDatabaseException(inv)
 
         var bytes = 0L
         var files = 0
@@ -61,7 +65,7 @@ class CnlaunchZipper(
             walkFiles(sourceRoot).forEach { file ->
                 files++
                 val rel = file.relativeTo(sourceRoot).path.replace('\\', '/')
-                val entry = ZipEntry("cnlaunch/$rel")
+                val entry = ZipEntry("vehicle-database/$rel")
                 zos.putNextEntry(entry)
                 file.inputStream().use { input ->
                     val buf = ByteArray(8192)
@@ -75,7 +79,7 @@ class CnlaunchZipper(
                 }
                 zos.closeEntry()
             }
-            if (files == 0) throw EmptyCnlaunchException(inv)
+            if (files == 0) throw EmptyVehicleDatabaseException(inv)
             zos.finish()
             emit(ZipProgress(bytes, files))
         } finally {
@@ -91,7 +95,7 @@ class CnlaunchZipper(
             }
         }
         if (dest.length() < 512) {
-            throw EmptyCnlaunchException(inventory)
+            throw EmptyVehicleDatabaseException(inventory)
         }
         return result
     }
