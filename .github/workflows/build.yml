@@ -27,6 +27,14 @@ jobs:
         with:
           packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
 
+      # Same debug.keystore on every CI run — required for in-app updates over an existing install.
+      - name: Cache Android debug keystore
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: x431-fleet-debug-keystore-v1
+          restore-keys: x431-fleet-debug-keystore-
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
         with:

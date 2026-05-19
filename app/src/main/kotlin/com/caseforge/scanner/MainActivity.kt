@@ -345,6 +345,11 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkForAppUpdate() {
+        if (Updater.needsInstallPermission(this)) {
+            toast("Allow Install unknown apps for Together, then try again.")
+            Updater.openInstallPermissionSettings(this)
+            return
+        }
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 AgentStatus.setActivity("Checking for update…")
@@ -360,9 +365,12 @@ class MainActivity : ComponentActivity() {
                     toast(msg)
                 }
             } catch (t: Throwable) {
-                val msg = "Update check failed: ${t.message?.take(120) ?: t.javaClass.simpleName}"
-                AgentStatus.setActivity(msg)
-                toast(msg)
+                val msg = when (t) {
+                    is Updater.UpdateException -> t.message
+                    else -> t.message
+                }?.take(200) ?: t.javaClass.simpleName
+                AgentStatus.setActivity("Update: $msg")
+                toast("Update: $msg")
             }
         }
     }

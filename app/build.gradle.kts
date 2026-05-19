@@ -25,7 +25,8 @@ android {
         applicationId = "com.caseforge.scanner"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
+        // Monotonic on CI so PackageManager accepts upgrades; local builds stay at 1.
+        versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull()?.coerceAtLeast(1) ?: 1
         versionName = "0.1.0"
 
         buildConfigField("String", "CLAUDE_API_KEY_DEFAULT", "\"${claudeApiKeyFromLocal}\"")
