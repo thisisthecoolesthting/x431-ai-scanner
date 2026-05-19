@@ -390,7 +390,11 @@ class MainActivity : ComponentActivity() {
                             onCheckUpdate = { checkForAppUpdate() },
                         )
                         "vci_diagnostics" -> com.caseforge.scanner.ui.diag.VciDiagnosticsScreen(
+                            settings = app.settings,
+                            vin = engineState.vehicleVin,
+                            batteryVoltage = app.settings.lastBatteryVoltage?.let { "%.1f V".format(it) },
                             onBack = { route = "settings" },
+                            onOpenTransferLog = { route = "transfer_log" },
                         )
                         "export_data" -> com.caseforge.scanner.ui.transfer.ExportDataScreen(
                             settings = app.settings,
