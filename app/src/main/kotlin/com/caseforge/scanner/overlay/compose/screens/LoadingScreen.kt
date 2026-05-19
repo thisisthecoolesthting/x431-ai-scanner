@@ -10,10 +10,10 @@ import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.ScreenKind
 import com.caseforge.scanner.overlay.compose.Spacing
-import com.caseforge.scanner.ui.theme.CaseForgeTheme
+import com.caseforge.scanner.ui.theme.TogetherCarWorksTheme
 
 /**
- * Renders a loading/progress screen while the X431 engine is performing a long operation
+ * Renders a loading/progress screen while the OEM diagnostic app engine is performing a long operation
  * (e.g. a full system scan).
  *
  * Polish improvements:
@@ -57,7 +57,7 @@ fun LoadingScreen(
 @Preview(showBackground = true)
 @Composable
 private fun LoadingScreenPreview() {
-    CaseForgeTheme(mode = "dark") {
+    TogetherCarWorksTheme(mode = "dark") {
         Surface(color = MaterialTheme.colorScheme.background) {
             LoadingScreen(
                 state = EngineState(

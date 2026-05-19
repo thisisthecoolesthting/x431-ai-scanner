@@ -31,7 +31,7 @@ object VciProtocolProbe {
     for (useHex in listOf(false, true)) {
       for (header in VciProtocolConfig.HEADER_CANDIDATES) {
         VciProtocolConfig.header = header.copyOf()
-        val client = VciSocketClient(context, useHexEncoding = useHex)
+        val client = BluetoothVciClient(context, useHexEncoding = useHex)
         val comm = VciCommunicator(client, requestTimeoutMs = timeoutMs)
         var detail = "no response"
         var dtcCount = 0

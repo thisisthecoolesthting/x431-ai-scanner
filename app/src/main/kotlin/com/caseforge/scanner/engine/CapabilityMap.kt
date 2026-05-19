@@ -3,16 +3,16 @@ package com.caseforge.scanner.engine
 import com.caseforge.scanner.data.SequenceDefinitions
 
 /**
- * Declarative descriptors for every X431 diagnostic capability Launch AI knows how to drive.
+ * Declarative descriptors for every OEM diagnostic app diagnostic capability Together Car Works knows how to drive.
  *
  * Each entry says: "to do X, navigate this menu path and wait for this done-marker."
  * This file is the single source of truth for the "skill inheritance" from the original
- * X431 app — Haiku agents add new entries here as they explore each vehicle make.
+ * OEM diagnostic app — Haiku agents add new entries here as they explore each vehicle make.
  *
  * NOTE: paths are lower-cased substring matches against accessibility node text, so they
- * tolerate small UI changes in X431 ("Auto Scan" vs "Auto-Scan" vs "Auto  Scan").
+ * tolerate small UI changes in OEM diagnostic app ("Auto Scan" vs "Auto-Scan" vs "Auto  Scan").
  *
- * When X431 ships a UI update, the JSON shipped as `assets/capabilities.json` overrides
+ * When OEM diagnostic app ships a UI update, the JSON shipped as `assets/capabilities.json` overrides
  * this baked-in baseline. That JSON is hot-patchable from a GitHub raw URL.
  */
 object CapabilityMap {
@@ -35,7 +35,7 @@ object CapabilityMap {
 
     enum class Category { Scan, Codes, LiveData, Service, Bidirectional, Programming, Coding, Module, Sequences }
 
-    // -------- Baseline (universal-ish across X431 PRO / PROS / V+) --------
+    // -------- Baseline (universal-ish across OEM diagnostic tablet / PROS / V+) --------
 
     val ALL: List<Capability> = listOf(
         Capability(
@@ -151,7 +151,7 @@ object CapabilityMap {
             category = Category.Programming,
             path = listOf("service", "immobilizer"),
             timeoutSec = 600,
-            note = "Some makes need PIN code. May need Launch subscription for newer years.",
+            note = "Some makes need PIN code. May need OEM subscription for newer years.",
         ),
         Capability(
             id = "abs_bleed",
@@ -187,7 +187,7 @@ object CapabilityMap {
             category = Category.Programming,
             path = listOf("program"),
             timeoutSec = 1800,
-            note = "Online programming requires Launch subscription + reliable wifi.",
+            note = "Online programming requires OEM subscription + reliable wifi.",
         ),
     ) + SequenceDefinitions.asCapabilities()
 

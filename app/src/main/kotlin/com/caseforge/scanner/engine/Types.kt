@@ -73,7 +73,7 @@ interface A11yPort {
     /** Tap the first element whose text contains [query] (case-insensitive). Returns true if a tap was dispatched. */
     fun tapByText(query: String, exact: Boolean = false): Boolean
 
-    /** Read the current X431 screen as a serialisable tree. */
+    /** Read the current OEM diagnostic app screen as a serialisable tree. */
     fun readScreen(): ScreenSnapshot
 }
 

@@ -186,7 +186,7 @@ class EngineDriver(
     }
 
     /**
-     * Clear all stored DTCs. Returns [Result.success] of [Unit] when the X431
+     * Clear all stored DTCs. Returns [Result.success] of [Unit] when the OEM diagnostic app
      * confirms "clear successfully", or [Result.failure] on timeout/navigation error.
      */
     suspend fun clearCodes(): Result<Unit> {
@@ -213,7 +213,7 @@ class EngineDriver(
      * Cold [Flow] that emits a [LiveSample] for each PID in [pids] every 200 ms.
      * Cancelling the collecting coroutine stops all polling — no leak.
      *
-     * The flow enters the X431 live-data screen once on first collection, then
+     * The flow enters the OEM diagnostic app live-data screen once on first collection, then
      * ticks at [LIVE_DATA_POLL_MS] reading the current [EngineState] values.
      */
     fun liveData(pids: List<String>): Flow<LiveSample> {

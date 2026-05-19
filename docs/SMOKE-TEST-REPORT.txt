@@ -35,7 +35,7 @@ CI assembleDebug — PENDING (poll GitHub Actions after push)
 
 ## Blockers for full tablet sign-off
 
-1. Install latest APK from releases/latest on X431 tablet
+1. Install latest APK from releases/latest on OEM diagnostic tablet
 2. Walk TESTING.md sections C–F with overlay on live vehicle or bench ECU
 3. File cursor-dispatch/outbox/011+ for any line-item failures
 

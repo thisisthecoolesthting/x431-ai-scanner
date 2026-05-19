@@ -17,22 +17,22 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 
 /**
- * Accessibility service that the AI agent uses to read and operate the X431 app.
+ * Accessibility service that the AI agent uses to read and operate the OEM diagnostic app.
  *
  * This service exposes a small set of operations (read_screen / tap / type / scroll / back /
  * wait_for) that the agent loop in [AgentRunner] calls as tools. It also detects VINs on
  * screen and notifies listeners so we can auto-start a diagnostic session.
  *
- * A6: When [SettingsRepo.overlayOnX431] is true and an X431 package comes to the foreground,
+ * A6: When [SettingsRepo.overlayOnOemDiag] is true and an OEM diagnostic package comes to the foreground,
  * [FullScreenOverlayService] is auto-launched (idempotent via isRunning guard).
  */
 class ScannerAccessibilityService : AccessibilityService() {
 
     companion object {
-        const val TAG = "X431Agent.A11y"
+        const val TAG = "TcwAgent.A11y"
 
-        // The X431 family ships under several package names depending on model/region.
-        val X431_PACKAGES = setOf(
+        // The OEM diagnostic app family ships under several package names depending on model/region.
+        val OEM_DIAG_PACKAGES = setOf(
             "com.cnlaunch.x431padv",
             "com.cnlaunch.x431padv2",
             "com.cnlaunch.diagnose.x431pro",
@@ -67,9 +67,9 @@ class ScannerAccessibilityService : AccessibilityService() {
 
     override fun onInterrupt() {}
 
-    /** Try to launch (or bring forward) one of the known X431 apps. Returns the package launched, or null. */
-    fun bringX431ToFront(): String? {
-        for (pkg in X431_PACKAGES) {
+    /** Try to launch (or bring forward) one of the known OEM diagnostic apps. Returns the package launched, or null. */
+    fun bringOemDiagToFront(): String? {
+        for (pkg in OEM_DIAG_PACKAGES) {
             val intent = packageManager.getLaunchIntentForPackage(pkg)
             if (intent != null) {
                 intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or
@@ -84,19 +84,19 @@ class ScannerAccessibilityService : AccessibilityService() {
         event ?: return
         val eventPkg = event.packageName?.toString() ?: return
 
-        // A6: When an X431 window comes to the foreground and the toggle is on,
-        // auto-launch FullScreenOverlayService — but only once (isRunning guard).
+        // A6: When an OEM diagnostic window comes to the foreground and the toggle is on,
+        // auto-launch FullScreenOverlayService ??? but only once (isRunning guard).
         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED &&
-            eventPkg in X431_PACKAGES
+            eventPkg in OEM_DIAG_PACKAGES
         ) {
-            if (settingsRepo.overlayOnX431 && !FullScreenOverlayService.isRunning) {
-                Log.i(TAG, "X431 foregrounded ($eventPkg) — launching FullScreenOverlayService")
+            if (settingsRepo.overlayOnOemDiag && !FullScreenOverlayService.isRunning) {
+                Log.i(TAG, "OEM diagnostic app foregrounded ($eventPkg) ? launching FullScreenOverlayService")
                 startForegroundService(Intent(this, FullScreenOverlayService::class.java))
             }
         }
 
-        // Only process further events from X431 packages.
-        if (eventPkg !in X431_PACKAGES) return
+        // Only process further events from OEM diagnostic packages.
+        if (eventPkg !in OEM_DIAG_PACKAGES) return
 
         // Cheap VIN detection on any text change.
         when (event.eventType) {
@@ -127,7 +127,7 @@ class ScannerAccessibilityService : AccessibilityService() {
 
     // -------- Tool implementations called by AgentRunner --------
 
-    /** Read the current X431 screen as a serializable tree the LLM can reason about. */
+    /** Read the current OEM diagnostic screen as a serializable tree the LLM can reason about. */
     fun readScreen(): ScreenSnapshot {
         val root = rootInActiveWindow
             ?: return ScreenSnapshot(pkg = null, activity = null, nodes = emptyList(), text = "")
@@ -270,7 +270,7 @@ class ScannerAccessibilityService : AccessibilityService() {
     }
 }
 
-/** A serializable snapshot of the X431 UI for the agent to reason over. */
+/** A serializable snapshot of the OEM diagnostic UI for the agent to reason over. */
 @kotlinx.serialization.Serializable
 data class ScreenSnapshot(
     val pkg: String?,

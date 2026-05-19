@@ -12,14 +12,14 @@ import com.caseforge.scanner.vci.transport.UsbSerialTransport
 import kotlinx.coroutines.withTimeout
 
 /**
- * Resolves the active vehicle link: ELM327 USB (primary), Launch VCI USB, optional Bluetooth paths.
+ * Resolves the active vehicle link: ELM327 USB (primary), OEM VCI USB, optional Bluetooth paths.
  */
 object DiagnosticConnector {
 
     enum class LinkKind {
         ELM327_USB,
-        LAUNCH_USB,
-        LAUNCH_BT,
+        OEM_USB,
+        OEM_BT,
         ELM327_BT,
     }
 
@@ -34,15 +34,15 @@ object DiagnosticConnector {
     enum class UserTransport {
         AUTO,
         ELM327_USB,
-        LAUNCH_USB,
-        LAUNCH_BT,
+        OEM_USB,
+        OEM_BT,
         ELM327_BT,
     }
 
     fun userTransportFrom(settings: SettingsRepo): UserTransport = when (settings.linkTransport.lowercase()) {
         "elm327_usb", "usb_obd", "usb_cable" -> UserTransport.ELM327_USB
-        "launch_usb", "vci_usb" -> UserTransport.LAUNCH_USB
-        "launch_bt", "vci_bt", "bluetooth" -> UserTransport.LAUNCH_BT
+        "oem_usb", "launch_usb", "vci_usb" -> UserTransport.OEM_USB
+        "oem_bt", "launch_bt", "vci_bt", "bluetooth" -> UserTransport.OEM_BT
         "elm327_bt", "obd_bt" -> UserTransport.ELM327_BT
         else -> UserTransport.AUTO
     }
@@ -54,17 +54,17 @@ object DiagnosticConnector {
     ): Result<ActiveLink> {
         VciProtocolConfig.applyFromSettings(settings)
 
-        if (App.isX431Foreground(context)) {
+        if (App.isOemDiagForeground(context)) {
             return Result.failure(
-                IllegalStateException("X431 is in the foreground — force-stop X431 to free the adapter"),
+                IllegalStateException("OEM diagnostic app is in the foreground — force-stop it to free the adapter"),
             )
         }
 
         val mode = userTransportFrom(settings)
         return when (mode) {
             UserTransport.ELM327_USB -> connectElm327Usb(context, usbDevice)
-            UserTransport.LAUNCH_USB -> connectLaunchUsb(context, settings, usbDevice)
-            UserTransport.LAUNCH_BT -> connectLaunchBt(context, settings)
+            UserTransport.OEM_USB -> connectOemUsb(context, settings, usbDevice)
+            UserTransport.OEM_BT -> connectOemBt(context, settings)
             UserTransport.ELM327_BT -> connectElm327Bt(settings)
             UserTransport.AUTO -> connectAuto(context, settings, usbDevice)
         }
@@ -79,15 +79,15 @@ object DiagnosticConnector {
         if (pending != null || ObdUsbTool(context).listDevices().isNotEmpty()) {
             connectElm327Usb(context, pending).fold(
                 onSuccess = { return Result.success(it) },
-                onFailure = { /* try Launch USB next */ },
+                onFailure = { /* try OEM USB next */ },
             )
-            connectLaunchUsb(context, settings, pending).fold(
+            connectOemUsb(context, settings, pending).fold(
                 onSuccess = { return Result.success(it) },
                 onFailure = { usbErr ->
                     if (!settings.bluetoothTransportEnabled) {
                         return Result.failure(
                             IllegalStateException(
-                                "USB failed (ELM327 + Launch). Enable Bluetooth in the connection drawer if needed. ${usbErr.message}",
+                                "USB failed (ELM327 + OEM VCI). Enable Bluetooth in the connection drawer if needed. ${usbErr.message}",
                             ),
                         )
                     }
@@ -105,7 +105,7 @@ object DiagnosticConnector {
             onSuccess = { return Result.success(it) },
             onFailure = { /* fall through */ },
         )
-        return connectLaunchBt(context, settings)
+        return connectOemBt(context, settings)
     }
 
     private suspend fun connectElm327Usb(context: Context, usbDevice: UsbDevice?): Result<ActiveLink> {
@@ -123,27 +123,27 @@ object DiagnosticConnector {
         }
     }
 
-    private suspend fun connectLaunchUsb(
+    private suspend fun connectOemUsb(
         context: Context,
         settings: SettingsRepo,
         usbDevice: UsbDevice?,
     ): Result<ActiveLink> {
         val pending = usbDevice ?: VciUsbAttachState.consumePending()
-        val usb = VciUsbClient(context, useHexEncoding = settings.vciUseHexEncoding)
+        val usb = OemUsbVciClient(context, useHexEncoding = settings.vciUseHexEncoding)
         val r = if (pending != null) usb.connect(pending) else usb.connectFirstAvailable()
         return r.map {
             val comm = VciCommunicator(usb)
             ActiveLink(
-                kind = LinkKind.LAUNCH_USB,
+                kind = LinkKind.OEM_USB,
                 port = VciDiagnosticAdapter(comm),
-                detail = "Launch VCI USB",
+                detail = "OEM VCI USB",
                 disconnect = { usb.disconnect() },
                 readVin = { comm.readVin().getOrNull() },
             )
         }
     }
 
-    private suspend fun connectLaunchBt(context: Context, settings: SettingsRepo): Result<ActiveLink> {
+    private suspend fun connectOemBt(context: Context, settings: SettingsRepo): Result<ActiveLink> {
         if (!settings.bluetoothTransportEnabled) {
             return Result.failure(
                 IllegalStateException("Bluetooth is off — enable it in the connection drawer first"),
@@ -154,7 +154,7 @@ object DiagnosticConnector {
         val result = VciConnector.connect(context, settings).map { r ->
             val comm = VciCommunicator(r.transport)
             ActiveLink(
-                kind = LinkKind.LAUNCH_BT,
+                kind = LinkKind.OEM_BT,
                 port = VciDiagnosticAdapter(comm),
                 detail = r.detail,
                 disconnect = { r.transport.disconnect() },
@@ -187,7 +187,7 @@ object DiagnosticConnector {
         )
     }
 
-    /** Quick ELM327 vs Launch probe on an open USB serial port (used by attach handler). */
+    /** Quick ELM327 vs OEM VCI probe on an open USB serial port (used by attach handler). */
     suspend fun detectUsbKind(context: Context, device: UsbDevice): LinkKind? {
         val elm = ObdUsbTool(context)
         if (elm.probeOnly(device)) {
@@ -197,10 +197,10 @@ object DiagnosticConnector {
         elm.disconnect()
         return runCatching {
             withTimeout(1_200L) {
-                val usb = VciUsbClient(context)
+                val usb = OemUsbVciClient(context)
                 usb.connect(device).getOrThrow()
                 usb.disconnect()
-                LinkKind.LAUNCH_USB
+                LinkKind.OEM_USB
             }
         }.getOrNull()
     }

@@ -18,13 +18,13 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
-    <!-- Reading X431 PDF reports from shared storage -->
+    <!-- Reading OEM diagnostic PDF reports from shared storage -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_DOCUMENTS"
         tools:ignore="ProtectedPermissions" />
-  <!-- Full read of /sdcard/cnlaunch for X431 database export (API 30+) -->
+  <!-- Full read of OEM vehicle database on shared storage (API 30+) -->
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
 
@@ -59,11 +59,11 @@
     <application
         android:name=".App"
         android:allowBackup="false"
-        android:label="Launch AI"
+        android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.CaseForge"
+        android:theme="@style/Theme.TogetherCarWorks"
         android:usesCleartextTraffic="true"
         android:networkSecurityConfig="@xml/network_security_config"
         android:requestLegacyExternalStorage="true"
@@ -72,7 +72,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="Launch AI"
+            android:label="@string/app_name"
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -89,7 +89,7 @@
         <activity
             android:name=".ingest.ShareReceiverActivity"
             android:exported="true"
-            android:label="Send to Launch AI">
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -105,16 +105,16 @@
         <activity
             android:name=".ui.camera.CameraCaptureActivity"
             android:exported="false"
-            android:label="Launch AI Camera"
+            android:label="@string/app_name"
             android:screenOrientation="fullSensor"
-            android:theme="@style/Theme.CaseForge" />
+            android:theme="@style/Theme.TogetherCarWorks" />
 
         <service
             android:name=".ingest.ReportWatcherService"
             android:exported="false"
             android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Watches X431 reports folder for new diagnostic PDFs" />
+                android:value="Watches OEM diagnostic reports folder for new PDFs" />
         </service>
 
         <service
@@ -135,7 +135,7 @@
             android:exported="false"
             android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Full-screen Launch AI overlay hiding the X431 engine app" />
+                android:value="Full-screen Together Car Works overlay hiding the OEM diagnostic app" />
         </service>
 
         <service
@@ -147,7 +147,7 @@
             android:name=".agent.ScannerAccessibilityService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:exported="true"
-            android:label="Launch AI Agent">
+            android:label="Together Car Works Agent">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>

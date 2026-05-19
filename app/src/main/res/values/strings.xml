@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Launch AI</string>
+    <string name="app_name">Together Car Works</string>
     <string name="accessibility_service_description">
-        Lets the Launch AI agent see and operate the Launch X431 app: read the on-screen
+        Lets the Together Car Works agent see and operate the vehicle diagnostic app: read the on-screen
         diagnostic UI, tap menus, run scans, and respond to live data. The agent activates only
-        when the X431 app is in the foreground.
+        when the OEM diagnostic app is in the foreground.
     </string>
-    <string name="accessibility_service_summary">Drives the X431 app on your behalf</string>
+    <string name="accessibility_service_summary">Drives the OEM diagnostic app on your behalf</string>
 
     <string name="export_screen_title">Send data to PC</string>
     <string name="export_one_tap_title">Vehicle databases → office PC</string>
-    <string name="export_one_tap_subtitle">One tap zips cnlaunch and sends to %1$s. No password.</string>
+    <string name="export_one_tap_subtitle">One tap zips the vehicle database and sends to %1$s. No password.</string>
     <string name="export_one_tap_button">Zip and send to %1$s</string>
     <string name="export_send_done">Sent — you can leave this screen.</string>
     <string name="export_send_done_short">Sent to %1$s</string>
@@ -19,7 +19,7 @@
     <string name="export_grant_files">Allow file access</string>
     <string name="export_rescan">Rescan folder</string>
     <string name="export_pc_receiver_once">PC once: run scripts\\lan-export-receiver.ps1 on 192.168.1.129</string>
-    <string name="export_screen_body">Zips cnlaunch and uploads to the office PC. Same Wi‑Fi required.</string>
+    <string name="export_screen_body">Zips the vehicle database and uploads to the office PC. Same Wi‑Fi required.</string>
     <string name="export_pc_host_label">Receiving PC (hardcoded): %1$s</string>
     <string name="export_pc_browser_hint">On that PC, open this address in Chrome:</string>
     <string name="export_push_to_pc">Push to office PC now</string>
@@ -37,12 +37,12 @@
     <string name="export_status_stopped">Server stopped.</string>
     <string name="export_status_auto_stopped">Server stopped (idle timeout or download finished).</string>
     <string name="export_error_no_wifi">Connect the tablet to Wi‑Fi (not cellular only) before exporting.</string>
-    <string name="export_error_no_cnlaunch">cnlaunch folder not found at /sdcard/cnlaunch/</string>
+    <string name="export_error_no_vehicle_db">Vehicle database folder not found on tablet storage.</string>
     <string name="export_error_start_failed">Could not start export server.</string>
     <string name="export_wizard_title">Send tablet data to PC</string>
-    <string name="export_wizard_subtitle">Recommended for offline AI — exports the cnlaunch folder over your shop Wi‑Fi. You can do this later from Settings.</string>
+    <string name="export_wizard_subtitle">Recommended for offline AI — exports the vehicle database over your shop Wi‑Fi. You can do this later from Settings.</string>
     <string name="export_wizard_action">Open export</string>
-    <string name="export_settings_entry">Send cnlaunch zip to PC (one tap)</string>
+    <string name="export_settings_entry">Send vehicle database zip to PC (one tap)</string>
     <string name="export_pick_ip">Pick the IP your PC can reach (same Wi‑Fi subnet):</string>
     <string name="export_state_listening">LISTENING on %1$s:%2$d</string>
     <string name="export_state_starting">STARTING…</string>

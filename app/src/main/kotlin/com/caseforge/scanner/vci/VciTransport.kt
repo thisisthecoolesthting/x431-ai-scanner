@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Pluggable VCI link — Bluetooth SPP ([VciSocketClient]) or USB serial ([VciUsbClient]).
+ * Pluggable VCI link — Bluetooth SPP ([BluetoothVciClient]) or USB serial ([OemUsbVciClient]).
  */
 interface VciTransport {
     enum class ConnectionState {

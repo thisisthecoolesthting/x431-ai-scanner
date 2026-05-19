@@ -19,7 +19,7 @@ import com.caseforge.scanner.overlay.compose.Spacing
 import com.caseforge.scanner.overlay.compose.TogetherCardShape
 import com.caseforge.scanner.overlay.compose.togetherCardColors
 import com.caseforge.scanner.overlay.compose.togetherCardElevation
-import com.caseforge.scanner.ui.theme.CaseForgeTheme
+import com.caseforge.scanner.ui.theme.TogetherCarWorksTheme
 
 /**
  * Renders module list, menu navigation, and capability cards.
@@ -116,13 +116,13 @@ fun ModuleListScreen(
                     ) {
                         Icon(Icons.Default.Build, contentDescription = null)
                         Text(
-                            "X431 engine not running",
+                            "OEM diagnostic app engine not running",
                             style = MaterialTheme.typography.titleMedium,
                         )
                     }
                     Text(
-                        "Tap any capability below and Launch AI will start the X431 engine for you. " +
-                            "If nothing happens, install the X431 app from your tablet's store first.",
+                        "Tap any capability below and Together Car Works will start the OEM diagnostic app engine for you. " +
+                            "If nothing happens, install the OEM diagnostic app from your tablet's store first.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -195,7 +195,7 @@ fun ModuleListScreen(
 @Preview(showBackground = true)
 @Composable
 private fun ModuleListScreenPreview() {
-    CaseForgeTheme(mode = "dark") {
+    TogetherCarWorksTheme(mode = "dark") {
         Surface(color = MaterialTheme.colorScheme.background) {
             ModuleListScreen(
                 state = EngineState(
@@ -214,7 +214,7 @@ private fun ModuleListScreenPreview() {
 @Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun ModuleListScreenDarkPreview() {
-    CaseForgeTheme(isDarkMode = true) {
+    TogetherCarWorksTheme(isDarkMode = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
             ModuleListScreen(
                 state = EngineState(

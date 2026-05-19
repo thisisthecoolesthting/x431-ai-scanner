@@ -6,14 +6,14 @@ import com.caseforge.scanner.ai.RecallMatch
 import kotlinx.serialization.Serializable
 
 /**
- * Typed model of what the underlying X431 engine app is currently showing.
+ * Typed model of what the underlying OEM diagnostic engine app is currently showing.
  *
- * Built by [EngineScraper] from an accessibility ScreenSnapshot. The Launch AI overlay
+ * Built by [EngineScraper] from an accessibility ScreenSnapshot. The Together Car Works overlay
  * UI reads this model — it never reads the raw accessibility tree directly.
  *
  * `Unknown` is a first-class state: when the scraper doesn't recognize the screen,
  * we fall back to passing the raw snapshot through so the BehindCurtainPane can
- * render the user-visible X431 text + the overlay can still let the user "peek".
+ * render the user-visible OEM diagnostic app text + the overlay can still let the user "peek".
  */
 @Serializable
 data class EngineState(

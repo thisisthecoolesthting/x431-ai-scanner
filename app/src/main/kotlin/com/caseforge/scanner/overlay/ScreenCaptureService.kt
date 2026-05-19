@@ -67,7 +67,7 @@ class ScreenCaptureService : Service() {
 
         imageReader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 2)
         virtualDisplay = mediaProjection?.createVirtualDisplay(
-            "caseforge-capture",
+            "tcw-capture",
             width, height, density,
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
             imageReader?.surface, null, null,
@@ -123,7 +123,7 @@ class ScreenCaptureService : Service() {
             )
         }
         return Notification.Builder(this, CHANNEL_ID)
-            .setContentTitle("Launch AI")
+            .setContentTitle("Together Car Works")
             .setContentText("Screen capture active")
             .setSmallIcon(android.R.drawable.stat_sys_warning)
             .setOngoing(true)

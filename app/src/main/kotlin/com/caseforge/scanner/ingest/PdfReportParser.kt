@@ -7,7 +7,7 @@ import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.text.PDFTextStripper
 import java.io.InputStream
 
-/** Extracts text from an X431 PDF report. Uses PdfBox-Android (works offline). */
+/** Extracts text from an OEM diagnostic PDF report. Uses PdfBox-Android (works offline). */
 object PdfReportParser {
 
     @Volatile private var initialized = false

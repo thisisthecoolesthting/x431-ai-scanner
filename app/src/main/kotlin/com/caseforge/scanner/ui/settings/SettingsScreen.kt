@@ -42,7 +42,7 @@ fun SettingsScreen(
     var speak by remember { mutableStateOf(settings.speakEnabled) }
     var voice by remember { mutableStateOf(settings.voiceEnabled) }
     var theme by remember { mutableStateOf(settings.themeMode) }
-    var overlayOnX431 by remember { mutableStateOf(settings.overlayOnX431) }
+    var overlayOnOemDiag by remember { mutableStateOf(settings.overlayOnOemDiag) }
     var directVci by remember { mutableStateOf(settings.directVciExperimental) }
     val context = LocalContext.current
     val recordAudioLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -111,7 +111,7 @@ fun SettingsScreen(
                     else { voice=false; settings.voiceEnabled=false } }) },
             )
             ListItem(headlineContent = { Text("Confirm bidirectional tests") }, trailingContent = { Switch(checked = approval, onCheckedChange = { approval = it; settings.requireApproval = it }) })
-            ListItem(headlineContent = { Text("Show overlay on X431") }, trailingContent = { Switch(checked = overlayOnX431, onCheckedChange = { overlayOnX431 = it; settings.overlayOnX431 = it }) })
+            ListItem(headlineContent = { Text("Show overlay on the OEM diagnostic app") }, trailingContent = { Switch(checked = overlayOnOemDiag, onCheckedChange = { overlayOnOemDiag = it; settings.overlayOnOemDiag = it }) })
             ListItem(headlineContent = { Text("Kill switch") }, trailingContent = { Switch(checked = kill, onCheckedChange = { kill = it; settings.killSwitch = it }) })
 
             Card(Modifier.fillMaxWidth()) {
@@ -119,7 +119,7 @@ fun SettingsScreen(
                     Text("Developer / Experimental", style = MaterialTheme.typography.titleSmall)
                     ListItem(
                         headlineContent = { Text("Direct VCI (experimental)") },
-                        supportingContent = { Text("Bypass X431; generic OBD-II over Bluetooth dongle.") },
+                        supportingContent = { Text("Bypass OEM diagnostic app; generic OBD-II over Bluetooth dongle.") },
                         trailingContent = {
                             Switch(
                                 checked = directVci,

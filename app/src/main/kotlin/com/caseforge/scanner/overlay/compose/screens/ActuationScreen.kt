@@ -8,12 +8,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.ScreenKind
 import com.caseforge.scanner.overlay.compose.Spacing
-import com.caseforge.scanner.ui.theme.CaseForgeTheme
+import com.caseforge.scanner.ui.theme.TogetherCarWorksTheme
 
 /**
  * Renders the bidirectional actuation/test screen.
  *
- * This screen is shown while the X431 engine is actively performing a two-way
+ * This screen is shown while the OEM diagnostic app engine is actively performing a two-way
  * actuator control test (e.g. toggling a solenoid, running a fuel pump, etc.).
  *
  * Shows:
@@ -40,7 +40,7 @@ fun ActuationScreen(
         )
         Text(
             "Bidirectional control is active. Watch the vehicle for the expected response. " +
-                "If anything looks wrong, dismiss the overlay and use X431 directly.",
+                "If anything looks wrong, dismiss the overlay and use OEM diagnostic app directly.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -50,7 +50,7 @@ fun ActuationScreen(
 @Preview(showBackground = true)
 @Composable
 private fun ActuationScreenPreview() {
-    CaseForgeTheme(mode = "dark") {
+    TogetherCarWorksTheme(mode = "dark") {
         Surface(color = MaterialTheme.colorScheme.background) {
             ActuationScreen(
                 state = EngineState(

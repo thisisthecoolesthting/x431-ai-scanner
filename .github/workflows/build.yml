@@ -11,7 +11,16 @@ permissions:
   contents: write   # needed to publish the rolling 'latest' release
 
 jobs:
+  rebrand-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rebrand grep gate
+        shell: pwsh
+        run: ./scripts/run-rebrand-grep.ps1
+
   build:
+    needs: rebrand-audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,8 +41,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.android/debug.keystore
-          key: x431-fleet-debug-keystore-v1
-          restore-keys: x431-fleet-debug-keystore-
+          key: tcw-debug-keystore-v1
+          restore-keys: tcw-debug-keystore-
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -44,16 +53,16 @@ jobs:
         run: gradle :app:assembleDebug --no-daemon
 
       - name: Rename APK with build number
-        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/x431-ai-scanner-${{ github.run_number }}.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/tcw-${{ github.run_number }}.apk
 
-      # Workflow artifact â€” downloadable from the Actions run page (any branch / any push).
+      # Workflow artifact — downloadable from the Actions run page (any branch / any push).
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: x431-ai-scanner-debug
+          name: tcw-android-debug
           path: app/build/outputs/apk/debug/app-debug.apk
 
-      # Rolling 'latest' release â€” stable URL the tablet can auto-update from.
+      # Rolling 'latest' release — stable URL the tablet can auto-update from.
       # Only on pushes to main/master, not on PRs.
       - name: Publish to 'latest' release
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
@@ -62,9 +71,9 @@ jobs:
           tag_name: latest
           name: Latest debug build
           body: |
-            Build #${{ github.run_number }} from commit ${{ github.sha }}.
+            Together Car Works build #${{ github.run_number }} from ${{ github.sha }}
             Direct install URL: ${{ github.server_url }}/${{ github.repository }}/releases/download/latest/app-debug.apk
           files: |
             app/build/outputs/apk/debug/app-debug.apk
-            app/build/outputs/apk/debug/x431-ai-scanner-${{ github.run_number }}.apk
+            app/build/outputs/apk/debug/tcw-${{ github.run_number }}.apk
           prerelease: true

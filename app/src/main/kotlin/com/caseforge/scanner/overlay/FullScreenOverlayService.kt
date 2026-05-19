@@ -75,14 +75,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Full-screen overlay that hides the X431 engine app behind Launch AI's custom UI.
+ * Full-screen overlay that hides the OEM diagnostic engine app behind Together Car Works's custom UI.
  *
  * Phase-1 architecture:
- *   - X431 stays foreground (Android requires that for accessibility to operate it)
+ *   - OEM diagnostic app stays foreground (Android requires that for accessibility to operate it)
  *   - This service draws a MATCH_PARENT overlay window on top covering the user's view
  *   - Inside the overlay we host a ComposeView showing our own dashboard / scan / live-data screens
  *   - EngineScraper polls the accessibility tree → EngineState → our Compose UI reacts
- *   - User taps in our UI → ScannerAccessibilityService dispatches the corresponding X431 taps
+ *   - User taps in our UI → ScannerAccessibilityService dispatches the corresponding OEM diagnostic app taps
  *
  * ## A3 additions
  *   - [EngineHealthMonitor] is created in [onCreate], started immediately, and stopped in [onDestroy].
@@ -102,7 +102,7 @@ import kotlinx.coroutines.withContext
  *     dismisses the overlay with a Toast confirmation. Called from OverlayRoot's pointerInput handler.
  *
  * Escape hatches:
- *   - "Peek" button fades overlay to 30% opacity so the tech can verify X431 underneath
+ *   - "Peek" button fades overlay to 30% opacity so the tech can verify OEM diagnostic app underneath
  *   - "Minimize" collapses the overlay to a bubble (legacy OverlayService bubble)
  *   - Foreground-service notification action "Dismiss overlay" for emergency exit
  *   - 3-second long-press on dead space (D1) for emergency dismissal
@@ -113,7 +113,7 @@ class FullScreenOverlayService : Service(),
     SavedStateRegistryOwner {
 
     companion object {
-        const val TAG = "X431Agent.FullOverlay"
+        const val TAG = "TcwAgent.FullOverlay"
         private const val CHANNEL_ID = "fullscreen_overlay"
         private const val NOTIFICATION_ID = 1003
 
@@ -324,7 +324,7 @@ class FullScreenOverlayService : Service(),
     private fun applyAlpha() {
         rootView?.let { v ->
             v.alpha = peekModeAlpha.value
-            // When fully transparent, also disable touches so X431 receives them.
+            // When fully transparent, also disable touches so OEM diagnostic app receives them.
             params?.let { p ->
                 if (peekModeAlpha.value < 0.05f) {
                     p.flags = p.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
@@ -354,14 +354,14 @@ class FullScreenOverlayService : Service(),
     /**
      * Called from OverlayRoot's pointerInput handler when a 3-second press-and-hold
      * is detected on dead space (non-interactive area). Stops the service and shows
-     * a Toast confirming that the overlay is dismissed and X431 is now visible.
+     * a Toast confirming that the overlay is dismissed and OEM diagnostic app is now visible.
      */
     fun requestEmergencyDismiss() {
         Log.i(TAG, "Emergency dismiss triggered via 3-second long-press")
         val message = if (standaloneMode) {
             "Overlay dismissed."
         } else {
-            "Overlay dismissed. X431 is now visible."
+            "Overlay dismissed. OEM diagnostic app is now visible."
         }
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         stopSelf()
@@ -378,7 +378,7 @@ class FullScreenOverlayService : Service(),
                     runCatching {
                         val snap = a11y.readScreen()
                         // A3: feed the foreground package to the health monitor so it can
-                        // evaluate X431 foreground state without any manifest permissions.
+                        // evaluate OEM diagnostic app foreground state without any manifest permissions.
                         monitor.notifyForegroundPackage(snap.pkg)
                         val prev = engineState.value
                         val scraped = EngineScraper.scrape(snap)
@@ -524,7 +524,7 @@ class FullScreenOverlayService : Service(),
                 }
                 return@launch
             }
-            a11y.bringX431ToFront()
+            a11y.bringOemDiagToFront()
 
             fun publishProgress(stepIndex: Int, totalSteps: Int, title: String, awaitingPrompt: Boolean) {
                 ui.post {
@@ -683,7 +683,7 @@ class FullScreenOverlayService : Service(),
 
         if (capabilityId == "actuation") {
             engineState.value = engineState.value.copy(
-                errorBanner = "OEM actuation requires X431 overlay mode",
+                errorBanner = "OEM actuation requires OEM diagnostic overlay mode",
                 busy = false,
             )
             return
@@ -849,8 +849,8 @@ class FullScreenOverlayService : Service(),
             )
             return
         }
-        // Bring X431 forward first (overlay still on top).
-        a11y.bringX431ToFront()
+        // Bring OEM diagnostic app forward first (overlay still on top).
+        a11y.bringOemDiagToFront()
 
         val cap = com.caseforge.scanner.engine.CapabilityMap.byId(capabilityId) ?: return
         val app = applicationContext as App
@@ -883,7 +883,7 @@ class FullScreenOverlayService : Service(),
         val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && nm.getNotificationChannel(CHANNEL_ID) == null) {
             nm.createNotificationChannel(
-                NotificationChannel(CHANNEL_ID, "Launch AI overlay", NotificationManager.IMPORTANCE_LOW)
+                NotificationChannel(CHANNEL_ID, "Together Car Works overlay", NotificationManager.IMPORTANCE_LOW)
             )
         }
         val stopIntent = Intent(this, FullScreenOverlayService::class.java).setAction(ACTION_STOP)
@@ -907,8 +907,8 @@ class FullScreenOverlayService : Service(),
                 .setContentText("Experimental direct dongle mode. Tap Dismiss to exit.")
         } else {
             builder
-                .setContentTitle("Launch AI overlay")
-                .setContentText("Tap Peek to see X431 underneath. Tap Dismiss to exit.")
+                .setContentTitle("Together Car Works overlay")
+                .setContentText("Tap Peek to see OEM diagnostic app underneath. Tap Dismiss to exit.")
                 .addAction(android.R.drawable.ic_menu_view, "Peek", pPeek)
         }
         return builder.build()

@@ -11,7 +11,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 /**
- * Single diagnostic session for standalone flows (ELM327 USB primary, Launch VCI USB/BT optional).
+ * Single diagnostic session for standalone flows (ELM327 USB primary, OEM VCI USB/BT optional).
  */
 class DirectVciSession(
     private val context: Context,

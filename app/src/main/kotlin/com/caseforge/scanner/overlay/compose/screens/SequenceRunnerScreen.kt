@@ -15,7 +15,7 @@ import com.caseforge.scanner.engine.SequenceDefinitions
 import com.caseforge.scanner.overlay.compose.Spacing
 import com.caseforge.scanner.overlay.compose.TogetherCardShape
 import com.caseforge.scanner.overlay.compose.togetherCardColors
-import com.caseforge.scanner.ui.theme.CaseForgeTheme
+import com.caseforge.scanner.ui.theme.TogetherCarWorksTheme
 
 @Composable
 fun SequenceRunnerScreen(
@@ -98,7 +98,7 @@ fun SequenceRunnerScreen(
 @Preview(showBackground = true)
 @Composable
 private fun SequenceRunnerScreenPreview() {
-    CaseForgeTheme(mode = "dark") {
+    TogetherCarWorksTheme(mode = "dark") {
         Surface(color = MaterialTheme.colorScheme.background) {
             SequenceRunnerScreen(
                 state = EngineState(

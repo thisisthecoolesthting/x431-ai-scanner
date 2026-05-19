@@ -17,7 +17,7 @@ import java.io.File
  * Safe to call from any thread.
  */
 object OverlayStatePersistence {
-    private const val TAG = "X431Agent.OverlayState"
+    private const val TAG = "TcwAgent.OverlayState"
     private const val STATE_FILE_NAME = "overlay_state.json"
 
     @Serializable

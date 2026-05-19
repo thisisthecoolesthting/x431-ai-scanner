@@ -1,7 +1,7 @@
 # bootstrap-together-cowork.ps1
 # One-shot install for Together Scanners AI's Cowork host-shell bridge.
 # Run on any fresh Windows machine from PowerShell:
-#   powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/thisisthecoolesthting/x431-ai-scanner/main/scripts/bootstrap-together-cowork.ps1 | iex"
+#   powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/thisisthecoolesthting/together-car-works/main/scripts/bootstrap-together-cowork.ps1 | iex"
 
 $ErrorActionPreference = "Continue"
 
@@ -39,7 +39,7 @@ Write-Host "[OK] PowerShell 7: $pwsh" -ForegroundColor Green
 # Step 2: relaunch in PS 7 if not already
 if ($PSVersionTable.PSVersion.Major -lt 7) {
     Write-Host "Relaunching in PowerShell 7..." -ForegroundColor Yellow
-    & $pwsh -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/thisisthecoolesthting/x431-ai-scanner/main/scripts/bootstrap-together-cowork.ps1 | iex"
+    & $pwsh -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/thisisthecoolesthting/together-car-works/main/scripts/bootstrap-together-cowork.ps1 | iex"
     exit
 }
 
@@ -101,7 +101,7 @@ $marker = '# Cowork Host-Shell Bridge'
 $has = (Test-Path $userClaudeMd) -and ((Get-Content $userClaudeMd -Raw) -match [regex]::Escape($marker))
 if (-not $has) {
     try {
-        $law = Invoke-RestMethod -Uri 'https://raw.githubusercontent.com/thisisthecoolesthting/x431-ai-scanner/main/scripts/cowork-autonomy-law.md' -ErrorAction Stop
+        $law = Invoke-RestMethod -Uri 'https://raw.githubusercontent.com/thisisthecoolesthting/together-car-works/main/scripts/cowork-autonomy-law.md' -ErrorAction Stop
         Add-Content -Path $userClaudeMd -Value "`r`n`r`n$law" -NoNewline -Encoding UTF8
         Write-Host "[OK] User CLAUDE.md updated with autonomy law: $userClaudeMd" -ForegroundColor Green
     } catch {

@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Entry point for "Share to CaseForge Scanner AI" from the X431 app's report view.
+ * Entry point for "Share to Together Car Works" from the OEM diagnostic app's report view.
  * Reads the PDF, extracts text, then hands the text off to MainActivity for triage.
  */
 class ShareReceiverActivity : ComponentActivity() {

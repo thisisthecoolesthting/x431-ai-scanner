@@ -32,17 +32,17 @@ import com.caseforge.scanner.overlay.compose.screens.ModuleListScreen
 import com.caseforge.scanner.overlay.compose.screens.ReportScreen
 import com.caseforge.scanner.overlay.compose.screens.SequenceRunnerScreen
 import com.caseforge.scanner.overlay.compose.screens.UiAction
-import com.caseforge.scanner.ui.theme.CaseForgeTheme
+import com.caseforge.scanner.ui.theme.TogetherCarWorksTheme
 import com.caseforge.scanner.voice.VoiceMode
 
 /**
  * Root composable rendered inside the full-screen overlay window. This is what the
- * technician actually sees all day — X431 is hidden behind it.
+ * technician actually sees all day — OEM diagnostic app is hidden behind it.
  *
  * Composition order (merging C1, C2, D1):
  * 1. D1: Modifier.pointerInput detects 3-second long-press on dead space
  * 2. C2: if (!overlayOnboardingSeen) show OverlayOnboarding gate, else continue
- * 3. A4 + C1: CaseForgeTheme + Surface with A3 health banner + OverlayTopBar + ScreenRouter
+ * 3. A4 + C1: TogetherCarWorksTheme + Surface with A3 health banner + OverlayTopBar + ScreenRouter
  *
  * Reads [engineState] (live from the scraper) and delegates rendering to the appropriate
  * screen composable in screens/. All user actions emit [UiAction] events through callbacks.
@@ -75,7 +75,7 @@ fun OverlayRoot(
     onVoicePressEnd: () -> Unit = {},
     evidenceCaptureEnabled: Boolean = true,
 ) {
-    // C2: Gate onboarding on first launch (overlay-over-X431 only)
+    // C2: Gate onboarding on first launch (overlay-over-OEM diagnostic app only)
     if (!standaloneMode && !settingsRepo.overlayOnboardingSeen) {
         OverlayOnboarding(
             onComplete = { dontShowAgain ->
@@ -87,7 +87,7 @@ fun OverlayRoot(
     }
 
     // Normal overlay content (A4 + C1 + D1 below)
-    CaseForgeTheme(mode = "dark") {
+    TogetherCarWorksTheme(mode = "dark") {
         Surface(
             modifier = Modifier
                 .fillMaxSize()
@@ -111,7 +111,7 @@ fun OverlayRoot(
                 if (standaloneMode) {
                     Surface(color = MaterialTheme.colorScheme.tertiaryContainer) {
                         Text(
-                            "Direct VCI (experimental) — X431 is not running. Generic OBD-II only.",
+                            "Direct VCI (experimental) — OEM diagnostic app is not running. Generic OBD-II only.",
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onTertiaryContainer,
@@ -252,7 +252,7 @@ private fun HealthErrorBanner(message: String) {
 // ---------------------------------------------------------------------------
 
 /**
- * Top bar showing "Together" brand name (not "Launch AI"), ScreenKind subtitle,
+ * Top bar showing "Together" brand name (not "Together Car Works"), ScreenKind subtitle,
  * and three icon buttons (Peek, Minimize, Dismiss) with consistent 48.dp tap targets.
  */
 @Composable
@@ -283,7 +283,7 @@ private fun OverlayTopBar(
                     onClick = onPeek,
                     modifier = Modifier.size(48.dp),
                 ) {
-                    Icon(Icons.Default.Visibility, contentDescription = "Peek at X431")
+                    Icon(Icons.Default.Visibility, contentDescription = "Peek at OEM diagnostic app")
                 }
             }
             IconButton(

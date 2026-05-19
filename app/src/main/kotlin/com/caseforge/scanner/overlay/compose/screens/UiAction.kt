@@ -12,7 +12,7 @@ import com.caseforge.scanner.evidence.EvidenceType
 sealed class UiAction {
     /**
      * User tapped a capability card on the home/menu screen.
-     * The hosting service will dispatch this capability ID to the X431 engine.
+     * The hosting service will dispatch this capability ID to the OEM diagnostic app engine.
      */
     data class TapCapability(val capabilityId: String) : UiAction()
 

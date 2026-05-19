@@ -111,8 +111,8 @@ fun ConnectionDrawerSheet(
                 TransportChip("USB OBD", selectedTransport == DiagnosticConnector.UserTransport.ELM327_USB) {
                     onTransportSelected(DiagnosticConnector.UserTransport.ELM327_USB)
                 }
-                TransportChip("Launch USB", selectedTransport == DiagnosticConnector.UserTransport.LAUNCH_USB) {
-                    onTransportSelected(DiagnosticConnector.UserTransport.LAUNCH_USB)
+                TransportChip("OEM USB", selectedTransport == DiagnosticConnector.UserTransport.OEM_USB) {
+                    onTransportSelected(DiagnosticConnector.UserTransport.OEM_USB)
                 }
             }
 
@@ -138,8 +138,8 @@ fun ConnectionDrawerSheet(
 
             if (bluetoothEnabled) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                    TransportChip("Launch BT", selectedTransport == DiagnosticConnector.UserTransport.LAUNCH_BT) {
-                        onTransportSelected(DiagnosticConnector.UserTransport.LAUNCH_BT)
+                    TransportChip("OEM BT", selectedTransport == DiagnosticConnector.UserTransport.OEM_BT) {
+                        onTransportSelected(DiagnosticConnector.UserTransport.OEM_BT)
                     }
                     TransportChip("ELM327 BT", selectedTransport == DiagnosticConnector.UserTransport.ELM327_BT) {
                         onTransportSelected(DiagnosticConnector.UserTransport.ELM327_BT)

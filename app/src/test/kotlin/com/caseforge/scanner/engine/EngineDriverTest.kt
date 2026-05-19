@@ -324,7 +324,7 @@ class EngineDriverTest {
     }
 
     @Test
-    fun `clearCodes returns Timeout when X431 never confirms clear`() = runTest {
+    fun `clearCodes returns Timeout when OEM diagnostic app never confirms clear`() = runTest {
         stubScreenText("clearing codes…")
         val timedCap = clearDtcsCap.copy(timeoutSec = 1)
         val d = driver(timedCap, delayMs = 10L)

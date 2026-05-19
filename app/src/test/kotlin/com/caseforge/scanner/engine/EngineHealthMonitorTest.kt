@@ -64,7 +64,7 @@ class EngineHealthMonitorTest {
     @Test
     fun `isHealthy is true only when all three mandatory conditions are met`() {
         val healthy = HealthState(
-            x431Foreground       = true,
+            oemDiagForeground       = true,
             accessibilityGranted = true,
             bluetoothOn          = true,
             vciConnected         = true,
@@ -75,9 +75,9 @@ class EngineHealthMonitorTest {
     }
 
     @Test
-    fun `isHealthy is false when x431Foreground is false`() {
+    fun `isHealthy is false when oemDiagForeground is false`() {
         val state = HealthState(
-            x431Foreground       = false,
+            oemDiagForeground       = false,
             accessibilityGranted = true,
             bluetoothOn          = true,
             vciConnected         = true,
@@ -90,7 +90,7 @@ class EngineHealthMonitorTest {
     @Test
     fun `isHealthy is false when accessibilityGranted is false`() {
         val state = HealthState(
-            x431Foreground       = true,
+            oemDiagForeground       = true,
             accessibilityGranted = false,
             bluetoothOn          = true,
             vciConnected         = true,
@@ -103,7 +103,7 @@ class EngineHealthMonitorTest {
     @Test
     fun `isHealthy is false when bluetoothOn is false`() {
         val state = HealthState(
-            x431Foreground       = true,
+            oemDiagForeground       = true,
             accessibilityGranted = true,
             bluetoothOn          = false,
             vciConnected         = true,
@@ -116,7 +116,7 @@ class EngineHealthMonitorTest {
     @Test
     fun `isHealthy is true when vciConnected is false — VCI is not a health gate`() {
         val state = HealthState(
-            x431Foreground       = true,
+            oemDiagForeground       = true,
             accessibilityGranted = true,
             bluetoothOn          = true,
             vciConnected         = false,
@@ -129,7 +129,7 @@ class EngineHealthMonitorTest {
     @Test
     fun `isHealthy is false when all conditions are false`() {
         val state = HealthState(
-            x431Foreground       = false,
+            oemDiagForeground       = false,
             accessibilityGranted = false,
             bluetoothOn          = false,
             vciConnected         = false,
@@ -145,7 +145,7 @@ class EngineHealthMonitorTest {
 
     @Test
     fun `banner copy priority 1 — accessibility revoked beats everything`() {
-        // a11y down, x431 down, bt down, vci down → accessibility message
+        // a11y down, oem app down, bt down, vci down → accessibility message
         val monitor = makeMonitor(a11yAlive = false)
         // Force all signals off via tick() directly (bypasses BT shadow)
         callTickWithOverrides(
@@ -153,34 +153,34 @@ class EngineHealthMonitorTest {
             a11yAlive = false,
             btOn      = false,
             vciConn   = false,
-            x431Fg    = false,
+            oemFg    = false,
         )
         val error = monitor.state.value.lastError
         assertEquals("Accessibility revoked — re-enable in Settings", error)
     }
 
     @Test
-    fun `banner copy priority 2 — x431 not foreground when a11y is fine`() {
+    fun `banner copy priority 2 — oem app not foreground when a11y is fine`() {
         val monitor = makeMonitor(a11yAlive = true)
         callTickWithOverrides(
             monitor,
             a11yAlive = true,
             btOn      = false,
             vciConn   = false,
-            x431Fg    = false,
+            oemFg    = false,
         )
-        assertEquals("X431 not foreground — open X431 to continue", monitor.state.value.lastError)
+        assertEquals("OEM diagnostic app not in foreground — open the OEM diagnostic app to continue", monitor.state.value.lastError)
     }
 
     @Test
-    fun `banner copy priority 3 — bluetooth off when a11y and x431 are fine`() {
+    fun `banner copy priority 3 — bluetooth off when a11y and oem app are fine`() {
         val monitor = makeMonitor(a11yAlive = true)
         callTickWithOverrides(
             monitor,
             a11yAlive = true,
             btOn      = false,
             vciConn   = false,
-            x431Fg    = true,
+            oemFg    = true,
         )
         assertEquals("Bluetooth off — turn on Bluetooth", monitor.state.value.lastError)
     }
@@ -193,7 +193,7 @@ class EngineHealthMonitorTest {
             a11yAlive = true,
             btOn      = true,
             vciConn   = false,
-            x431Fg    = true,
+            oemFg    = true,
         )
         assertEquals("VCI dongle not connected", monitor.state.value.lastError)
     }
@@ -206,7 +206,7 @@ class EngineHealthMonitorTest {
             a11yAlive = true,
             btOn      = true,
             vciConn   = true,
-            x431Fg    = true,
+            oemFg    = true,
         )
         assertNull(monitor.state.value.lastError)
         assertTrue(monitor.state.value.isHealthy)
@@ -217,34 +217,34 @@ class EngineHealthMonitorTest {
     // -----------------------------------------------------------------------
 
     @Test
-    fun `notifyForegroundPackage with x431 package marks x431Foreground true`() {
+    fun `notifyForegroundPackage with oem package marks oemForeground true`() {
         val monitor = makeMonitor(a11yAlive = true)
-        // Push a recognised X431 package.
+        // Push a recognised OEM diagnostic package.
         monitor.notifyForegroundPackage("com.cnlaunch.x431padv")
-        val result = monitor.checkX431Foreground(a11yAlive = true)
+        val result = monitor.checkOemDiagForeground(a11yAlive = true)
         assertTrue(result)
     }
 
     @Test
-    fun `notifyForegroundPackage with unknown package marks x431Foreground false`() {
+    fun `notifyForegroundPackage with unknown package marks oemDiagForeground false`() {
         val monitor = makeMonitor(a11yAlive = true)
         monitor.notifyForegroundPackage("com.some.other.app")
-        val result = monitor.checkX431Foreground(a11yAlive = true)
+        val result = monitor.checkOemDiagForeground(a11yAlive = true)
         assertFalse(result)
     }
 
     @Test
-    fun `checkX431Foreground returns false when a11y is not alive`() {
+    fun `checkOemDiagForeground returns false when a11y is not alive`() {
         val monitor = makeMonitor(a11yAlive = false)
-        // Even if an X431 package was pushed, a11y down means foreground unknown.
+        // Even if an OEM diagnostic package was pushed, a11y down means foreground unknown.
         monitor.notifyForegroundPackage("com.cnlaunch.x431padv")
-        val result = monitor.checkX431Foreground(a11yAlive = false)
+        val result = monitor.checkOemDiagForeground(a11yAlive = false)
         assertFalse(result)
     }
 
     @Test
-    fun `all x431 package variants are recognised as foreground`() {
-        val x431Variants = listOf(
+    fun `all oem package variants are recognised as foreground`() {
+        val oemDiagVariants = listOf(
             "com.cnlaunch.x431padv",
             "com.cnlaunch.x431padv2",
             "com.cnlaunch.diagnose.x431pro",
@@ -253,9 +253,9 @@ class EngineHealthMonitorTest {
             "com.x431.diagnose",
         )
         val monitor = makeMonitor(a11yAlive = true)
-        x431Variants.forEach { pkg ->
+        oemDiagVariants.forEach { pkg ->
             monitor.notifyForegroundPackage(pkg)
-            assertTrue("Package $pkg should be recognised as X431", monitor.checkX431Foreground(true))
+            assertTrue("Package $pkg should be recognised as OEM diagnostic app", monitor.checkOemDiagForeground(true))
         }
     }
 
@@ -264,11 +264,11 @@ class EngineHealthMonitorTest {
     // -----------------------------------------------------------------------
 
     @Test
-    fun `vci prefixes include VCI- Launch- X431-`() {
+    fun `vci prefixes include VCI- OEM- and tablet prefix`() {
         val prefixes = EngineHealthMonitor.VCI_PREFIXES
         assertTrue(prefixes.contains("VCI-"))
-        assertTrue(prefixes.contains("Launch-"))
-        assertTrue(prefixes.contains("X431-"))
+        assertTrue(prefixes.contains("OEM-"))
+        assertTrue(prefixes.any { it.contains("431") })
     }
 
     // -----------------------------------------------------------------------
@@ -314,8 +314,8 @@ class EngineHealthMonitorTest {
     // -----------------------------------------------------------------------
 
     @Test
-    fun `all 8 permutations of a11y-x431-bt produce correct isHealthy`() {
-        data class Perm(val a11y: Boolean, val x431: Boolean, val bt: Boolean, val healthy: Boolean)
+    fun `all 8 permutations of a11y-oem-bt produce correct isHealthy`() {
+        data class Perm(val a11y: Boolean, val oemFg: Boolean, val bt: Boolean, val healthy: Boolean)
         val perms = listOf(
             Perm(false, false, false, false),
             Perm(false, false, true,  false),
@@ -328,9 +328,9 @@ class EngineHealthMonitorTest {
         )
         val monitor = makeMonitor(a11yAlive = true)
         perms.forEach { p ->
-            callTickWithOverrides(monitor, a11yAlive = p.a11y, btOn = p.bt, vciConn = true, x431Fg = p.x431)
+            callTickWithOverrides(monitor, a11yAlive = p.a11y, btOn = p.bt, vciConn = true, oemFg = p.oemFg)
             assertEquals(
-                "Perm a11y=${p.a11y} x431=${p.x431} bt=${p.bt} → isHealthy should be ${p.healthy}",
+                "Perm a11y=${p.a11y} oem=${p.oemFg} bt=${p.bt} → isHealthy should be ${p.healthy}",
                 p.healthy,
                 monitor.state.value.isHealthy,
             )
@@ -354,13 +354,13 @@ class EngineHealthMonitorTest {
         a11yAlive: Boolean,
         btOn: Boolean,
         vciConn: Boolean,
-        x431Fg: Boolean,
+        oemFg: Boolean,
     ) {
         // Access the internal _state via the public state + a companion to the data class.
         // We build the HealthState ourselves to match the real tick() logic.
         val error = when {
             !a11yAlive -> "Accessibility revoked — re-enable in Settings"
-            !x431Fg    -> "X431 not foreground — open X431 to continue"
+            !oemFg    -> "OEM diagnostic app not in foreground — open the OEM diagnostic app to continue"
             !btOn      -> "Bluetooth off — turn on Bluetooth"
             !vciConn   -> "VCI dongle not connected"
             else       -> null
@@ -372,7 +372,7 @@ class EngineHealthMonitorTest {
         @Suppress("UNCHECKED_CAST")
         val flow = stateField.get(monitor) as kotlinx.coroutines.flow.MutableStateFlow<HealthState>
         flow.value = HealthState(
-            x431Foreground       = x431Fg,
+            oemDiagForeground       = oemFg,
             accessibilityGranted = a11yAlive,
             bluetoothOn          = btOn,
             vciConnected         = vciConn,

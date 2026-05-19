@@ -26,7 +26,7 @@ object CameraTool {
     private var pending: CompletableDeferred<String?>? = null
 
     /**
-     * Launch the camera UI and wait for the tech to capture (or cancel).
+     * Open the camera UI and wait for the tech to capture (or cancel).
      * @return base64-encoded JPEG (quality 80) of the captured frame, or null
      *         if the tech cancelled or another capture was already in flight.
      */

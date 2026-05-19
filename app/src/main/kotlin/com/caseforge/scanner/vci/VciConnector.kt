@@ -31,9 +31,9 @@ object VciConnector {
     ): Result<ConnectResult> {
         VciProtocolConfig.applyFromSettings(settings)
 
-        if (App.isX431Foreground(context)) {
+        if (App.isOemDiagForeground(context)) {
             return Result.failure(
-                IllegalStateException("X431 is in the foreground — force-stop X431 to free the VCI"),
+                IllegalStateException("OEM diagnostic app is in the foreground — force-stop the OEM diagnostic app to free the VCI"),
             )
         }
 
@@ -78,7 +78,7 @@ object VciConnector {
         settings: SettingsRepo,
         usbDevice: UsbDevice?,
     ): Result<ConnectResult> {
-        val usb = VciUsbClient(context, useHexEncoding = settings.vciUseHexEncoding)
+        val usb = OemUsbVciClient(context, useHexEncoding = settings.vciUseHexEncoding)
         val r = if (usbDevice != null) usb.connect(usbDevice) else usb.connectFirstAvailable()
         return r.map {
             ConnectResult(usb, "USB serial @ ${usbDevice?.deviceName ?: "first attached"}")
@@ -94,7 +94,7 @@ object VciConnector {
                 IllegalStateException("BLUETOOTH_CONNECT not granted"),
             )
         }
-        val bt = VciSocketClient(context, useHexEncoding = settings.vciUseHexEncoding)
+        val bt = BluetoothVciClient(context, useHexEncoding = settings.vciUseHexEncoding)
         val bonded = bt.findBondedVciDevices()
         val saved = settings.vciSelectedBtAddress
         val allBonded = bt.listBondedDevices()

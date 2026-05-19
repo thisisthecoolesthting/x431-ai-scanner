@@ -27,7 +27,7 @@ object KeepAwakeManager {
                     val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
                     wakeLock = pm.newWakeLock(
                         PowerManager.PARTIAL_WAKE_LOCK,
-                        "caseforge:scanner:agent"
+                        "tcw:scanner:agent"
                     ).apply {
                         acquire(60 * 60 * 1000) // 1 hour timeout (will be released by release())
                     }

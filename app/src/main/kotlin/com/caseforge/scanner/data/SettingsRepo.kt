@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
  * (model choice, kill switch state, autonomous mode toggle) in plain SharedPreferences.
  *
  * Merged from:
- * - A6: overlayOnX431, overlayOnX431Flow, setOverlayOnX431
+ * - A6: overlayOnOemDiag, overlayOnOemDiagFlow, setOverlayOnOemDiag
  * - C2: overlayOnboardingSeen, overlayOnboardingSeenFlow, setOverlayOnboardingSeen
  * - D1: emergencyDismissHintSeen (property only, no Flow)
  *
@@ -29,17 +29,17 @@ class SettingsRepo(context: Context) {
 
     private val secure = EncryptedSharedPreferences.create(
         context,
-        "caseforge_secure",
+        "tcw_secure",
         master,
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
     )
 
-    private val prefs = context.getSharedPreferences("caseforge_prefs", Context.MODE_PRIVATE)
+    private val prefs = context.getSharedPreferences("tcw_prefs", Context.MODE_PRIVATE)
 
     /**
      * Claude API key. Stored encrypted; falls back to the BuildConfig default that's baked
-     * in at compile time from local.properties (caseforge.claudeApiKey). That fallback lets
+     * in at compile time from local.properties (tcw.claudeApiKey). That fallback lets
      * the dev's APK come pre-configured without ever committing the key to git.
      */
     var claudeApiKey: String
@@ -101,12 +101,23 @@ class SettingsRepo(context: Context) {
         set(value) { prefs.edit().putString(K_VCI_TRANSPORT, value.lowercase()).apply() }
 
     /**
-     * Standalone link picker: `auto`, `elm327_usb`, `launch_usb`, `launch_bt`, `elm327_bt`.
-     * Default `auto` tries ELM327 USB cable first, then Launch VCI USB; Bluetooth only if enabled.
+     * Standalone link picker: `auto`, `elm327_usb`, `oem_usb`, `oem_bt`, `elm327_bt`.
+     * Legacy reads accept `launch_usb` / `launch_bt` and map to `oem_*`.
      */
     var linkTransport: String
-        get() = prefs.getString(K_LINK_TRANSPORT, "auto") ?: "auto"
-        set(value) { prefs.edit().putString(K_LINK_TRANSPORT, value.lowercase()).apply() }
+        get() = normalizeLinkTransport(prefs.getString(K_LINK_TRANSPORT, "auto") ?: "auto")
+        set(value) {
+            prefs.edit().putString(K_LINK_TRANSPORT, normalizeLinkTransport(value.lowercase())).apply()
+        }
+
+    private fun normalizeLinkTransport(raw: String): String = when (raw.lowercase()) {
+        "launch_usb", "vci_usb" -> "oem_usb"
+        "launch_bt", "vci_bt" -> "oem_bt"
+        "usb_obd", "usb_cable" -> "elm327_usb"
+        "bluetooth", "obd_bt" -> "elm327_bt"
+        "auto", "elm327_usb", "oem_usb", "oem_bt", "elm327_bt" -> raw.lowercase()
+        else -> raw.lowercase()
+    }
 
     /** When false, the app never scans or connects Bluetooth (USB-only default). */
     var bluetoothTransportEnabled: Boolean
@@ -117,7 +128,7 @@ class SettingsRepo(context: Context) {
         get() = prefs.getBoolean(K_BT_PAIRING_HINT_SEEN, false)
         set(value) { prefs.edit().putBoolean(K_BT_PAIRING_HINT_SEEN, value).apply() }
 
-    /** User-picked bonded device when name does not match [VciSocketClient.VCI_NAME_PREFIXES]. */
+    /** User-picked bonded device when name does not match [BluetoothVciClient.VCI_NAME_PREFIXES]. */
     var vciSelectedBtAddress: String?
         get() = prefs.getString(K_VCI_BT_ADDRESS, null)?.takeIf { it.isNotBlank() }
         set(value) {
@@ -159,34 +170,34 @@ class SettingsRepo(context: Context) {
         get() = prefs.getString(K_NOTES, DEFAULT_AGENT_NOTES) ?: DEFAULT_AGENT_NOTES
         set(value) { prefs.edit().putString(K_NOTES, value).apply() }
 
-    // ---- A6: overlayOnX431 ----
+    // ---- A6: overlayOnOemDiag ----
 
     /**
      * When true, [ScannerAccessibilityService] auto-launches [FullScreenOverlayService]
-     * the moment any X431 package becomes the foreground window.
+     * the moment any OEM diagnostic package becomes the foreground window.
      * Default false — opt-in only.
      */
-    var overlayOnX431: Boolean
-        get() = prefs.getBoolean(K_OVERLAY_ON_X431, false)
-        set(value) { prefs.edit().putBoolean(K_OVERLAY_ON_X431, value).apply() }
+    var overlayOnOemDiag: Boolean
+        get() = prefs.getBoolean(K_OVERLAY_ON_OEM_DIAG, false)
+        set(value) { prefs.edit().putBoolean(K_OVERLAY_ON_OEM_DIAG, value).apply() }
 
     /**
-     * Reactive view of [overlayOnX431]. Backed by a SharedPreferences listener so every
+     * Reactive view of [overlayOnOemDiag]. Backed by a SharedPreferences listener so every
      * collector sees the latest value immediately on subscription and on every change.
      */
-    val overlayOnX431Flow: Flow<Boolean> = callbackFlow {
+    val overlayOnOemDiagFlow: Flow<Boolean> = callbackFlow {
         // Emit the current value immediately so collectors don't wait for the first change.
-        trySend(overlayOnX431)
+        trySend(overlayOnOemDiag)
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            if (key == K_OVERLAY_ON_X431) trySend(overlayOnX431)
+            if (key == K_OVERLAY_ON_OEM_DIAG) trySend(overlayOnOemDiag)
         }
         prefs.registerOnSharedPreferenceChangeListener(listener)
         awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
     }.distinctUntilChanged()
 
     /** Coroutine-friendly writer; delegates to the property setter. */
-    suspend fun setOverlayOnX431(value: Boolean) {
-        overlayOnX431 = value
+    suspend fun setOverlayOnOemDiag(value: Boolean) {
+        overlayOnOemDiag = value
     }
 
     // ---- C2: overlayOnboardingSeen ----
@@ -251,14 +262,14 @@ class SettingsRepo(context: Context) {
         private const val K_NOTES = "agent_notes"
         private const val K_THEME = "theme_mode"
         private const val K_WIZARD = "wizard_complete"
-        private const val K_OVERLAY_ON_X431 = "overlay_on_x431"   // A6
+        private const val K_OVERLAY_ON_OEM_DIAG = "overlay_on_oem_diag"   // A6
         private const val K_OVERLAY_ONBOARDING_SEEN = "overlay_onboarding_seen"   // C2
         private const val K_EMERGENCY_DISMISS_HINT_SEEN = "emergency_dismiss_hint_seen"   // D1
 
         const val DEFAULT_AGENT_NOTES = """About this app
 ==============
-You (the agent) live inside CaseForge Scanner AI on the technician's X431 PRO/PROS/V+ tablet.
-The technician uses you to drive the Launch X431 diagnostic app — you see its UI via Android's
+You (the agent) live inside Together Car Works on the technician's OEM diagnostic tablet/PROS/V+ tablet.
+The technician uses you to drive the the OEM diagnostic app diagnostic app — you see its UI via Android's
 AccessibilityService and operate it via the tools you've been given.
 
 The technician owns this tablet and this VCI. You are NOT operating on a customer's behalf;
@@ -267,7 +278,7 @@ concise, technical, and decisive. Do not over-explain basics they already know.
 
 What you can do
 ===============
-- read_screen / tap / type / scroll / back / wait_for — drive the X431 app UI
+- read_screen / tap / type / scroll / back / wait_for — drive the OEM diagnostic app UI
 - capture_screenshot — for graphical screens (gauges, charts) the accessibility tree misses
 - vin_lookup — NHTSA decode + recalls for a 17-char VIN. Always call when you first see one.
 - repair_info_lookup — separate Claude call for DTC causes / tests / TSBs / wiring hints
@@ -276,10 +287,10 @@ What you can do
 
 What you can't do
 =================
-- Bypass Launch's licensing / subscriptions. Some advanced functions (key programming on
-  newer cars, online ECU programming) require the tech's X431 subscription be active.
-- Talk to the VCI dongle directly. You always go through the X431 app.
-- Modify the X431 app. You drive it as a user would.
+- Bypass OEM licensing / subscriptions. Some advanced functions (key programming on
+  newer cars, online ECU programming) require the tech's OEM diagnostic subscription be active.
+- Talk to the VCI dongle directly. You always go through the OEM diagnostic app.
+- Modify the OEM diagnostic app. You drive it as a user would.
 
 Operating principles
 ====================
@@ -290,13 +301,13 @@ Operating principles
 - The tech has fully-autonomous actuation enabled by default. Don't ask before each test;
   log a one-line reason in your reasoning instead.
 - If a screen looks ambiguous (graphical gauges, charts), call capture_screenshot.
-- If the X431 app stops responding for 8+ seconds, press back() and try a different path.
+- If the OEM diagnostic app stops responding for 8+ seconds, press back() and try a different path.
 - When the goal is met, call finish_session with the structured summary. Don't keep going.
 
 History — what this app has been through
 =========================================
 - Built as an Android Kotlin/Compose wrapper that uses AccessibilityService to operate the
-  X431 app. Architecture: AgentRunner is a Claude tool-use loop.
+  OEM diagnostic app. Architecture: AgentRunner is a Claude tool-use loop.
 - Phase 0: GitHub CI builds APKs on every push to main; tablet pulls from the 'latest' release.
 - Phase 1: One-tap Full Scan All Modules + repair_info_lookup tool.
 - Round 14: Action log viewer, TTS readout, NHTSA vin_lookup, conversation trimming.

@@ -9,11 +9,12 @@ import kotlinx.serialization.json.jsonPrimitive
 import java.io.File
 
 /**
- * Offline DTC descriptions and menu trees from exported cnlaunch data (Stream E).
+ * Offline DTC descriptions and menu trees from exported OEM vehicle database (Stream E).
  */
-object CnlaunchAssetIndex {
+object OemVehicleAssetIndex {
 
-    private const val TAG = "CnlaunchAssetIndex"
+    private const val TAG = "OemVehicleAssetIndex"
+    private const val ASSET_DIR = "oem-vehicle-db"
     private val json = Json { ignoreUnknownKeys = true }
 
     private var dtcByOem: Map<String, Map<String, String>> = emptyMap()
@@ -24,21 +25,21 @@ object CnlaunchAssetIndex {
         private set
 
     fun load(context: Context) {
-        val dir = File(context.filesDir, "cnlaunch-assets")
+        val dir = File(context.filesDir, "oem-vehicle-assets")
         val dtcFile = File(dir, "dtc-descriptions.json")
         val menuFile = File(dir, "menu-trees.json")
         dtcByOem = if (dtcFile.isFile) {
             parseDtcFile(dtcFile.readText())
         } else {
-            parseDtcAsset(context, "cnlaunch/dtc-descriptions.json")
+            parseDtcAsset(context, "$ASSET_DIR/dtc-descriptions.json")
         }
         menuTrees = if (menuFile.isFile) {
             parseMenuFile(menuFile.readText())
         } else {
-            parseMenuAsset(context, "cnlaunch/menu-trees.json")
+            parseMenuAsset(context, "$ASSET_DIR/menu-trees.json")
         }
         loaded = true
-        Log.i(TAG, "cnlaunch assets: dtc_oems=${dtcByOem.size} menus=${menuTrees.size}")
+        Log.i(TAG, "oem vehicle assets: dtc_oems=${dtcByOem.size} menus=${menuTrees.size}")
     }
 
     fun describeDtc(oem: String, code: String): String? {

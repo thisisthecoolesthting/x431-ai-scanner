@@ -90,7 +90,7 @@ class PdfReportBuilder {
         dtcs: List<DtcRow>,
         evidencePhotoPaths: List<String> = emptyList(),
         technicianName: String = "Ricky",
-        shopName: String = "CaseForge"
+        shopName: String = "Together Car Works"
     ): File {
         val doc = PdfDocument()
         val ctx = PageCtx(doc, startPage(doc, 1))
@@ -274,7 +274,7 @@ class PdfReportBuilder {
     // ---- Drawing primitives ----------------------------------------------
     private fun drawHeader(ctx: PageCtx) {
         val brandPaint = Paint(titlePaint).apply { textSize = 16f }
-        ctx.canvas.drawText("CaseForge", marginLeft, marginTop - 18f, brandPaint)
+        ctx.canvas.drawText("Together Car Works", marginLeft, marginTop - 18f, brandPaint)
         val date = currentDate()
         val dateWidth = mutedPaint.measureText(date)
         ctx.canvas.drawText(date, pageWidth - marginRight - dateWidth, marginTop - 18f, mutedPaint)
@@ -286,7 +286,7 @@ class PdfReportBuilder {
         val footY = pageHeight - marginBottom + 24f
         ctx.canvas.drawLine(marginLeft, footY - 16f, pageWidth - marginRight, footY - 16f, rulePaint)
         ctx.canvas.drawText(
-            "CaseForge - Generated ${currentDate()}",
+            "Together Car Works - Generated ${currentDate()}",
             marginLeft, footY, mutedPaint
         )
         val pageLabel = "Page ${ctx.pageNumber}"

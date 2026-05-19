@@ -15,17 +15,17 @@ import com.caseforge.scanner.overlay.compose.Spacing
 import com.caseforge.scanner.overlay.compose.TogetherCardShape
 import com.caseforge.scanner.overlay.compose.togetherCardColors
 import com.caseforge.scanner.overlay.compose.togetherCardElevation
-import com.caseforge.scanner.ui.theme.CaseForgeTheme
+import com.caseforge.scanner.ui.theme.TogetherCarWorksTheme
 
 /**
- * Renders error states: dialogs from X431 and unknown screens.
+ * Renders error states: dialogs from OEM diagnostic app and unknown screens.
  *
  * Polish improvements:
  * - Error message shown in a Card with errorContainer color
  * - Small warning icon (Icons.Outlined.Warning)
- * - Primary action button "Peek X431" that calls onPeek callback
+ * - Primary action button "Peek OEM diagnostic app" that calls onPeek callback
  *
- * For [ScreenKind.Dialog]: shows the dialog text with a hint to peek at X431.
+ * For [ScreenKind.Dialog]: shows the dialog text with a hint to peek at OEM diagnostic app.
  * For [ScreenKind.Unknown]: shows an unrecognized screen message with optional hint.
  *
  * All text and colors routed through MaterialTheme (C1 requirement).
@@ -45,7 +45,7 @@ fun ErrorScreen(
         verticalArrangement = Arrangement.spacedBy(Spacing.Space12),
     ) {
         Text(
-            if (isUnknown) "Unrecognized screen" else "X431 dialog",
+            if (isUnknown) "Unrecognized screen" else "OEM diagnostic app dialog",
             style = MaterialTheme.typography.headlineSmall,
         )
 
@@ -75,10 +75,10 @@ fun ErrorScreen(
                 Column {
                     Text(
                         if (isUnknown) {
-                            "Launch AI doesn't know this X431 screen yet. Tap Peek to use X431 directly, " +
+                            "Together Car Works doesn't know this OEM diagnostic app screen yet. Tap Peek to use OEM diagnostic app directly, " +
                                 "or report this so we can add support."
                         } else {
-                            "A dialog appeared in X431. Tap Peek above to see it and respond directly."
+                            "A dialog appeared in OEM diagnostic app. Tap Peek above to see it and respond directly."
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onErrorContainer,
@@ -97,7 +97,7 @@ fun ErrorScreen(
 
         Spacer(Modifier.weight(1f))
 
-        // "Peek X431" primary action button
+        // "Peek OEM diagnostic app" primary action button
         Button(
             onClick = onPeek,
             modifier = Modifier
@@ -105,7 +105,7 @@ fun ErrorScreen(
                 .height(48.dp),
         ) {
             Text(
-                "Peek X431",
+                "Peek OEM diagnostic app",
                 style = MaterialTheme.typography.labelLarge,
             )
         }
@@ -115,7 +115,7 @@ fun ErrorScreen(
 @Preview(showBackground = true)
 @Composable
 private fun ErrorScreenDialogPreview() {
-    CaseForgeTheme(mode = "dark") {
+    TogetherCarWorksTheme(mode = "dark") {
         Surface(color = MaterialTheme.colorScheme.background) {
             ErrorScreen(
                 state = EngineState(
@@ -132,14 +132,14 @@ private fun ErrorScreenDialogPreview() {
 @Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun ErrorScreenUnknownPreviewDark() {
-    CaseForgeTheme(isDarkMode = true) {
+    TogetherCarWorksTheme(isDarkMode = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
             ErrorScreen(
                 state = EngineState(
-                    screen = ScreenKind.Unknown("Some undocumented X431 screen"),
+                    screen = ScreenKind.Unknown("Some undocumented OEM diagnostic app screen"),
                 ),
                 onAction = {},
-                errorText = "Some undocumented X431 screen",
+                errorText = "Some undocumented OEM diagnostic app screen",
                 isUnknown = true,
             )
         }

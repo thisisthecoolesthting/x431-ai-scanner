@@ -16,13 +16,13 @@ import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.overlay.compose.screens.UiAction
 
 /**
- * First-launch onboarding overlay pager. Shows 3-4 steps introducing Together Scanners AI
- * and how to drive the X431 overlay.
+ * First-launch onboarding overlay pager. Shows 3-4 steps introducing Together Car Works
+ * and how to drive the OEM diagnostic overlay.
  *
- * - Step 1: Intro — "Together Scanners AI is now driving X431 underneath this UI"
+ * - Step 1: Intro — "Together Car Works is now driving OEM diagnostic app underneath this UI"
  * - Step 2: How to drive — "Tap categories → tap capability cards → watch the action log"
  * - Step 3: Emergency dismiss — "Hold any empty area for 3 seconds to dismiss the overlay"
- * - Step 4 (optional): Peek mode — "Tap the eye icon to peek at X431 directly"
+ * - Step 4 (optional): Peek mode — "Tap the eye icon to peek at OEM diagnostic app directly"
  *
  * Polish improvements:
  * - Top progress indicator (dot-style) showing current step / total
@@ -183,12 +183,12 @@ private fun OnboardingIntro() {
             .padding(Spacing.Space16),
     ) {
         Text(
-            "Together Scanners AI",
+            "Together Car Works",
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(bottom = Spacing.Space16),
         )
         Text(
-            "Together Scanners AI is now driving X431 underneath this interface. " +
+            "Together Car Works is now driving OEM diagnostic app underneath this interface. " +
                 "Tap below to control diagnostics, live data, and actuation — all directly from this overlay.",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -214,7 +214,7 @@ private fun OnboardingHowToDrive() {
             "1. Tap a category (Scan, Live Data, etc.)\n" +
                 "2. Tap a capability card\n" +
                 "3. Watch the overlay show results and action logs\n" +
-                "4. Use the eye icon (Peek) to see X431 directly anytime",
+                "4. Use the eye icon (Peek) to see OEM diagnostic app directly anytime",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -237,7 +237,7 @@ private fun OnboardingEmergencyDismiss() {
         )
         Text(
             "Hold down anywhere on an empty area for 3 seconds to dismiss the overlay. " +
-                "This gives you instant access to X431 if you need to override the overlay.",
+                "This gives you instant access to OEM diagnostic app if you need to override the overlay.",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -266,8 +266,8 @@ private fun OnboardingPeekMode() {
             modifier = Modifier.padding(bottom = Spacing.Space16),
         )
         Text(
-            "Tap the eye icon in the top-right corner to see X431 directly. The overlay dims slightly, " +
-                "so you can swipe and tap on X431 behind it.",
+            "Tap the eye icon in the top-right corner to see OEM diagnostic app directly. The overlay dims slightly, " +
+                "so you can swipe and tap on the OEM diagnostic app behind it.",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

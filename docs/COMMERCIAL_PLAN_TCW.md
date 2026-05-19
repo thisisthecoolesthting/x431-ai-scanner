@@ -1,14 +1,14 @@
 # Together Car Works — Commercial Release Plan
 
 Product: **Together Car Works** (TCW)
-Repo: `C:\Users\reasn\Documents\Claude\Projects\DEv1\_x431-work` (`github.com/thisisthecoolesthting/x431-ai-scanner`)
+Repo: Together Car Works Android (`github.com/thisisthecoolesthting/together-car-works`)
 Package id (frozen for in-app upgrades): `com.caseforge.scanner`
 Hardware target: 10" Android tablets shipped with OEM diagnostic stacks (API 24+; tested on API 28/30/34).
 
 Rebrand law that governs every section below:
 
-- Every user-visible string and class/file/folder/branch must read **Together Car Works** / **TCW**. No "Launch", "X431", "x431", "cnlaunch", "CaseForge", "caseforge" survives anywhere except the single private constant `OEM_DATA_PATH = "/sdcard/cnlaunch/"` (and equivalent candidate paths) inside `VehicleDatabasePathResolver`.
-- Branch names: `feat/...` or `fix/...`, never containing `launch` or `x431`.
+- Every user-visible string and class/file/folder/branch must read **Together Car Works** / **TCW**. Zero hits from `scripts/run-rebrand-grep.ps1` except the frozen `com.caseforge.scanner` package id and the K1-owned `OEM_DATA_PATH` constant under `transfer/VehicleDatabasePathResolver.kt`.
+- Branch names: `feat/...` or `fix/...`, never containing legacy OEM tokens (see rebrand audit script).
 - Launcher icon contains no "X" mark.
 - Package id stays `com.caseforge.scanner` so in-app updates keep working; release notes for first 1.0 build promise "future major version will migrate package id with a one-time reinstall."
 
@@ -278,12 +278,10 @@ Every fix below ships behind the universal **progress + ticker** rule.
 
 ### Rebrand sweep (sub-task of every lane; K2 owns the bulk)
 
-- `res/values/strings.xml`: rename `app_name` to `Together Car Works`; rewrite `accessibility_service_description` and `accessibility_service_summary` to never name the OEM app (replace with "the vehicle diagnostic app" or "the OEM diagnostic app"); rename every `export_*` string with `cnlaunch` → "vehicle database"; receiver hints reference `scripts\lan-export-receiver.ps1` only, with no OEM brand.
-- `AndroidManifest.xml`: `android:label="Together Car Works"` on `<application>` and `MainActivity`; remove any `android:label` referencing the OEM brand; rewrite all `PROPERTY_SPECIAL_USE_FGS_SUBTYPE` values to remove "X431" / "Launch" wording; rename `Theme.CaseForge` → `Theme.TogetherCarWorks` (style stays the same; rename references repo-wide).
-- `app/build.gradle.kts`: drop `caseforge.claudeApiKey` from `local.properties`, replace with `tcw.claudeApiKey`; keep both for one release to avoid breaking dev machines.
-- Repo-wide grep target = zero remaining matches for `\b(Launch|X431|x431|cnlaunch|CaseForge|caseforge)\b` except:
-  - `package com.caseforge.scanner` lines (package id stays).
-  - The private constant `OEM_DATA_PATH = "/sdcard/cnlaunch/"` inside `VehicleDatabasePathResolver`.
+- `res/values/strings.xml`: rename `app_name` to `Together Car Works`; rewrite `accessibility_service_description` and `accessibility_service_summary` to never name the OEM app (replace with "the vehicle diagnostic app" or "the OEM diagnostic app"); rename every `export_*` string that referenced the old vehicle DB vendor → "vehicle database"; receiver hints reference `scripts\lan-export-receiver.ps1` only, with no OEM brand.
+- `AndroidManifest.xml`: `android:label="Together Car Works"` on `<application>` and `MainActivity`; remove any `android:label` referencing the OEM brand; rewrite all `PROPERTY_SPECIAL_USE_FGS_SUBTYPE` values to neutral wording; rename legacy OEM theme style → `Theme.TogetherCarWorks` (style stays the same; rename references repo-wide).
+- `app/build.gradle.kts`: prefer `tcw.claudeApiKey` in `local.properties`; keep legacy key alias for one release to avoid breaking dev machines.
+- Repo-wide grep target: `scripts/run-rebrand-grep.ps1` exits 0 (see script for allowed exceptions).
 - File/class renames per the mapping in the brief:
   - `transfer/CnlaunchPathResolver.kt` → `transfer/VehicleDatabasePathResolver.kt`
   - `transfer/CnlaunchStorageAccess.kt` → `transfer/VehicleDatabaseStorageAccess.kt`
@@ -477,7 +475,7 @@ Doctrine: up to 4 Codex lanes (K1–K4) first, then up to 8 Cursor lanes (C1–C
 #### K2 — Rebrand sweep
 - Branch: `chore/rebrand-tcw-sweep`
 - Owns: cross-cutting strings, manifest, theme, gradle, About screen, scripts/run-rebrand-grep
-- Done-when: `rg "\b(Launch|X431|x431|cnlaunch|CaseForge|caseforge)\b"` returns 0 lines outside `com.caseforge.scanner` package id and `OEM_DATA_PATH` constant.
+- Done-when: `pwsh -File scripts/run-rebrand-grep.ps1` exits 0.
 
 #### K3 — Updater hardening + Update Center
 - Branch: `fix/updater-hardening-and-update-center`
@@ -520,5 +518,5 @@ C10 (if capacity) — Camera VIN scan + shop export formats
 **Updates** — N→N+1 in-app upgrade with PackageInstaller; Update Center renders all phases.
 **Theme + accessibility** — dark + light legible; BT_CONNECT gated to API 31+; MANAGE_EXTERNAL_STORAGE flow.
 **Reports + history** — PDF + share + direct-cable scan in History.
-**Brand audit (CI-enforced via `scripts/run-rebrand-grep.ps1`)** — zero forbidden words outside `com.caseforge.scanner` package id and `OEM_DATA_PATH` constant.
+**Brand audit (CI-enforced via `scripts/run-rebrand-grep.ps1`)** — must pass on every push/PR.
 **Release notes** — TCW 1.0 keeps `com.caseforge.scanner` so in-app updates work; future 2.0 migrates package id with 30-day notice.

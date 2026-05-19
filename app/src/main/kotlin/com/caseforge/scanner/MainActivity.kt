@@ -58,7 +58,7 @@ import com.caseforge.scanner.ui.main.RecallsScreen
 import com.caseforge.scanner.ui.main.StandaloneVciController
 import com.caseforge.scanner.ui.notes.AgentNotesScreen
 import com.caseforge.scanner.ui.settings.SettingsScreen
-import com.caseforge.scanner.ui.theme.CaseForgeTheme
+import com.caseforge.scanner.ui.theme.TogetherCarWorksTheme
 import com.caseforge.scanner.ui.triage.TriageScreen
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -106,14 +106,14 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            CaseForgeTheme(mode = app.settings.themeMode) {
+            TogetherCarWorksTheme(mode = app.settings.themeMode) {
                 val vci = remember { StandaloneVciController(this@MainActivity, app.settings) }
                 val engineState by vci.engineState
                 val context = LocalContext.current
                 fun transportNeedsBluetooth(): Boolean {
                     val mode = DiagnosticConnector.userTransportFrom(app.settings)
                     return when (mode) {
-                        DiagnosticConnector.UserTransport.LAUNCH_BT,
+                        DiagnosticConnector.UserTransport.OEM_BT,
                         DiagnosticConnector.UserTransport.ELM327_BT,
                         -> true
                         DiagnosticConnector.UserTransport.AUTO ->
@@ -185,8 +185,8 @@ class MainActivity : ComponentActivity() {
                                 app.settings.linkTransport = when (t) {
                                     DiagnosticConnector.UserTransport.AUTO -> "auto"
                                     DiagnosticConnector.UserTransport.ELM327_USB -> "elm327_usb"
-                                    DiagnosticConnector.UserTransport.LAUNCH_USB -> "launch_usb"
-                                    DiagnosticConnector.UserTransport.LAUNCH_BT -> "launch_bt"
+                                    DiagnosticConnector.UserTransport.OEM_USB -> "oem_usb"
+                                    DiagnosticConnector.UserTransport.OEM_BT -> "oem_bt"
                                     DiagnosticConnector.UserTransport.ELM327_BT -> "elm327_bt"
                                 }
                             },
@@ -443,7 +443,7 @@ class MainActivity : ComponentActivity() {
         if (key.isBlank()) { toast("Set a Claude API key in Settings first."); return }
         if (app.settings.killSwitch) { toast("Kill switch is on — disable in Settings."); return }
         if (ScannerAccessibilityService.instance() == null) {
-            toast("Enable the CaseForge accessibility service first.")
+            toast("Enable the Together Car Works accessibility service first.")
             app.actionLog.event("session.aborted", "a11y service not running")
             return
         }

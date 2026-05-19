@@ -13,8 +13,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 /**
- * CaseForge Material3 theme with dynamic color support on Android 12+.
- * Together Scanners AI brand integration.
+ * Together Car Works Material3 theme with dynamic color support on Android 12+.
+ * Together Car Works brand integration.
  *
  * On Android 12+: Uses system dynamic color seeded with Together brand primary color
  * (warm amber/orange: Color(0xFFE07A1F)).
@@ -28,7 +28,7 @@ import androidx.compose.ui.platform.LocalContext
  * @param content Composable content to wrap with theme.
  */
 @Composable
-fun CaseForgeTheme(
+fun TogetherCarWorksTheme(
     mode: String = "dark",
     isDarkMode: Boolean? = null,
     content: @Composable () -> Unit,
@@ -56,7 +56,7 @@ fun CaseForgeTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = CaseForgeTypography,
+        typography = TogetherCarWorksTypography,
         content = content,
     )
 }

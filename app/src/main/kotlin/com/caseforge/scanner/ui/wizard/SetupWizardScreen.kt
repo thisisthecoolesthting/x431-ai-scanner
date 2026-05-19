@@ -27,7 +27,7 @@ import androidx.compose.ui.res.stringResource
 import com.caseforge.scanner.agent.ScannerAccessibilityService
 import com.caseforge.scanner.data.SettingsRepo
 
-private val X431_PACKAGES = listOf(
+private val OEM_DIAG_PACKAGES = listOf(
     "com.cnlaunch.x431padv",
     "com.cnlaunch.x431padv2",
     "com.cnlaunch.diagnose.x431pro",
@@ -53,7 +53,7 @@ fun SetupWizardScreen(
     var keyOk by remember { mutableStateOf(settings.claudeApiKey.isNotBlank()) }
     var accessibilityOn by remember { mutableStateOf(ScannerAccessibilityService.instance() != null) }
     var overlayOk by remember { mutableStateOf(Settings.canDrawOverlays(ctx)) }
-    var x431Pkg by remember { mutableStateOf(detectX431(ctx)) }
+    var oemPkg by remember { mutableStateOf(detectOemDiagApp(ctx)) }
     var captureGranted by remember { mutableStateOf(com.caseforge.scanner.overlay.ScreenCaptureService.isActive()) }
     var keyDraft by remember { mutableStateOf(settings.claudeApiKey) }
 
@@ -64,7 +64,7 @@ fun SetupWizardScreen(
                 keyOk = settings.claudeApiKey.isNotBlank()
                 accessibilityOn = ScannerAccessibilityService.instance() != null
                 overlayOk = Settings.canDrawOverlays(ctx)
-                x431Pkg = detectX431(ctx)
+                oemPkg = detectOemDiagApp(ctx)
                 captureGranted = com.caseforge.scanner.overlay.ScreenCaptureService.isActive()
             }
         }
@@ -75,7 +75,7 @@ fun SetupWizardScreen(
     val readyToContinue = keyOk && accessibilityOn && overlayOk
 
     Column(Modifier.fillMaxSize()) {
-        TopAppBar(title = { Text("Welcome to Launch AI") })
+        TopAppBar(title = { Text("Welcome to Together Car Works") })
         Column(
             Modifier.fillMaxSize().padding(20.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -91,16 +91,16 @@ fun SetupWizardScreen(
             ) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        "How Launch AI works",
+                        "How Together Car Works works",
                         fontWeight = FontWeight.SemiBold,
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Text(
-                        "You live here, in Launch AI. When you tap Full Scan or Start Agent, " +
-                            "Launch AI opens the X431 app in the background and drives it for you " +
-                            "via accessibility — you'll see X431 on screen while the agent works, " +
-                            "then results come back here. The X431 app is the agent's hands; " +
-                            "Launch AI is your dashboard.",
+                        "You live here, in Together Car Works. When you tap Full Scan or Start Agent, " +
+                            "Together Car Works opens the OEM diagnostic app in the background and drives it for you " +
+                            "via accessibility — you'll see the OEM diagnostic app on screen while the agent works, " +
+                            "then results come back here. The OEM diagnostic app is the agent's hands; " +
+                            "Together Car Works is your dashboard.",
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
@@ -129,7 +129,7 @@ fun SetupWizardScreen(
             WizStep(
                 done = accessibilityOn,
                 title = "Accessibility service",
-                subtitle = if (accessibilityOn) "Enabled." else "Lets Launch AI see and operate the X431 app.",
+                subtitle = if (accessibilityOn) "Enabled." else "Lets Together Car Works see and operate the OEM diagnostic app.",
                 actionLabel = if (accessibilityOn) "Re-check" else "Open Accessibility Settings",
                 onAction = {
                     if (accessibilityOn) {
@@ -171,13 +171,13 @@ fun SetupWizardScreen(
             )
 
             WizStep(
-                done = x431Pkg != null,
-                title = "X431 diagnostic app installed",
-                subtitle = x431Pkg?.let { "Installed: $it (Launch AI will drive this for you)." }
-                    ?: "Install Launch's X431 PRO/PROS/V+ diagnostic app from your tablet's app store. " +
-                        "Launch AI cannot operate the VCI without it.",
+                done = oemPkg != null,
+                title = "OEM diagnostic app installed",
+                subtitle = oemPkg?.let { "Installed: $it (Together Car Works will drive this for you)." }
+                    ?: "Install the OEM diagnostic app from your tablet's app store. " +
+                        "Together Car Works cannot operate the VCI without it.",
                 actionLabel = "Re-check",
-                onAction = { x431Pkg = detectX431(ctx) },
+                onAction = { oemPkg = detectOemDiagApp(ctx) },
                 optional = true,
             )
 
@@ -186,7 +186,7 @@ fun SetupWizardScreen(
                 Button(
                     onClick = { if (overlayOk) onStartBubble(); onFinish() },
                     enabled = readyToContinue,
-                ) { Text("Open Launch AI dashboard") }
+                ) { Text("Open Together Car Works dashboard") }
                 OutlinedButton(onClick = onFinish) { Text("Skip wizard") }
             }
             Text(
@@ -203,9 +203,9 @@ fun SetupWizardScreen(
     }
 }
 
-private fun detectX431(ctx: android.content.Context): String? {
+private fun detectOemDiagApp(ctx: android.content.Context): String? {
     val pm = ctx.packageManager
-    for (pkg in X431_PACKAGES) {
+    for (pkg in OEM_DIAG_PACKAGES) {
         try { pm.getPackageInfo(pkg, 0); return pkg } catch (_: PackageManager.NameNotFoundException) {}
     }
     return null

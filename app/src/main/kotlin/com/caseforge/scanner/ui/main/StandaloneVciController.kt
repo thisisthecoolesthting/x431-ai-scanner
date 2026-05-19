@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * In-activity diagnostic session (ELM327 USB primary, Launch VCI optional, BT opt-in).
+ * In-activity diagnostic session (ELM327 USB primary, OEM VCI optional, BT opt-in).
  */
 class StandaloneVciController(
     context: Context,

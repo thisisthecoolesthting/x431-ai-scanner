@@ -56,7 +56,7 @@ object VciConnectionDiagnostics {
         step("Transport mode", true, transportMode)
 
         if (mode != VciConnector.Mode.BLUETOOTH) {
-            val usbClient = VciUsbClient(context, useHexEncoding = settings.vciUseHexEncoding)
+            val usbClient = OemUsbVciClient(context, useHexEncoding = settings.vciUseHexEncoding)
             val devices = usbClient.listAttachedDevices()
             step("USB serial attached", devices.isNotEmpty(), "${devices.size} device(s)")
             devices.forEach { d ->
@@ -117,14 +117,14 @@ object VciConnectionDiagnostics {
         )
         if (!permOk) return steps
 
-        val x431Up = App.isX431Foreground(context)
+        val oemDiagUp = App.isOemDiagForeground(context)
         step(
-            "X431 not holding foreground",
-            !x431Up,
-            if (x431Up) {
-                "X431 is foreground — force-stop X431 so it releases the VCI SPP socket"
+            "OEM diagnostic app not holding foreground",
+            !oemDiagUp,
+            if (oemDiagUp) {
+                "OEM diagnostic app is foreground — force-stop the OEM diagnostic app so it releases the VCI SPP socket"
             } else {
-                "X431 not in foreground"
+                "OEM diagnostic app not in foreground"
             },
         )
 
@@ -139,7 +139,7 @@ object VciConnectionDiagnostics {
         }
 
         val savedMac = macOverride ?: settings.vciSelectedBtAddress
-        val matched = VciSocketClient(context).findBondedVciDevices()
+        val matched = BluetoothVciClient(context).findBondedVciDevices()
         val target: BluetoothDevice? = when {
             savedMac != null -> bonded.firstOrNull { it.address.equals(savedMac, true) }
             matched.isNotEmpty() -> matched.first()
@@ -147,7 +147,7 @@ object VciConnectionDiagnostics {
         }
 
         val prefixHit = matched.firstOrNull()?.let { dev ->
-            VciSocketClient.VCI_NAME_PREFIXES.firstOrNull { p ->
+            BluetoothVciClient.VCI_NAME_PREFIXES.firstOrNull { p ->
                 (dev.name ?: "").startsWith(p, ignoreCase = true)
             }
         }
@@ -155,7 +155,7 @@ object VciConnectionDiagnostics {
             "VCI name match",
             target != null,
             when {
-                target == null -> "No prefix match (${VciSocketClient.VCI_NAME_PREFIXES.joinToString()}) — pick device below"
+                target == null -> "No prefix match (${BluetoothVciClient.VCI_NAME_PREFIXES.joinToString()}) — pick device below"
                 prefixHit != null -> "prefix \"$prefixHit\" → ${target.name}"
                 else -> "using saved/selected ${target.name}"
             },
@@ -165,7 +165,7 @@ object VciConnectionDiagnostics {
         if (!tryLiveConnect) return steps
 
         // SPP attempt
-        val sppClient = VciSocketClient(context, useHexEncoding = settings.vciUseHexEncoding)
+        val sppClient = BluetoothVciClient(context, useHexEncoding = settings.vciUseHexEncoding)
         val sppResult = runCatching {
             withTimeout(25_000) { sppClient.connect(target.address) }
         }

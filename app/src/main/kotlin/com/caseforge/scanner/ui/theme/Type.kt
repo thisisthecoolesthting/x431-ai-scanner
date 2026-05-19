@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.sp
  * No raw .sp or TextStyle literals in screen code — all text uses these tokens.
  */
 
-val CaseForgeTypography = Typography(
+val TogetherCarWorksTypography = Typography(
     displayLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Bold,

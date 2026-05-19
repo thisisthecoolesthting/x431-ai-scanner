@@ -39,7 +39,7 @@ import kotlinx.coroutines.launch
 
 /**
  * Standalone diagnostic screen that talks to a cheap ELM327 OBD-II Bluetooth dongle.
- * No X431 app required — this is Launch AI's daily-driver custom UI:
+ * No OEM diagnostic app required — this is Together Car Works's daily-driver custom UI:
  *   - Connect / disconnect
  *   - Read stored + pending DTCs (Mode 03 / 07)
  *   - Ask Claude to explain any code
@@ -296,7 +296,7 @@ fun ObdScanScreen(
                 "OBD-II Mode 01/03/04/07 over Bluetooth SPP. Works with any standard 16-pin port " +
                     "(1996+ US, 2001+ EU petrol, 2003+ EU diesel). For OEM-specific tests " +
                     "(key programming, ABS bleed, etc.) use Full Scan on the dashboard, which drives " +
-                    "the X431 app.",
+                    "the OEM diagnostic app.",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.outline,
             )
