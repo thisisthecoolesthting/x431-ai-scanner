@@ -385,7 +385,7 @@ private fun ErrorBanner(
     ) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(reason, style = MaterialTheme.typography.bodySmall)
-            val (btnLabel, btnAction): Pair<String?, () -> Unit> = when (remediation) {
+            val actionPair: Pair<String?, () -> Unit> = when (remediation) {
                 Remediation.OPEN_SETTINGS        -> "Settings" to {
                     val intent = android.content.Intent(android.provider.Settings.ACTION_SETTINGS)
                     intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -429,6 +429,7 @@ private fun ErrorBanner(
                 }
                 Remediation.RETRY, Remediation.RESUME, Remediation.NONE -> null to {}
             }
+            val (btnLabel, btnAction) = actionPair
             if (btnLabel != null) {
                 OutlinedButton(onClick = btnAction) { Text(btnLabel) }
             }
