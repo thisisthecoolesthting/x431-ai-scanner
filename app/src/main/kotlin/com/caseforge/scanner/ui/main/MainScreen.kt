@@ -17,8 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.agent.AgentStatus
+import com.caseforge.scanner.data.SettingsRepo
 import com.caseforge.scanner.overlay.compose.LiveActivityTicker
-import com.caseforge.scanner.ui.transfer.CnlaunchOneTapSendCard
+import com.caseforge.scanner.ui.transfer.OneTapSendCard
 import com.caseforge.scanner.vci.DiagnosticConnector
 import kotlinx.coroutines.launch
 
@@ -29,6 +30,7 @@ fun MainScreen(
     linkDetail: String?,
     engineBusy: Boolean,
     engineState: com.caseforge.scanner.engine.EngineState,
+    settings: SettingsRepo,
     usbDeviceCount: Int,
     selectedTransport: DiagnosticConnector.UserTransport,
     onTransportSelected: (DiagnosticConnector.UserTransport) -> Unit,
@@ -124,7 +126,10 @@ fun MainScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            CnlaunchOneTapSendCard(Modifier.fillMaxWidth())
+            OneTapSendCard(
+                settings = settings,
+                modifier = Modifier.fillMaxWidth(),
+            )
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(

@@ -9,13 +9,13 @@ Date: 2026-05-18
 | File | Purpose |
 |---|---|
 | `transfer/LanExportConfig.kt` | Top-level constants: `DEFAULT_RECEIVER_HOST`, `DEFAULT_RECEIVER_PORT` |
-| `transfer/VehicleDatabasePathResolver.kt` | Renamed from `CnlaunchPathResolver`; adds private `OEM_DATA_PATH` constant |
-| `transfer/VehicleDatabaseStorageAccess.kt` | Renamed from `CnlaunchStorageAccess` |
-| `transfer/VehicleDatabaseZipper.kt` | Renamed from `CnlaunchZipper`; updated exception name, zip entry prefix |
-| `transfer/VehicleDatabaseQuickSend.kt` | Renamed from `CnlaunchQuickSend`; takes `SettingsRepo` + `LanPushUploader` |
+| `transfer/VehicleDatabasePathResolver.kt` | Renamed from the previous OEM-data resolver; adds private `OEM_DATA_PATH` constant |
+| `transfer/VehicleDatabaseStorageAccess.kt` | Renamed from the previous OEM-data storage helper |
+| `transfer/VehicleDatabaseZipper.kt` | Renamed from the previous OEM-data zipper; updated exception name, zip entry prefix |
+| `transfer/VehicleDatabaseQuickSend.kt` | Renamed from the previous OEM-data quick-send helper; takes `SettingsRepo` + `LanPushUploader` |
 | `transfer/TransferLog.kt` | Thread-safe ring buffer (500 entries) + `StateFlow`; ISO-8601 timestamps |
 | `transfer/SendState.kt` | Sealed class for upload state machine + `Remediation` enum |
-| `ui/transfer/OneTapSendCard.kt` | Full 6-step state machine UI; replaces `CnlaunchOneTapSendCard` |
+| `ui/transfer/OneTapSendCard.kt` | Full 6-step state machine UI; replaces the old send card |
 | `ui/transfer/TransferLogScreen.kt` | Log viewer: Copy all, Email to support, Clear |
 | `scripts/install-tcw-receiver.ps1` | Sets up Scheduled Task + firewall rule (idempotent) |
 | `scripts/tcw-raw-receiver.ps1` | Stub; documented placeholder for raw-TCP fallback |
@@ -24,7 +24,7 @@ Date: 2026-05-18
 | File | Change |
 |---|---|
 | `transfer/LanPushUploader.kt` | Full rewrite: `/health` pre-flight, raw POST + SHA-256, resumable PATCH, `SendState` flow |
-| `transfer/LanFileServer.kt` | Updated `CnlaunchZipper` → `VehicleDatabaseZipper` references |
+| `transfer/LanFileServer.kt` | Updated legacy zipper references to `VehicleDatabaseZipper` |
 | `data/SettingsRepo.kt` | Added `receiverPcHost`, `receiverPcPort`, `useMultipartFallback` |
 | `ui/transfer/ExportDataScreen.kt` | Updated to use `OneTapSendCard` with `SettingsRepo` param |
 | `scripts/lan-export-receiver.ps1` | Full rewrite: all 4 routes (`/health`, `POST /upload`, `HEAD /upload`, `PATCH /upload`), sha256 verify, logging |
@@ -33,11 +33,11 @@ Date: 2026-05-18
 ### Deleted files
 | File | Replaced by |
 |---|---|
-| `transfer/CnlaunchPathResolver.kt` | `VehicleDatabasePathResolver.kt` |
-| `transfer/CnlaunchStorageAccess.kt` | `VehicleDatabaseStorageAccess.kt` |
-| `transfer/CnlaunchZipper.kt` | `VehicleDatabaseZipper.kt` |
-| `transfer/CnlaunchQuickSend.kt` | `VehicleDatabaseQuickSend.kt` |
-| `ui/transfer/CnlaunchOneTapSendCard.kt` | `ui/transfer/OneTapSendCard.kt` |
+| Previous OEM-data resolver | `VehicleDatabasePathResolver.kt` |
+| Previous OEM-data storage helper | `VehicleDatabaseStorageAccess.kt` |
+| Previous OEM-data zipper | `VehicleDatabaseZipper.kt` |
+| Previous OEM-data quick-send helper | `VehicleDatabaseQuickSend.kt` |
+| Previous one-tap send card | `ui/transfer/OneTapSendCard.kt` |
 
 ## Behavior Changes
 
@@ -61,19 +61,19 @@ Date: 2026-05-18
 ### MainActivity (C-lane or K2 merge)
 - Register route `"transfer_log"` in the `NavHost` wired to `TransferLogScreen(onBack = { navController.popBackStack() })`.
 - `ExportDataScreen` now takes `settings: SettingsRepo` and `onOpenTransferLog: (() -> Unit)?` — callers must pass these. The old signature `ExportDataScreen(onBack: () -> Unit)` is replaced.
-- `LanFileServer.create(...)` takes `VehicleDatabaseZipper` now (was `CnlaunchZipper`) — any call sites outside the K1 file set (e.g. `MainScreen.kt`) need updating by K2.
+- `LanFileServer.create(...)` takes `VehicleDatabaseZipper` now — any call sites outside the K1 file set (e.g. `MainScreen.kt`) need updating by K2.
 
 ### K2 Rebrand (cross-cutting)
-- `strings.xml`: old `export_*` strings with "cnlaunch" wording can be removed after K2 sweep verifies no compile references remain.
-- `LanFileServer.kt` still has inline string "cnlaunch-bundle.zip" and "Together — cnlaunch export" in HTML responses — K2 should neutralize these.
-- `DEFAULT_AGENT_NOTES` in `SettingsRepo.kt` still mentions "CaseForge Scanner AI" and "X431" — K2 scope.
+- `strings.xml`: old `export_*` strings can be removed after K2 sweep verifies no compile references remain.
+- `LanFileServer.kt` legacy download labels should stay neutral: vehicle data export, `tcw-vehicle-data.zip`.
+- `DEFAULT_AGENT_NOTES` in `SettingsRepo.kt` should stay product-neutral and avoid OEM brand names.
 
 ### Settings screen (C5 lane)
 - Wire `SettingsRepo.receiverPcHost` / `receiverPcPort` to text fields.
 - Wire `SettingsRepo.useMultipartFallback` to a toggle (hidden under "Advanced").
 
 ### VciConnector / DiagnosticConnector (K2 or C lane)
-- `DiagnosticConnector.LinkKind.LAUNCH_USB/LAUNCH_BT` still use old names; K1 intentionally left them unchanged per lane rules. K2 renames these.
+- `DiagnosticConnector.LinkKind.OEM_USB/OEM_BT` is the expected post-rebrand naming.
 
 ## Acceptance Test (manual, fresh install)
 1. Run `scripts/install-tcw-receiver.ps1` on the office PC (one-time).

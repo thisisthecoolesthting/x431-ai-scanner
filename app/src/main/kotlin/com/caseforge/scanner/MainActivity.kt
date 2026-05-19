@@ -178,6 +178,7 @@ class MainActivity : ComponentActivity() {
                             linkDetail = vci.linkKind()?.name?.replace('_', ' '),
                             engineBusy = engineState.busy,
                             engineState = engineState,
+                            settings = app.settings,
                             usbDeviceCount = usbCount,
                             selectedTransport = selectedTransport,
                             onTransportSelected = { t ->
@@ -284,7 +285,12 @@ class MainActivity : ComponentActivity() {
                             onBack = { route = "settings" },
                         )
                         "export_data" -> com.caseforge.scanner.ui.transfer.ExportDataScreen(
+                            settings = app.settings,
                             onBack = { route = "main" },
+                            onOpenTransferLog = { route = "transfer_log" },
+                        )
+                        "transfer_log" -> com.caseforge.scanner.ui.transfer.TransferLogScreen(
+                            onBack = { route = "export_data" },
                         )
                         "direct_vci" -> com.caseforge.scanner.ui.obd.DirectVciProbeScreen(
                             onBack = { route = "settings" },

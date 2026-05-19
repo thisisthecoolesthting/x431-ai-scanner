@@ -9,16 +9,16 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.zip.ZipInputStream
 
-class CnlaunchZipperTest {
+class VehicleDatabaseZipperTest {
 
     @Test
-    fun streamsZipWithCnlaunchPrefix() = runBlocking {
-        val root = File.createTempFile("cnlaunch-root", null)
+    fun streamsZipWithVehicleDatabasePrefix() = runBlocking {
+        val root = File.createTempFile("vehicle-db-root", null)
         root.delete()
         root.mkdirs()
         File(root, "nested/a.txt").apply { parentFile?.mkdirs(); writeText("hello") }
 
-        val zipper = CnlaunchZipper(root)
+        val zipper = VehicleDatabaseZipper(root)
         val out = ByteArrayOutputStream()
         val progress = zipper.zipProgressFlow(out).toList()
         assertTrue(progress.isNotEmpty())
@@ -31,7 +31,7 @@ class CnlaunchZipperTest {
                 entry = zis.nextEntry
             }
         }
-        assertTrue(names.any { it == "cnlaunch/nested/a.txt" })
+        assertTrue(names.any { it == "vehicle-database/nested/a.txt" })
         val payload = ZipInputStream(out.toByteArray().inputStream()).use {
             checkNotNull(it.nextEntry)
             it.readBytes().decodeToString()

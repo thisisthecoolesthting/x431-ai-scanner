@@ -30,23 +30,23 @@
 | Legacy theme composable | `TogetherCarWorksTheme` |
 | `vci/VciSocketClient.kt` | `vci/BluetoothVciClient.kt` |
 | `vci/VciUsbClient.kt` | `vci/OemUsbVciClient.kt` |
-| `vci/CnlaunchAssetIndex.kt` | `vci/OemVehicleAssetIndex.kt` |
+| Previous OEM asset index | `vci/OemVehicleAssetIndex.kt` |
 | Old vendor asset tree | `assets/oem-vehicle-db/*` |
-| `scripts/extract-x431-apk.ps1` | `scripts/extract-oem-tablet-apk.ps1` |
+| Previous OEM APK extractor | `scripts/extract-oem-tablet-apk.ps1` |
 
 ## Enum / API renames
 
-- `DiagnosticConnector.LinkKind.LAUNCH_USB` / `LAUNCH_BT` → `OEM_USB` / `OEM_BT`
+- Legacy `DiagnosticConnector.LinkKind` OEM entries → `OEM_USB` / `OEM_BT`
 - `DiagnosticConnector.UserTransport` — same mapping
-- `ScannerAccessibilityService.X431_PACKAGES` → `OEM_DIAG_PACKAGES`
-- `bringX431ToFront()` → `bringOemDiagToFront()`
-- `App.isX431Foreground()` → `App.isOemDiagForeground()`
-- `HealthState.x431Foreground` → `oemDiagForeground`
-- `SettingsRepo.overlayOnX431` → `overlayOnOemDiag` (pref key `overlay_on_oem_diag`)
+- Legacy OEM package constants → `OEM_DIAG_PACKAGES`
+- Legacy bring-to-front helper → `bringOemDiagToFront()`
+- Foreground detector → `App.isOemDiagForeground()`
+- Health foreground flag → `oemDiagForeground`
+- Overlay setting → `overlayOnOemDiag` (pref key `overlay_on_oem_diag`)
 
 ## Settings / prefs
 
-- `linkTransport`: reads `launch_usb` / `launch_bt` (and legacy `vci_usb` / `vci_bt`), normalizes to `oem_usb` / `oem_bt`; writes `oem_*` only
+- `linkTransport`: reads legacy aliases, normalizes to `oem_usb` / `oem_bt`; writes `oem_*` only
 - `tcw.claudeApiKey` preferred in `app/build.gradle.kts` with legacy local.properties key fallback
 - Room DB filename moved to `tcw.db` (destructive migration already enabled)
 

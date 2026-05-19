@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.random.Random
 
 /**
- * Embedded LAN HTTP server: pass-code gate + streaming zip download of cnlaunch data.
+ * Embedded LAN HTTP server: pass-code gate + streaming zip download of vehicle data.
  * Binds [NetworkInterfaceHelper.BIND_ALL] so any interface can reach the port.
  */
 class LanFileServer private constructor(
@@ -44,7 +44,7 @@ class LanFileServer private constructor(
     companion object {
         const val IDLE_TIMEOUT_MS = 10 * 60 * 1000L
         private const val COOKIE_NAME = "together_export"
-        private const val ZIP_NAME = "cnlaunch-bundle.zip"
+        private const val ZIP_NAME = "tcw-vehicle-data.zip"
         private val PORT_CANDIDATES = listOf(8765) + (8766..8799) + (8000..8099)
 
         fun randomPassCode(): String = (1..6).joinToString("") { Random.nextInt(0, 10).toString() }
@@ -160,7 +160,7 @@ class LanFileServer private constructor(
             return html(
                 """
                 <html><body>
-                <h2>Together — cnlaunch export</h2>
+                <h2>Together Car Works vehicle data export</h2>
                 <p>Authenticated. Download the bundle:</p>
                 <p><a href="/download">$ZIP_NAME</a></p>
                 </body></html>
@@ -170,7 +170,7 @@ class LanFileServer private constructor(
         return html(
             """
             <html><body>
-            <h2>Together — cnlaunch export</h2>
+            <h2>Together Car Works vehicle data export</h2>
             <p>Enter the 6-digit code shown on the tablet:</p>
             <form method="POST" action="/auth">
               <input name="code" maxlength="6" inputmode="numeric" autocomplete="one-time-code"/>
@@ -214,7 +214,7 @@ class LanFileServer private constructor(
             return newFixedLengthResponse(
                 Response.Status.NOT_FOUND,
                 MIME_PLAINTEXT,
-                "cnlaunch folder not found on tablet",
+                "Vehicle database folder not found on tablet",
             )
         }
         if (!zipper.hasExportableData) {
@@ -226,7 +226,7 @@ class LanFileServer private constructor(
             )
         }
         downloadStarted.set(true)
-        val zipFile = java.io.File(appContext.cacheDir, "cnlaunch-export-${System.currentTimeMillis()}.zip")
+        val zipFile = java.io.File(appContext.cacheDir, "tcw-vehicle-data-${System.currentTimeMillis()}.zip")
         return try {
             val progress = zipper.zipToFileBlocking(zipFile)
             actionLog.event(
