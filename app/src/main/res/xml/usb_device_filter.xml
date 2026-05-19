@@ -5,6 +5,6 @@
     <usb-device vendor-id="6790" product-id="29987" /> <!-- CH340 1a86:7523 -->
     <usb-device vendor-id="1659" product-id="8963" />  <!-- PL2303 067b:2303 -->
     <usb-device vendor-id="4292" product-id="60000" /> <!-- CP21xx 10c4:ea60 -->
-    <!-- Launch VCI and other serial (task 202) — permissive fallback -->
+    <!-- OEM VCI and other serial (task 202) — permissive fallback -->
     <usb-device />
 </resources>
