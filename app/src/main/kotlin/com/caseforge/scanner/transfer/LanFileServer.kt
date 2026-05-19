@@ -28,7 +28,7 @@ class LanFileServer private constructor(
     val passCode: String,
     val displayHost: String,
     private val appContext: Context,
-    private val zipper: CnlaunchZipper,
+    private val zipper: VehicleDatabaseZipper,
     private val actionLog: AgentActionLog,
     private val scope: CoroutineScope,
     private val onAutoStop: () -> Unit,
@@ -56,7 +56,7 @@ class LanFileServer private constructor(
             context: Context,
             displayHost: String,
             passCode: String,
-            zipper: CnlaunchZipper,
+            zipper: VehicleDatabaseZipper,
             actionLog: AgentActionLog,
             scope: CoroutineScope,
             onAutoStop: () -> Unit,
@@ -222,7 +222,7 @@ class LanFileServer private constructor(
             return newFixedLengthResponse(
                 Response.Status.BAD_REQUEST,
                 MIME_PLAINTEXT,
-                CnlaunchZipper.EmptyCnlaunchException.emptyMessage(inv),
+                VehicleDatabaseZipper.EmptyVehicleDatabaseException.emptyMessage(inv),
             )
         }
         downloadStarted.set(true)
