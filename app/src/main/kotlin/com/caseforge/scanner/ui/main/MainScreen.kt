@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.agent.AgentStatus
 import com.caseforge.scanner.overlay.compose.LiveActivityTicker
+import com.caseforge.scanner.ui.transfer.CnlaunchOneTapSendCard
 import com.caseforge.scanner.vci.DiagnosticConnector
 import kotlinx.coroutines.launch
 
@@ -123,6 +124,7 @@ fun MainScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            CnlaunchOneTapSendCard(Modifier.fillMaxWidth())
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(

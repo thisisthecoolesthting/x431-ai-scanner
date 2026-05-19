@@ -8,8 +8,18 @@
     </string>
     <string name="accessibility_service_summary">Drives the X431 app on your behalf</string>
 
-    <string name="export_screen_title">Export tablet data to PC</string>
-    <string name="export_screen_body">Send cnlaunch to the office PC at 192.168.1.129. Recommended: tap Push to office PC (run scripts/lan-export-receiver.ps1 on that machine first). Or start the tablet server and open the URL below in Chrome on 192.168.1.129 — use the tablet IP, not the PC IP.</string>
+    <string name="export_screen_title">Send data to PC</string>
+    <string name="export_one_tap_title">Vehicle databases → office PC</string>
+    <string name="export_one_tap_subtitle">One tap zips cnlaunch and sends to %1$s. No password.</string>
+    <string name="export_one_tap_button">Zip and send to %1$s</string>
+    <string name="export_send_done">Sent — you can leave this screen.</string>
+    <string name="export_send_done_short">Sent to %1$s</string>
+    <string name="export_inventory_summary">Ready: %1$d files (~%2$d MB)</string>
+    <string name="export_need_files_access">Allow All files access, then tap again.</string>
+    <string name="export_grant_files">Allow file access</string>
+    <string name="export_rescan">Rescan folder</string>
+    <string name="export_pc_receiver_once">PC once: run scripts\\lan-export-receiver.ps1 on 192.168.1.129</string>
+    <string name="export_screen_body">Zips cnlaunch and uploads to the office PC. Same Wi‑Fi required.</string>
     <string name="export_pc_host_label">Receiving PC (hardcoded): %1$s</string>
     <string name="export_pc_browser_hint">On that PC, open this address in Chrome:</string>
     <string name="export_push_to_pc">Push to office PC now</string>
@@ -32,7 +42,7 @@
     <string name="export_wizard_title">Send tablet data to PC</string>
     <string name="export_wizard_subtitle">Recommended for offline AI — exports the cnlaunch folder over your shop Wi‑Fi. You can do this later from Settings.</string>
     <string name="export_wizard_action">Open export</string>
-    <string name="export_settings_entry">Export tablet data to PC</string>
+    <string name="export_settings_entry">Send cnlaunch zip to PC (one tap)</string>
     <string name="export_pick_ip">Pick the IP your PC can reach (same Wi‑Fi subnet):</string>
     <string name="export_state_listening">LISTENING on %1$s:%2$d</string>
     <string name="export_state_starting">STARTING…</string>
