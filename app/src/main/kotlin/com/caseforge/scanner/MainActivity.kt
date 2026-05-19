@@ -113,7 +113,7 @@ class MainActivity : ComponentActivity() {
                 fun transportNeedsBluetooth(): Boolean {
                     val mode = DiagnosticConnector.userTransportFrom(app.settings)
                     return when (mode) {
-                        DiagnosticConnector.UserTransport.LAUNCH_BT,
+                        DiagnosticConnector.UserTransport.OEM_BT,
                         DiagnosticConnector.UserTransport.ELM327_BT,
                         -> true
                         DiagnosticConnector.UserTransport.AUTO ->
@@ -185,8 +185,8 @@ class MainActivity : ComponentActivity() {
                                 app.settings.linkTransport = when (t) {
                                     DiagnosticConnector.UserTransport.AUTO -> "auto"
                                     DiagnosticConnector.UserTransport.ELM327_USB -> "elm327_usb"
-                                    DiagnosticConnector.UserTransport.LAUNCH_USB -> "launch_usb"
-                                    DiagnosticConnector.UserTransport.LAUNCH_BT -> "launch_bt"
+                                    DiagnosticConnector.UserTransport.OEM_USB -> "oem_usb"
+                                    DiagnosticConnector.UserTransport.OEM_BT -> "oem_bt"
                                     DiagnosticConnector.UserTransport.ELM327_BT -> "elm327_bt"
                                 }
                             },

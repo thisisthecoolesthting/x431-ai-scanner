@@ -123,7 +123,7 @@ object DiagnosticConnector {
         }
     }
 
-    private suspend fun connectLaunchUsb(
+    private suspend fun connectOemUsb(
         context: Context,
         settings: SettingsRepo,
         usbDevice: UsbDevice?,
@@ -134,7 +134,7 @@ object DiagnosticConnector {
         return r.map {
             val comm = VciCommunicator(usb)
             ActiveLink(
-                kind = LinkKind.LAUNCH_USB,
+                kind = LinkKind.OEM_USB,
                 port = VciDiagnosticAdapter(comm),
                 detail = "Launch VCI USB",
                 disconnect = { usb.disconnect() },
@@ -143,7 +143,7 @@ object DiagnosticConnector {
         }
     }
 
-    private suspend fun connectLaunchBt(context: Context, settings: SettingsRepo): Result<ActiveLink> {
+    private suspend fun connectOemBt(context: Context, settings: SettingsRepo): Result<ActiveLink> {
         if (!settings.bluetoothTransportEnabled) {
             return Result.failure(
                 IllegalStateException("Bluetooth is off — enable it in the connection drawer first"),
@@ -154,7 +154,7 @@ object DiagnosticConnector {
         val result = VciConnector.connect(context, settings).map { r ->
             val comm = VciCommunicator(r.transport)
             ActiveLink(
-                kind = LinkKind.LAUNCH_BT,
+                kind = LinkKind.OEM_BT,
                 port = VciDiagnosticAdapter(comm),
                 detail = r.detail,
                 disconnect = { r.transport.disconnect() },
@@ -187,7 +187,7 @@ object DiagnosticConnector {
         )
     }
 
-    /** Quick ELM327 vs Launch probe on an open USB serial port (used by attach handler). */
+    /** Quick ELM327 vs OEM VCI probe on an open USB serial port (used by attach handler). */
     suspend fun detectUsbKind(context: Context, device: UsbDevice): LinkKind? {
         val elm = ObdUsbTool(context)
         if (elm.probeOnly(device)) {
@@ -200,7 +200,7 @@ object DiagnosticConnector {
                 val usb = OemUsbVciClient(context)
                 usb.connect(device).getOrThrow()
                 usb.disconnect()
-                LinkKind.LAUNCH_USB
+                LinkKind.OEM_USB
             }
         }.getOrNull()
     }
