@@ -262,7 +262,25 @@ class SettingsRepo(context: Context) {
         get() = prefs.getBoolean(K_EMERGENCY_DISMISS_HINT_SEEN, false)
         set(value) { prefs.edit().putBoolean(K_EMERGENCY_DISMISS_HINT_SEEN, value).apply() }
 
+    /**
+     * Home shell: [HOME_SCANNER_CONSOLE] (tile grid) or [HOME_AI_COPILOT] (chat-first).
+     * Settings UI for this toggle is owned by C5; persist only here in DX1.
+     */
+    var homeMode: String
+        get() = normalizeHomeMode(prefs.getString(K_HOME_MODE, HOME_SCANNER_CONSOLE) ?: HOME_SCANNER_CONSOLE)
+        set(value) { prefs.edit().putString(K_HOME_MODE, normalizeHomeMode(value)).apply() }
+
+    val isAiCopilotHome: Boolean
+        get() = homeMode == HOME_AI_COPILOT
+
     companion object {
+        const val HOME_SCANNER_CONSOLE = "scanner_console"
+        const val HOME_AI_COPILOT = "ai_copilot"
+
+        private fun normalizeHomeMode(raw: String): String = when (raw.lowercase()) {
+            HOME_AI_COPILOT -> HOME_AI_COPILOT
+            else -> HOME_SCANNER_CONSOLE
+        }
         private const val K_API_KEY = "claude_api_key"
         private const val K_MODEL = "claude_model"
         private const val K_AUTONOMOUS = "autonomous_actuation"
@@ -290,6 +308,7 @@ class SettingsRepo(context: Context) {
         private const val K_USE_MULTIPART_FALLBACK = "use_multipart_fallback"
         private const val K_OVERLAY_ONBOARDING_SEEN = "overlay_onboarding_seen"   // C2
         private const val K_EMERGENCY_DISMISS_HINT_SEEN = "emergency_dismiss_hint_seen"   // D1
+        private const val K_HOME_MODE = "home_mode"
 
         const val DEFAULT_AGENT_NOTES = """About this app
 ==============

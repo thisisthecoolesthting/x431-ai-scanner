@@ -53,8 +53,11 @@ import com.caseforge.scanner.overlay.compose.screens.ModuleListScreen
 import com.caseforge.scanner.overlay.compose.screens.ReportScreen
 import com.caseforge.scanner.ui.history.HistoryScreen
 import com.caseforge.scanner.ui.log.ActionLogScreen
+import com.caseforge.scanner.ui.main.AiCopilotHomeScreen
+import com.caseforge.scanner.ui.main.CopilotAction
 import com.caseforge.scanner.ui.main.MainScreen
 import com.caseforge.scanner.ui.main.RecallsScreen
+import com.caseforge.scanner.data.SettingsRepo
 import com.caseforge.scanner.ui.main.StandaloneVciController
 import com.caseforge.scanner.ui.notes.AgentNotesScreen
 import com.caseforge.scanner.ui.settings.SettingsScreen
@@ -169,10 +172,99 @@ class MainActivity : ComponentActivity() {
                 var triageInput by remember { mutableStateOf(sharedReport.orEmpty()) }
                 var triageOutput by remember { mutableStateOf("") }
                 var busy by remember { mutableStateOf(false) }
+                var homeMode by remember { mutableStateOf(app.settings.homeMode) }
+                var pendingCopilotSymptom by remember { mutableStateOf<String?>(null) }
+
+                fun runScanFromHome() {
+                    vci.runFullScan(lifecycleScope) { ok ->
+                        if (ok) route = "report"
+                    }
+                }
+
+                fun runWithConnection(block: () -> Unit) {
+                    if (vci.isConnected) {
+                        block()
+                    } else {
+                        usbCount = ObdUsbTool(context).listDevices().size
+                        requestConnect()
+                        toast("Connect OBD first, then try again.")
+                    }
+                }
+
+                fun handleCopilotAction(action: CopilotAction) {
+                    when (action) {
+                        CopilotAction.ConnectUsbObd -> {
+                            usbCount = ObdUsbTool(context).listDevices().size
+                            requestConnect()
+                        }
+                        CopilotAction.ScanVehicle,
+                        CopilotAction.RunObdScan,
+                        -> runWithConnection { runScanFromHome() }
+                        CopilotAction.StartLiveData,
+                        CopilotAction.OpenLiveData,
+                        -> runWithConnection {
+                            vci.startLiveData(lifecycleScope)
+                            route = "live_data"
+                        }
+                        CopilotAction.CheckRecalls -> route = "recalls"
+                        CopilotAction.SendDataToPc -> route = "export_data"
+                        CopilotAction.OpenHistory -> route = "history"
+                        CopilotAction.OpenSettings -> route = "settings"
+                        CopilotAction.OpenDiagnostics -> route = "vci_diagnostics"
+                        CopilotAction.OpenScannerConsole -> {
+                            app.settings.homeMode = SettingsRepo.HOME_SCANNER_CONSOLE
+                            homeMode = SettingsRepo.HOME_SCANNER_CONSOLE
+                        }
+                        CopilotAction.ClearCodes -> {
+                            toast("Clear codes: open Service and confirm there.")
+                            route = "service"
+                        }
+                        CopilotAction.ShareReport -> {
+                            if (engineState.dtcs.isEmpty()) {
+                                toast("Run a scan first to share a report.")
+                            } else {
+                                route = "report"
+                            }
+                        }
+                        CopilotAction.ExplainCurrentCodes,
+                        CopilotAction.GenerateRepairStory,
+                        CopilotAction.BuildCustomerReport,
+                        -> {
+                            val symptom = pendingCopilotSymptom
+                                ?: when (action) {
+                                    CopilotAction.ExplainCurrentCodes -> "Explain current DTCs in plain English."
+                                    CopilotAction.GenerateRepairStory,
+                                    CopilotAction.BuildCustomerReport,
+                                    -> "Build a customer-facing repair story from the last scan."
+                                    else -> null
+                                }
+                            lifecycleScope.launch {
+                                runStandaloneAgent(
+                                    vin = engineState.vehicleVin,
+                                    symptom = symptom,
+                                    dtcs = engineState.dtcs,
+                                )
+                            }
+                        }
+                        is CopilotAction.SubmitSymptom -> {
+                            pendingCopilotSymptom = action.text.trim().ifBlank { null }
+                        }
+                    }
+                }
 
                 Box(Modifier.fillMaxSize()) {
                     when (route) {
-                        "main" -> MainScreen(
+                        "main" -> if (homeMode == SettingsRepo.HOME_AI_COPILOT) {
+                            AiCopilotHomeScreen(
+                                vciConnected = vci.isConnected,
+                                vin = engineState.vehicleVin,
+                                engineBusy = engineState.busy,
+                                engineState = engineState,
+                                buildInfo = BuildConfig.BUILD_INFO,
+                                onCopilotAction = { handleCopilotAction(it) },
+                                onCheckUpdate = { checkForAppUpdate() },
+                            )
+                        } else MainScreen(
                             vciConnected = vci.isConnected,
                             vin = engineState.vehicleVin,
                             linkDetail = vci.linkKind()?.name?.replace('_', ' '),
@@ -275,7 +367,10 @@ class MainActivity : ComponentActivity() {
                         )
                         "settings" -> SettingsScreen(
                             settings = app.settings,
-                            onBack = { route = "main" },
+                            onBack = {
+                                homeMode = app.settings.homeMode
+                                route = "main"
+                            },
                             onOpenDataExport = { route = "export_data" },
                             onOpenDirectVciProbe = { route = "direct_vci" },
                             onOpenVciDiagnostics = { route = "vci_diagnostics" },
