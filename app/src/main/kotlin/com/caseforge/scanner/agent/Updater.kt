@@ -10,6 +10,7 @@ import android.provider.Settings
 import android.util.Log
 import androidx.core.content.FileProvider
 import com.caseforge.scanner.BuildConfig
+import com.caseforge.scanner.ui.updates.UpdateHistory
 import com.caseforge.scanner.ui.updates.UpdaterPhase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -283,6 +284,15 @@ object Updater {
                 val version = pendingInstallVersion
                 val sha = pendingInstallSha
                 _phase.value = UpdaterPhase.Installed(version, sha)
+                context?.let { ctx ->
+                    UpdateHistory.append(
+                        ctx,
+                        versionName = version,
+                        versionCode = BuildConfig.VERSION_CODE,
+                        sha = sha,
+                        downloadBytes = pendingDownloadBytes,
+                    )
+                }
                 AgentStatus.setActivity("Together Car Works update installed — restart to apply")
             }
             PackageInstaller.STATUS_FAILURE,

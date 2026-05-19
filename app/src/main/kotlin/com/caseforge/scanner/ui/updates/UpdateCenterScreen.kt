@@ -66,7 +66,7 @@ fun UpdateCenterScreen(
 ) {
     val phase by phaseFlow.collectAsState()
     val context = LocalContext.current
-    val history = remember { UpdateHistory.load(context) }
+    val history = remember(phase) { UpdateHistory.load(context) }
 
     Column(
         modifier = Modifier
