@@ -438,6 +438,88 @@ Rules:
 
 ---
 
+## E.3 — Dual Home Modes: Scanner Console + AI Copilot
+
+Together Car Works should support two distinct operator workflows behind a Settings toggle.
+
+### Mode 1: Scanner Console (default, already built)
+
+This is the current tile-first workflow:
+
+- Top bar: transport, ignition, battery voltage, VIN, busy spinner, build.
+- Primary grid: Connect, Scan, Live Data, Service, Bidirectional, Data Transfer, History, Settings.
+- Best for techs who want a normal scan-tool layout and fast direct actions.
+- Must remain the default for commercial launch because it is predictable and easy to train.
+
+### Mode 2: AI Copilot Home (chat-first workflow)
+
+New home route/component: `ui/main/AiCopilotHomeScreen.kt`, owned by **C1** or a follow-up **C9** lane.
+
+Layout:
+
+- Top persistent status strip remains identical to Scanner Console: transport, ignition, voltage, VIN, busy spinner.
+- Main body is a large chat/symptom panel:
+  - Prompt placeholder: `Tell Together what you're seeing: "2014 Silverado misfire at idle", "No start", "Clear codes after repair"...`
+  - IME Send submits.
+  - Suggested prompt chips from current state:
+    - `Scan this vehicle`
+    - `Explain current codes`
+    - `Start live data`
+    - `Check recalls`
+    - `Build customer report`
+    - `Send data to PC`
+  - The AI response is not just text. It renders **action cards** the tech can tap:
+    - `Connect USB OBD`
+    - `Run OBD-II scan`
+    - `Clear codes`
+    - `Open Live Data`
+    - `Generate repair story`
+    - `Share report`
+  - Every action card follows the global state model: `Idle → Running → Success/Failed`.
+- A compact bottom row keeps manual escape hatches: `Console`, `History`, `Settings`, `Diagnostics`.
+
+Behavior rules:
+
+- AI Copilot can suggest and launch workflows, but it cannot hide critical confirmations:
+  - Clear Codes still requires confirmation.
+  - Bidirectional/service tests still respect OEM-required gating.
+  - Install/update/data transfer still show visible progress cards.
+- If the AI asks for an action that requires connection and the tablet is disconnected, it opens the Connection drawer first.
+- If the user types a symptom before scanning, the app stores it as `pendingSymptom` and attaches it to the next session/report.
+- If the AI is unavailable/offline, the screen falls back to local quick actions and offline DTC dictionary results.
+
+### Settings toggle (owned by **C5**)
+
+Add:
+
+`Settings → App behavior → Home mode`
+
+Options:
+
+- `Scanner Console` (default)
+- `AI Copilot`
+
+Persist in `SettingsRepo.homeMode` as:
+
+- `scanner_console`
+- `ai_copilot`
+
+Startup behavior:
+
+- `MainActivity` reads `settings.homeMode`.
+- If `scanner_console`, route `"main"` renders `MainScreen`.
+- If `ai_copilot`, route `"main"` renders `AiCopilotHomeScreen`.
+- Both modes share the same `StandaloneVciController`, `EngineState`, `AgentStatus`, and navigation routes. Do not fork business logic.
+
+### Acceptance
+
+- Switching Settings → Home mode changes the next Home render without reinstall.
+- AI Copilot mode can start a scan from typed text: user enters `misfire at idle`, taps Send, receives an action card, taps `Run scan`, and the normal scan flow starts.
+- Scanner Console mode remains unchanged and remains the default after fresh install.
+- Both modes show identical transport/ignition/voltage status and all long-running actions use the same progress/ticker system.
+
+---
+
 ## F. P1 — New features (commercial)
 
 | # | Feature | Files / new routes | Why |
@@ -458,6 +540,7 @@ Rules:
 | F14 | **Shop export formats** | `report/ShopExport.kt` | Export PDF + CSV + plain text bundle that can be attached to RO/shop-management systems |
 | F15 | **Technician profiles** | `data/TechnicianProfile.kt`, Settings | Track who ran a scan and stamp report footer without adding multi-user auth |
 | F16 | **Predictive maintenance notes** | `engine/MaintenanceHints.kt`, Report screen | Local rules from mileage + DTC + live data; AI wording only after the local hint exists |
+| F17 | **AI Copilot Home mode** | `ui/main/AiCopilotHomeScreen.kt`, `SettingsRepo.homeMode` | Gives chat-first users a faster symptom-to-action workflow without removing the normal scanner console |
 
 ---
 
@@ -499,6 +582,7 @@ C7 — Manual VIN / YMM + recalls on home
 C8 — Diagnostics + Transfer Log viewer
 C9 (if capacity) — Startup/perceived-speed polish and cached Home state
 C10 (if capacity) — Camera VIN scan + shop export formats
+C11 (if capacity) — AI Copilot Home mode + Settings toggle
 
 ### Merge order
 

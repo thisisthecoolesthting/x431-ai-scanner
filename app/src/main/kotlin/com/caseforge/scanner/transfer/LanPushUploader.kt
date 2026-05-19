@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -164,37 +165,38 @@ object LanPushUploader {
         }
     }
 
-    private fun zipWithProgress(
+    private suspend fun zipWithProgress(
         zipper: VehicleDatabaseZipper,
         dest: File,
         totalFiles: Int,
         totalBytes: Long,
     ) {
         dest.outputStream().use { out ->
-            kotlinx.coroutines.runBlocking {
-                zipper.zipProgressFlow(out).collect { progress ->
-                    _state.value = SendState.Zipping(
-                        filesDone = progress.filesZipped,
-                        filesTotal = totalFiles,
-                        bytesDone = progress.bytesWritten,
-                        bytesTotal = totalBytes,
-                    )
-                    if (progress.filesZipped % 50 == 0) {
-                        TransferLog.append("ZIP", "${progress.filesZipped}/${totalFiles} files, ${progress.bytesWritten / (1024 * 1024)} MB")
-                    }
+            zipper.zipProgressFlow(out).collect { progress ->
+                _state.value = SendState.Zipping(
+                    filesDone = progress.filesZipped,
+                    filesTotal = totalFiles,
+                    bytesDone = progress.bytesWritten,
+                    bytesTotal = totalBytes,
+                )
+                if (progress.filesZipped % 50 == 0) {
+                    TransferLog.append("ZIP", "${progress.filesZipped}/${totalFiles} files, ${progress.bytesWritten / (1024 * 1024)} MB")
                 }
             }
         }
     }
 
-    private fun sha256Hex(file: File): String {
+    private suspend fun sha256Hex(file: File): String {
         val digest = MessageDigest.getInstance("SHA-256")
         file.inputStream().use { input ->
             val buf = ByteArray(65_536)
+            var chunks = 0
             while (true) {
                 val n = input.read(buf)
                 if (n <= 0) break
                 digest.update(buf, 0, n)
+                chunks++
+                if (chunks % 64 == 0) yield()
             }
         }
         return digest.digest().joinToString("") { "%02x".format(it) }

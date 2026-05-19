@@ -2,6 +2,7 @@ package com.caseforge.scanner.transfer
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.yield
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.OutputStream
@@ -69,12 +70,15 @@ class VehicleDatabaseZipper(
                 zos.putNextEntry(entry)
                 file.inputStream().use { input ->
                     val buf = ByteArray(8192)
+                    var chunks = 0
                     while (true) {
                         val n = input.read(buf)
                         if (n <= 0) break
                         zos.write(buf, 0, n)
                         bytes += n
                         if (bytes % (256 * 1024) < 8192) emit(ZipProgress(bytes, files))
+                        chunks++
+                        if (chunks % 64 == 0) yield()
                     }
                 }
                 zos.closeEntry()

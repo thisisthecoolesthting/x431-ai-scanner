@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -151,7 +152,7 @@ object ObdBluetoothTool {
                     if (sb.indexOf('>') >= 0) break
                 }
             } else {
-                try { Thread.sleep(15) } catch (_: InterruptedException) {}
+                delay(15)
             }
         }
         sb.toString().replace(">", "").trim()

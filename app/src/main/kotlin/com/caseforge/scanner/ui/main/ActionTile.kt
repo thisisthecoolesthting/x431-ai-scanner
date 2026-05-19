@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+
 package com.caseforge.scanner.ui.main
 
 import androidx.compose.foundation.layout.Column

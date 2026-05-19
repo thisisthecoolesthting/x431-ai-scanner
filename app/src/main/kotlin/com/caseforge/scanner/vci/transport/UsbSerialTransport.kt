@@ -12,6 +12,7 @@ import com.caseforge.scanner.vci.VciException
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -141,10 +142,7 @@ class UsbSerialTransport(
                     if (sb.indexOf('>') >= 0) break
                 }
             } else {
-                try {
-                    Thread.sleep(15)
-                } catch (_: InterruptedException) {
-                }
+                delay(15)
             }
         }
         sb.toString().replace(">", "").trim()
