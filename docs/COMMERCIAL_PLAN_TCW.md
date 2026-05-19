@@ -387,6 +387,59 @@ Add a toggle `Settings → Diagnostics → Show ignition warnings` (default `tru
 
 ---
 
+## E.2 — Speed + UI hardening pass (ChatGPT review additions)
+
+ChatGPT's review mostly reinforced items already in the plan, but these concrete additions are worth landing before 1.0.
+
+### Startup and perceived loading speed (owned by **C1**)
+
+- Keep the Android splash lightweight: no database open, no network, no Bluetooth scan, no receiver probe before first frame.
+- Render Home immediately with cached `SettingsRepo` values and last-known state: last VIN, last transport, last battery voltage, last receiver host.
+- Defer heavy work until after first composition:
+  - USB device inventory after Home is visible.
+  - Receiver `/health` probe only when Data Transfer card/screen is visible.
+  - Update check only when Update Center opens or a background throttle allows it.
+  - Offline DTC dictionary index loaded lazily when Report/Scan first needs explanations.
+- Acceptance: cold launch to interactive Home is under 2.5 s on the target tablet; no spinner blocks the first Home render.
+
+### Connection speed rules (owned by **C1**)
+
+- USB-first remains the default. Probe USB serial devices immediately and auto-connect to the most likely ELM327 cable.
+- Do **not** auto-scan Bluetooth when `bluetoothTransportEnabled == false`. If enabled, probe bonded devices in parallel with OEM USB probing, but never block USB connect on Bluetooth.
+- Cache the last-good transport and device address. Home primary CTA should be **Reconnect USB OBD** / **Reconnect ELM327 BT** when available.
+- All transport probes emit a row-level state: `Waiting`, `Probing`, `Connected`, `Failed(reason)`, so the drawer never looks frozen.
+
+### Function latency rules (owned by each feature lane)
+
+- **Scan (C2):** start with Mode 03/07 fast pass for ELM, render DTCs as they arrive, then enrich with explanations/PDF in the background.
+- **Live Data (C3):** cap visible PID polling to selected PIDs only; default to 6 high-value PIDs (RPM, coolant, speed, fuel trim short/long, battery voltage) to keep refresh smooth.
+- **Report/AI (C2):** build the plain report immediately from local data; stream AI repair-story text into the card as it arrives; PDF export uses the latest completed text.
+- **Transfer (K1/C8):** upload runs as a foreground/background-safe job; leaving the screen does not cancel unless the user taps Cancel.
+- **Updater (K3/C6):** background update check is throttled to once per 12 hours and never blocks launch.
+
+### UI state-machine hardening (owned by **C1**, then followed by all lanes)
+
+Every user action must follow this state model:
+
+`Idle → Confirm? → Running(progress/ticker) → Success(summary + next action) | Failed(reason + recovery)`
+
+Rules:
+
+- Disable the initiating button while `Running`, but keep **Cancel** visible for long operations.
+- Never show only a toast for a state change. Toasts can supplement, not replace, the visible card/ticker.
+- Success states stay actionable: **Scan again**, **Send again**, **Share**, **Open log**, **View report**.
+- Failed states must include a remediation button: **Retry**, **Open settings**, **Switch transport**, **Copy log**, **Show PC command**.
+- Stale state rule: when transport disconnects, dependent screens show a reconnect banner instead of keeping old values as if live.
+
+### Gloved-use hardening (owned by **C1** and checked in **H**)
+
+- Primary action buttons minimum 56 dp high, action tiles minimum 96 dp high.
+- No critical action behind a tiny icon-only button; icon buttons must have text alternative nearby.
+- Destructive actions like **Clear Codes** require a full-width confirmation dialog with plain consequences.
+- Touch targets on the Connection drawer and Data Transfer card must remain usable in landscape and portrait.
+
+---
+
 ## F. P1 — New features (commercial)
 
 | # | Feature | Files / new routes | Why |
@@ -403,6 +456,10 @@ Add a toggle `Settings → Diagnostics → Show ignition warnings` (default `tru
 | F10 | **"Update everything"** — app + vehicle database sync | `agent/UpdateAll.kt`, `transfer/VehicleDatabaseConsumer.kt` | One button to be current |
 | F11 | **Settings overhaul** — receiver IP, build channel, theme, voice, vehicle profile | `ui/settings/SettingsScreen.kt`, `SettingsRepo` additions | Every operator-visible knob in one place |
 | F12 | **Tech notes voice memo per session** | `notes/VoiceMemoRecorder.kt` | "1996 Camry, no start, fuel pressure 38" without typing |
+| F13 | **Camera VIN scan** | `ui/main/VinCameraScanScreen.kt`, ML Kit or ZXing fallback if available | Fast fallback when OBD VIN is missing and manual typing is painful |
+| F14 | **Shop export formats** | `report/ShopExport.kt` | Export PDF + CSV + plain text bundle that can be attached to RO/shop-management systems |
+| F15 | **Technician profiles** | `data/TechnicianProfile.kt`, Settings | Track who ran a scan and stamp report footer without adding multi-user auth |
+| F16 | **Predictive maintenance notes** | `engine/MaintenanceHints.kt`, Report screen | Local rules from mileage + DTC + live data; AI wording only after the local hint exists |
 
 ---
 
@@ -442,6 +499,8 @@ C5 — Settings overhaul (receiver IP, theme, channel, voice, vehicle profile)
 C6 — Update Center entry wiring
 C7 — Manual VIN / YMM + recalls on home
 C8 — Diagnostics + Transfer Log viewer
+C9 (if capacity) — Startup/perceived-speed polish and cached Home state
+C10 (if capacity) — Camera VIN scan + shop export formats
 
 ### Merge order
 
