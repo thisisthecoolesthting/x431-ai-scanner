@@ -1,4 +1,4 @@
-package com.caseforge.scanner.agent
+﻿package com.caseforge.scanner.agent
 
 import android.app.PendingIntent
 import android.content.Context
@@ -22,11 +22,12 @@ import java.util.concurrent.TimeUnit
  *
  * **Signing:** CI must use a stable debug keystore (see `.github/workflows/build.yml` cache).
  * If the tablet shows "App not installed" after download, the APK signature does not match
- * the installed app — uninstall once, sideload the latest CI build, then in-app updates work.
+ * the installed app ΓÇö uninstall once, sideload the latest CI build, then in-app updates work.
  */
 object Updater {
 
     private const val TAG = "Updater"
+    private const val APK_FILENAME = "tcw-latest.apk"
     private const val LATEST_RELEASE_URL =
         "https://api.github.com/repos/thisisthecoolesthting/x431-ai-scanner/releases/tags/latest"
     private const val APK_URL =
@@ -42,8 +43,11 @@ object Updater {
 
     class UpdateException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
+    private fun userAgent(): String = "Together-Car-Works/${BuildConfig.VERSION_NAME}"
+
     fun checkLatest(): Info {
         val req = Request.Builder().url(LATEST_RELEASE_URL)
+            .header("User-Agent", userAgent())
             .header("Accept", "application/vnd.github+json")
             .get()
             .build()
@@ -79,13 +83,16 @@ object Updater {
     fun downloadAndInstall(context: Context, onProgress: (String) -> Unit) {
         if (needsInstallPermission(context)) {
             throw UpdateException(
-                "Allow \"Install unknown apps\" for Together, then tap Check for update again.",
+                "Allow \"Install unknown apps\" for Together Car Works, then tap Check for update again.",
             )
         }
 
-        onProgress("Downloading APK…")
-        val out = File(context.getExternalFilesDir(null), "launch-ai-latest.apk")
-        val req = Request.Builder().url(APK_URL).get().build()
+        onProgress("Downloading APKΓÇª")
+        val out = File(context.getExternalFilesDir(null), APK_FILENAME)
+        val req = Request.Builder().url(APK_URL)
+            .header("User-Agent", userAgent())
+            .get()
+            .build()
         http.newCall(req).execute().use { resp ->
             if (!resp.isSuccessful) {
                 throw UpdateException("Download HTTP ${resp.code}")
@@ -94,7 +101,7 @@ object Updater {
             val contentType = resp.header("Content-Type").orEmpty()
             if (contentType.contains("text/html", ignoreCase = true)) {
                 throw UpdateException(
-                    "Download returned HTML, not an APK — check the latest GitHub release asset.",
+                    "Download returned HTML, not an APK ΓÇö check the latest GitHub release asset.",
                 )
             }
             out.outputStream().use { sink -> body.byteStream().copyTo(sink) }
@@ -102,7 +109,7 @@ object Updater {
 
         validateApkFile(out)
 
-        onProgress("Installing…")
+        onProgress("InstallingΓÇª")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             installWithPackageInstaller(context, out, onProgress)
         } else {
@@ -113,7 +120,7 @@ object Updater {
     private fun validateApkFile(file: File) {
         if (!file.exists() || file.length() < 100_000) {
             throw UpdateException(
-                "Downloaded file too small (${file.length()} bytes) — not a valid APK.",
+                "Downloaded file too small (${file.length()} bytes) ΓÇö not a valid APK.",
             )
         }
         FileInputStream(file).use { input ->
@@ -147,7 +154,7 @@ object Updater {
                 }
             val pending = PendingIntent.getBroadcast(context, sessionId, callbackIntent, flags)
             session.commit(pending.intentSender)
-            onProgress("Install prompt should appear — tap Install")
+            onProgress("Install prompt should appear ΓÇö tap Install")
         } catch (e: Exception) {
             session.abandon()
             Log.w(TAG, "PackageInstaller failed, falling back to VIEW intent", e)
