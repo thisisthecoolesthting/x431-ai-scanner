@@ -10,6 +10,9 @@
 | Runbook + analyzer script | Done (`decompile/README.md`, `scripts/analyze-share-export.ps1`) |
 | Zip in `decompile/inbox/` | **Waiting on operator** |
 | First inventory report | Blocked until zip lands |
+| Analyzer v2 (cnlaunch roots, largest files, text sniff, smoke) | Done on `feat/decompile-share-analyzer` |
+| Operator checklist + schema template | Done |
+| OEM path alignment doc | `003-oem-path-alignment.md` |
 
 ## Your next action
 

@@ -109,6 +109,28 @@ function Find-OemDataRoots {
     $seen = @{}
 
     $dirs = Get-ChildItem -Path $ExtractDir -Recurse -Directory -ErrorAction SilentlyContinue
+
+    # TCW zip prefix from VehicleDatabaseZipper (contents of cnlaunch/, not cnlaunch/ itself)
+    $vehicleDb = Join-Path $ExtractDir "vehicle-database"
+    if (Test-Path $vehicleDb -PathType Container) {
+        $fileCount = 0
+        $byteSum = 0L
+        foreach ($f in $AllFiles) {
+            if ($f.FullName.StartsWith($vehicleDb, [StringComparison]::OrdinalIgnoreCase)) {
+                $fileCount++
+                $byteSum += $f.Length
+            }
+        }
+        $roots.Add([ordered]@{
+            relPath = "vehicle-database"
+            leafName = "vehicle-database"
+            fileCount = $fileCount
+            totalBytes = $byteSum
+            note = "tcw-zip-prefix"
+        })
+        $seen[$vehicleDb.ToLowerInvariant()] = $true
+    }
+
     foreach ($d in $dirs) {
         $leaf = $d.Name
         if ($leaf -match "^(?i)cnlaunch$|^(?i)cn_launch$|^(?i)launchpad$|^(?i)x431") {
