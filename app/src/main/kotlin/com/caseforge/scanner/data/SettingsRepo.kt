@@ -262,6 +262,72 @@ class SettingsRepo(context: Context) {
         get() = prefs.getBoolean(K_EMERGENCY_DISMISS_HINT_SEEN, false)
         set(value) { prefs.edit().putBoolean(K_EMERGENCY_DISMISS_HINT_SEEN, value).apply() }
 
+    // ---- DX8: fast workflow state (last-good memory) ----
+
+    /** Most recently scanned or entered VIN (17-char when known). */
+    var lastVin: String?
+        get() = prefs.getString(K_FAST_LAST_VIN, null)?.takeIf { it.isNotBlank() }
+        set(value) { prefs.edit().putString(K_FAST_LAST_VIN, value?.trim()).apply() }
+
+    /** Human-readable label for the transport used on the last successful link. */
+    var lastTransportLabel: String?
+        get() = prefs.getString(K_FAST_LAST_TRANSPORT_LABEL, null)?.takeIf { it.isNotBlank() }
+        set(value) { prefs.edit().putString(K_FAST_LAST_TRANSPORT_LABEL, value?.trim()).apply() }
+
+    /** Battery voltage (V) observed on the last successful session, when available. */
+    var lastBatteryVoltage: Float?
+        get() = if (prefs.contains(K_FAST_LAST_BATTERY_VOLTAGE)) {
+            prefs.getFloat(K_FAST_LAST_BATTERY_VOLTAGE, Float.NaN)
+        } else {
+            null
+        }
+        set(value) {
+            prefs.edit().apply {
+                if (value == null) remove(K_FAST_LAST_BATTERY_VOLTAGE) else putFloat(K_FAST_LAST_BATTERY_VOLTAGE, value)
+            }.apply()
+        }
+
+    /** Receiver PC host that last accepted an export successfully. */
+    var lastReceiverHost: String?
+        get() = prefs.getString(K_FAST_LAST_RECEIVER_HOST, null)?.takeIf { it.isNotBlank() }
+        set(value) { prefs.edit().putString(K_FAST_LAST_RECEIVER_HOST, value?.trim()).apply() }
+
+    /** Epoch millis of the last successful full scan; 0 when never recorded. */
+    var lastSuccessfulScanAt: Long
+        get() = prefs.getLong(K_FAST_LAST_SUCCESSFUL_SCAN_AT, 0L)
+        set(value) { prefs.edit().putLong(K_FAST_LAST_SUCCESSFUL_SCAN_AT, value.coerceAtLeast(0L)).apply() }
+
+    /** Bonded Bluetooth address from the last good VCI connection. */
+    var lastGoodBtAddress: String?
+        get() = prefs.getString(K_FAST_LAST_GOOD_BT_ADDRESS, null)?.takeIf { it.isNotBlank() }
+        set(value) { prefs.edit().putString(K_FAST_LAST_GOOD_BT_ADDRESS, value?.trim()).apply() }
+
+    /** Normalized link transport from the last good connection (`auto`, `oem_usb`, etc.). */
+    var lastGoodTransport: String?
+        get() = prefs.getString(K_FAST_LAST_GOOD_TRANSPORT, null)?.takeIf { it.isNotBlank() }
+        set(value) { prefs.edit().putString(K_FAST_LAST_GOOD_TRANSPORT, value?.trim()?.lowercase()).apply() }
+
+    /** Read/write the full fast-workflow cache as one snapshot. */
+    var fastWorkflowState: FastWorkflowState
+        get() = FastWorkflowState(
+            lastVin = lastVin,
+            lastTransportLabel = lastTransportLabel,
+            lastBatteryVoltage = lastBatteryVoltage,
+            lastReceiverHost = lastReceiverHost,
+            lastSuccessfulScanAt = lastSuccessfulScanAt,
+            lastGoodBtAddress = lastGoodBtAddress,
+            lastGoodTransport = lastGoodTransport,
+        )
+        set(value) {
+            lastVin = value.lastVin
+            lastTransportLabel = value.lastTransportLabel
+            lastBatteryVoltage = value.lastBatteryVoltage
+            lastReceiverHost = value.lastReceiverHost
+            lastSuccessfulScanAt = value.lastSuccessfulScanAt
+            lastGoodBtAddress = value.lastGoodBtAddress
+            lastGoodTransport = value.lastGoodTransport
+        }
+
     companion object {
         private const val K_API_KEY = "claude_api_key"
         private const val K_MODEL = "claude_model"
@@ -290,6 +356,13 @@ class SettingsRepo(context: Context) {
         private const val K_USE_MULTIPART_FALLBACK = "use_multipart_fallback"
         private const val K_OVERLAY_ONBOARDING_SEEN = "overlay_onboarding_seen"   // C2
         private const val K_EMERGENCY_DISMISS_HINT_SEEN = "emergency_dismiss_hint_seen"   // D1
+        private const val K_FAST_LAST_VIN = "fast_last_vin"                               // DX8
+        private const val K_FAST_LAST_TRANSPORT_LABEL = "fast_last_transport_label"       // DX8
+        private const val K_FAST_LAST_BATTERY_VOLTAGE = "fast_last_battery_voltage"       // DX8
+        private const val K_FAST_LAST_RECEIVER_HOST = "fast_last_receiver_host"           // DX8
+        private const val K_FAST_LAST_SUCCESSFUL_SCAN_AT = "fast_last_successful_scan_at" // DX8
+        private const val K_FAST_LAST_GOOD_BT_ADDRESS = "fast_last_good_bt_address"       // DX8
+        private const val K_FAST_LAST_GOOD_TRANSPORT = "fast_last_good_transport"         // DX8
 
         const val DEFAULT_AGENT_NOTES = """About this app
 ==============
