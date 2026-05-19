@@ -210,10 +210,19 @@ When zip size > 200 MB or after a transient failure mid-upload:
 
 ### Permission flow
 
+**Two paths — pick by API level, never skip the legacy one (Gemini caught this bug).**
+
+On API 30+ (`Build.VERSION.SDK_INT >= R`):
 1. On screen entry, call `VehicleDatabaseStorageAccess.needsAllFilesAccess()`.
 2. If true, show a `Card` with plain copy: "Together needs **All files access** to read the vehicle databases the tablet's diagnostic app saved. Tap below to open Android settings, flip the switch for Together Car Works, then come back."
 3. Single button: "Allow file access" → `ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION`.
-4. When the screen resumes, re-scan; diff against last inventory and display `+12 files / +84 MB found` so the operator sees the grant actually helped.
+
+On API ≤ 29:
+1. Call `VehicleDatabaseStorageAccess.hasLegacyReadPermission(context)`.
+2. If false, request `Manifest.permission.READ_EXTERNAL_STORAGE` via `ActivityCompat.requestPermissions()`. Card copy: "Together needs **Storage** access to read the vehicle databases the OEM diagnostic app saved on this tablet."
+3. On grant, re-scan inventory and proceed.
+
+When the screen resumes after any grant, re-scan; diff against last inventory and display `+12 files / +84 MB found` so the operator sees the grant actually helped.
 
 ### Visible state machine on the send card
 
@@ -294,6 +303,87 @@ Every fix below ships behind the universal **progress + ticker** rule.
 ### Fix list, by screen
 
 See full plan in earlier draft — every lane's executor prompt references its specific items.
+
+### Additional fixes from Sonnet + Gemini reviews (must land before 1.0)
+
+**Sonnet:**
+- Service / Bidirectional gating: when **disconnected entirely**, tapping the tile must open the Connection drawer first (the same way Scan and Live Data do today). The OEM-required empty state is a *secondary* gate that renders after a non-OEM connection is established. Both gates must exist. Owner: C4.
+
+**Gemini:**
+- Legacy `READ_EXTERNAL_STORAGE` request on API ≤ 29 (covered in §D Permission flow above). Owner: K1 / C5.
+
+---
+
+## E.1 — Ignition state awareness (P0, called out explicitly)
+
+Reading DTCs and live data on the wrong ignition state is one of the most common bay mistakes. The app must know the ignition state, surface it, and warn before an action that doesn't match.
+
+### Detection (engine `engine/IgnitionMonitor.kt` — new file, owned by **C1**)
+
+When a transport is connected, poll for ignition state every 2.5 s:
+
+- **ELM327 path:** read PID `0x0C` (engine RPM, Mode 01). If `RPM > 250` → `EngineRunning`. If `RPM == 0` and the controller responds to AT commands → `KeyOnEngineOff`. If no response → `Unknown`.
+- **OEM VCI path:** if a controller responds to module-presence probes but RPM is 0, `KeyOnEngineOff`. If RPM > 250, `EngineRunning`. Otherwise `Unknown`.
+- Stop polling when disconnected; reset to `Unknown`.
+
+Expose a `StateFlow<IgnitionState>` from `IgnitionMonitor`. States: `Unknown`, `KeyOnEngineOff`, `EngineRunning`, `EngineCranking` (RPM 50–250, transient — display as "Cranking…").
+
+### Top-bar pill (owned by **C1**)
+
+Next to the transport pill, render an **Ignition pill**:
+
+| State | Pill color | Label |
+|---|---|---|
+| `Unknown` | gray | `—` |
+| `KeyOnEngineOff` | blue | `Key ON · Engine OFF` |
+| `EngineCranking` | amber | `Cranking…` |
+| `EngineRunning` | green | `Engine running` |
+
+Tap the pill → expand a small card with the 2-line guidance:
+
+> Stored DTCs read best with **key on, engine off**.
+> Live data, freeze frame, and pending DTCs need the **engine running**.
+
+### Contextual gate before action (owned by **C2** for Scan + Report, **C3** for Live Data)
+
+When the operator taps **Scan** while `EngineRunning`:
+
+- Show a warning banner (amber, not red — they can proceed) inside the Scan dialog:
+  "Engine is running. Stored DTCs read most reliably with **key on, engine off**. Turn the engine off, then tap Scan again — or continue anyway."
+- Two buttons: **Scan anyway** and **OK, I'll turn it off**.
+- If `Unknown`, no warning (don't nag when the data is missing).
+- If `KeyOnEngineOff`, proceed silently.
+
+When the operator taps **Live Data** while `KeyOnEngineOff`:
+
+- Banner: "Engine isn't running. Most live PIDs will be zero or limited. Start the engine for full live data — or continue anyway."
+- Buttons: **Continue anyway** and **OK**.
+- If `EngineRunning`, proceed silently.
+
+When the operator taps **Bidirectional** while `EngineRunning`:
+
+- Banner: "Some actuator tests require engine off; some require engine running. Check the test description before activating."
+- Single dismiss button.
+
+### Home-screen hint card (owned by **C1**)
+
+On the home screen, above the Action Tile grid, render a soft-info card **only when ignition is `Unknown`** (i.e. not yet connected or no RPM response):
+
+> **Before you scan:** Key ON, engine OFF reads stored codes most reliably. Start the engine for live data and pending codes.
+
+When ignition is known, the card hides (the top-bar pill does the job).
+
+### Settings (owned by **C5**)
+
+Add a toggle `Settings → Diagnostics → Show ignition warnings` (default `true`). When off, the contextual gates above proceed silently.
+
+### Acceptance
+
+- Connect via USB OBD cable on a real vehicle with engine off. Within 5 s, the Ignition pill turns blue `Key ON · Engine OFF`. The home hint card hides.
+- Start the engine. Within 5 s, the pill turns green `Engine running`.
+- Tap **Scan** while engine is running. The amber warning appears. Tap **Scan anyway** → scan proceeds.
+- Tap **Live Data** while engine is off. The amber warning appears. Tap **Continue anyway** → live data proceeds (mostly zeros).
+- Toggle the Settings switch off. Repeat — no warnings.
 
 ---
 
