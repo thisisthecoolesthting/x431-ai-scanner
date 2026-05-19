@@ -284,7 +284,6 @@ class MainActivity : ComponentActivity() {
                             onBack = { route = "settings" },
                         )
                         "export_data" -> com.caseforge.scanner.ui.transfer.ExportDataScreen(
-                            actionLog = app.actionLog,
                             onBack = { route = "main" },
                         )
                         "direct_vci" -> com.caseforge.scanner.ui.obd.DirectVciProbeScreen(
