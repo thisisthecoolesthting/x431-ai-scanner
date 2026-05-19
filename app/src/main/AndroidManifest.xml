@@ -63,7 +63,7 @@
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.CaseForge"
+        android:theme="@style/Theme.TogetherCarWorks"
         android:usesCleartextTraffic="true"
         android:networkSecurityConfig="@xml/network_security_config"
         android:requestLegacyExternalStorage="true"
@@ -107,7 +107,7 @@
             android:exported="false"
             android:label="Launch AI Camera"
             android:screenOrientation="fullSensor"
-            android:theme="@style/Theme.CaseForge" />
+            android:theme="@style/Theme.TogetherCarWorks" />
 
         <service
             android:name=".ingest.ReportWatcherService"
