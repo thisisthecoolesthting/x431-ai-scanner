@@ -10,6 +10,10 @@ import android.provider.Settings
 import android.util.Log
 import androidx.core.content.FileProvider
 import com.caseforge.scanner.BuildConfig
+import com.caseforge.scanner.ui.updates.UpdaterPhase
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
@@ -38,6 +42,9 @@ object Updater {
         .readTimeout(120, TimeUnit.SECONDS)
         .followRedirects(true)
         .build()
+
+    private val _phase = MutableStateFlow<UpdaterPhase>(UpdaterPhase.Idle)
+    val phase: StateFlow<UpdaterPhase> = _phase.asStateFlow()
 
     data class Info(val sha: String, val body: String, val publishedAt: String)
 
