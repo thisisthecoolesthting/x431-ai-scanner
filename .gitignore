@@ -18,3 +18,9 @@ local.properties
 
 setup-github.log
 
+# Share-zip decompile (binaries stay local)
+decompile/work/*
+!decompile/work/.gitkeep
+decompile/inbox/*.zip
+apks/
+
