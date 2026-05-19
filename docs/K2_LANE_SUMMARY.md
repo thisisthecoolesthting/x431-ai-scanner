@@ -27,11 +27,11 @@
 | Before | After |
 |--------|--------|
 | Legacy OEM theme style | `Theme.TogetherCarWorks` |
-| `CaseForgeTheme` composable | `TogetherCarWorksTheme` |
+| Legacy theme composable | `TogetherCarWorksTheme` |
 | `vci/VciSocketClient.kt` | `vci/BluetoothVciClient.kt` |
 | `vci/VciUsbClient.kt` | `vci/OemUsbVciClient.kt` |
 | `vci/CnlaunchAssetIndex.kt` | `vci/OemVehicleAssetIndex.kt` |
-| `assets/cnlaunch/*` | `assets/oem-vehicle-db/*` |
+| Old vendor asset tree | `assets/oem-vehicle-db/*` |
 | `scripts/extract-x431-apk.ps1` | `scripts/extract-oem-tablet-apk.ps1` |
 
 ## Enum / API renames
@@ -66,7 +66,7 @@ pwsh -File scripts/run-rebrand-grep.ps1
 → Rebrand audit clean.
 ```
 
-Allowed exceptions in script: `com.caseforge.*` package paths, `com.cnlaunch.*` / `com.x431.*` OEM package IDs, `transfer/**`, `agent/Updater.kt` (K3), legacy script names, `OEM_DATA_PATH` (K1).
+Allowed exceptions in script: frozen Android package id paths, OEM tablet package IDs on disk, `transfer/**`, `agent/Updater.kt` (K3), legacy script names, `OEM_DATA_PATH` (K1).
 
 ## Cross-lane notes
 
