@@ -2,4 +2,5 @@
 <paths>
     <external-files-path name="reports" path="." />
     <cache-path name="vin_scan_cache" path="." />
+    <cache-path name="tcw_export" path="tcw-export/" />
 </paths>

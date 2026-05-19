@@ -2,7 +2,13 @@
 
 package com.caseforge.scanner.ui.main
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -19,7 +25,10 @@ import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.agent.AgentStatus
 import com.caseforge.scanner.data.SettingsRepo
 import com.caseforge.scanner.overlay.compose.LiveActivityTicker
-import com.caseforge.scanner.ui.transfer.OneTapSendCard
+import com.caseforge.scanner.ui.components.TcwBusyOverlay
+import com.caseforge.scanner.ui.components.TcwCommercialHero
+import com.caseforge.scanner.ui.components.TcwSetupStrip
+import com.caseforge.scanner.ui.transfer.DataTransferCard
 import com.caseforge.scanner.vci.DiagnosticConnector
 import kotlinx.coroutines.launch
 
@@ -88,6 +97,7 @@ fun MainScreen(
         )
     }
 
+    Box(Modifier.fillMaxSize()) {
     Column(Modifier.fillMaxSize()) {
         TopAppBar(
             title = { Text("Together Car Works") },
@@ -243,5 +253,11 @@ fun MainScreen(
                 }
             }
         }
+    }
+        TcwBusyOverlay(
+            visible = engineBusy,
+            title = "Working…",
+            subtitle = engineState.screen.name.replace('_', ' '),
+        )
     }
 }

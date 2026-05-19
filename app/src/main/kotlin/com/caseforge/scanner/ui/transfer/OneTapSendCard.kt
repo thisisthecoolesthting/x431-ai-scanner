@@ -47,9 +47,15 @@ import com.caseforge.scanner.data.SettingsRepo
 import com.caseforge.scanner.transfer.LanPushUploader
 import com.caseforge.scanner.transfer.Remediation
 import com.caseforge.scanner.transfer.SendState
+import com.caseforge.scanner.transfer.TransferDeliveryMode
 import com.caseforge.scanner.transfer.VehicleDatabasePathResolver
+import com.caseforge.scanner.transfer.VehicleDatabaseShareExport
 import com.caseforge.scanner.transfer.VehicleDatabaseStorageAccess
 import com.caseforge.scanner.transfer.VehicleDatabaseZipper
+import com.caseforge.scanner.transfer.resolveTransferEndpoint
+import com.caseforge.scanner.ui.components.TcwWorkingBar
+import androidx.compose.material3.FilterChip
+import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -108,12 +114,16 @@ fun OneTapSendCard(
     settings: SettingsRepo,
     modifier: Modifier = Modifier,
     onOpenTransferLog: (() -> Unit)? = null,
+    onOpenSettings: (() -> Unit)? = null,
     onSent: (() -> Unit)? = null,
 ) {
     val ctx   = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    val sendState by LanPushUploader.state.collectAsState()
+    var deliveryMode by remember { mutableStateOf(settings.transferDeliveryMode) }
+    val uploadState by LanPushUploader.state.collectAsState()
+    val shareState by VehicleDatabaseShareExport.state.collectAsState()
+    val sendState = if (deliveryMode == TransferDeliveryMode.SHARE) shareState else uploadState
 
     var inventory by remember { mutableStateOf(VehicleDatabasePathResolver.scan()) }
     var pcHealth  by remember { mutableStateOf<LanPushUploader.PcHealthResult?>(null) }
@@ -124,14 +134,19 @@ fun OneTapSendCard(
         inventory = VehicleDatabasePathResolver.scan()
     }
 
-    // Poll /health every 30 s while card is visible
-    LaunchedEffect(Unit) {
+    // Poll /health only for upload modes (not free share)
+    LaunchedEffect(deliveryMode) {
+        if (deliveryMode == TransferDeliveryMode.SHARE) return@LaunchedEffect
         while (true) {
-            val host = settings.receiverPcHost
-            val port = settings.receiverPcPort
-            LanPushUploader.checkHealth(host, port)
-                .onSuccess { pcHealth = it; pcError = null }
-                .onFailure { pcHealth = null; pcError = it.message }
+            val ep = settings.resolveTransferEndpoint()
+            if (ep != null) {
+                LanPushUploader.checkHealth(ep)
+                    .onSuccess { pcHealth = it; pcError = null }
+                    .onFailure { pcHealth = null; pcError = it.message }
+            } else {
+                pcHealth = null
+                pcError = "Not configured"
+            }
             delay(30_000)
         }
     }
@@ -147,7 +162,7 @@ fun OneTapSendCard(
             // ---- Header row: title + log button ----------------------------
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "Vehicle Data → Office PC",
+                    stringResource(R.string.transfer_card_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f),
@@ -159,8 +174,55 @@ fun OneTapSendCard(
                 }
             }
 
-            // ---- PC health pill --------------------------------------------
-            PcPill(pcHealth, pcError, settings.receiverPcHost, settings.receiverPcPort)
+            Text(
+                stringResource(R.string.transfer_card_subtitle_free),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                FilterChip(
+                    selected = deliveryMode == TransferDeliveryMode.SHARE,
+                    onClick = {
+                        deliveryMode = TransferDeliveryMode.SHARE
+                        settings.transferDeliveryMode = TransferDeliveryMode.SHARE
+                        VehicleDatabaseShareExport.reset()
+                    },
+                    label = { Text("Share") },
+                )
+                FilterChip(
+                    selected = deliveryMode == TransferDeliveryMode.SELF_HOSTED,
+                    onClick = {
+                        deliveryMode = TransferDeliveryMode.SELF_HOSTED
+                        settings.transferDeliveryMode = TransferDeliveryMode.SELF_HOSTED
+                    },
+                    label = { Text("Your server") },
+                )
+                FilterChip(
+                    selected = deliveryMode == TransferDeliveryMode.LAN_PC,
+                    onClick = {
+                        deliveryMode = TransferDeliveryMode.LAN_PC
+                        settings.transferDeliveryMode = TransferDeliveryMode.LAN_PC
+                    },
+                    label = { Text("LAN PC") },
+                )
+            }
+
+            val isBusy = sendState is SendState.CheckingPc ||
+                sendState is SendState.ScanningFiles ||
+                sendState is SendState.Zipping ||
+                sendState is SendState.Uploading ||
+                sendState is SendState.Verifying
+            TcwWorkingBar(active = isBusy)
+
+            // ---- PC health pill (upload modes only) -------------------------
+            if (deliveryMode != TransferDeliveryMode.SHARE) {
+                val label = when (deliveryMode) {
+                    TransferDeliveryMode.SELF_HOSTED -> settings.transferDropUrl.ifBlank { "Set drop URL in Settings" }
+                    else -> "${settings.receiverPcHost}:${settings.receiverPcPort}"
+                }
+                PcPill(pcHealth, pcError, label)
+            }
 
             // ---- Permission card (All Files Access) ------------------------
             if (VehicleDatabaseStorageAccess.needsAllFilesAccess()) {
@@ -226,11 +288,11 @@ fun OneTapSendCard(
             // ---- Error / remediation banner --------------------------------
             when (val s = sendState) {
                 is SendState.PcUnreachable ->
-                    ErrorBanner(s.reason, s.remediation, settings, ctx, scope) {
+                    ErrorBanner(s.reason, s.remediation, settings, ctx, scope, onOpenSettings) {
                         inventory = VehicleDatabasePathResolver.scan()
                     }
                 is SendState.Failed ->
-                    ErrorBanner(s.reason, s.remediation, settings, ctx, scope) {
+                    ErrorBanner(s.reason, s.remediation, settings, ctx, scope, onOpenSettings) {
                         inventory = VehicleDatabasePathResolver.scan()
                     }
                 else -> Unit
@@ -244,6 +306,14 @@ fun OneTapSendCard(
                 sendState is SendState.Verifying
 
             if (!isBusy) {
+                val buttonLabel = when (deliveryMode) {
+                    TransferDeliveryMode.SHARE ->
+                        if (sendState is SendState.Done) "Share again" else "Export & share (free)"
+                    TransferDeliveryMode.SELF_HOSTED ->
+                        if (sendState is SendState.Done) "Upload again" else "Upload to your server"
+                    else ->
+                        if (sendState is SendState.Done) "Send again" else "Send to PC (LAN)"
+                }
                 Button(
                     onClick = {
                         if (VehicleDatabaseStorageAccess.needsAllFilesAccess()) {
@@ -252,13 +322,30 @@ fun OneTapSendCard(
                         }
                         inventory = VehicleDatabasePathResolver.scan()
                         scope.launch {
-                            val zipper = VehicleDatabaseZipper(inventory.root)
-                            LanPushUploader.send(ctx, settings, zipper)
+                            when (deliveryMode) {
+                                TransferDeliveryMode.SHARE ->
+                                    VehicleDatabaseShareExport.exportAndShare(ctx)
+                                else -> {
+                                    val zipper = VehicleDatabaseZipper(inventory.root)
+                                    LanPushUploader.send(ctx, settings, zipper)
+                                }
+                            }
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text(if (sendState is SendState.Done) "Send again" else "Send to PC")
+                    Text(buttonLabel)
+                }
+                if (deliveryMode == TransferDeliveryMode.SELF_HOSTED &&
+                    settings.transferDropUrl.isBlank() &&
+                    onOpenSettings != null
+                ) {
+                    OutlinedButton(
+                        onClick = onOpenSettings,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("Set server URL in Settings")
+                    }
                 }
             }
 
@@ -286,8 +373,7 @@ fun OneTapSendCard(
 private fun PcPill(
     health: LanPushUploader.PcHealthResult?,
     error: String?,
-    host: String,
-    port: Int,
+    targetLabel: String,
 ) {
     val green = ColorGreen
     val red   = ColorRed
@@ -377,6 +463,7 @@ private fun ErrorBanner(
     settings: SettingsRepo,
     ctx: android.content.Context,
     scope: kotlinx.coroutines.CoroutineScope,
+    onOpenSettings: (() -> Unit)?,
     onRescan: () -> Unit,
 ) {
     Card(
@@ -395,6 +482,13 @@ private fun ErrorBanner(
                     VehicleDatabaseStorageAccess.openAllFilesAccessSettings(ctx)
                 }
                 Remediation.RESCAN               -> "Rescan" to onRescan
+                Remediation.EDIT_DROP_URL        -> "Set server URL" to {
+                    onOpenSettings?.invoke() ?: run {
+                        val intent = android.content.Intent(android.provider.Settings.ACTION_SETTINGS)
+                        intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                        ctx.startActivity(intent)
+                    }
+                }
                 Remediation.EDIT_PC_IP           -> "Settings" to {
                     val intent = android.content.Intent(android.provider.Settings.ACTION_SETTINGS)
                     intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -449,6 +543,10 @@ private fun stateTickerText(state: SendState, settings: SettingsRepo): String = 
     is SendState.Uploading       -> "Uploading ${formatBytes(state.bytesSent)} · " +
         (if (state.bytesPerSec > 0) "${formatBytes(state.bytesPerSec)}/s · ETA ${formatEta(state.etaMs)}" else "…")
     is SendState.Verifying       -> "Receiver re-hashing…"
-    is SendState.Done            -> "Saved to ${state.pcPath} · ${formatBytes(state.bytes)} · ${state.elapsedMs / 1000}s"
+    is SendState.Done            -> if (state.sha256 == "share") {
+        "Ready to share · ${formatBytes(state.bytes)} · ${state.elapsedMs / 1000}s"
+    } else {
+        "Saved to ${state.pcPath} · ${formatBytes(state.bytes)} · ${state.elapsedMs / 1000}s"
+    }
     is SendState.Failed          -> state.reason
 }

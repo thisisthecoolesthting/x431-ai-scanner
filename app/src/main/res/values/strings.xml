@@ -71,6 +71,16 @@
     <string name="tcw_export_log_clear">Clear</string>
     <string name="tcw_export_log_empty">No log entries yet.</string>
 
+    <string name="transfer_card_title">Vehicle data export</string>
+    <string name="transfer_card_subtitle_free">Free by default: zip on tablet, then share to Drive, email, or USB. No paid upload API.</string>
+    <string name="transfer_mode_share_hint">Opens Android share sheet — pick Files, Gmail, or Google Drive.</string>
+    <string name="transfer_mode_server_empty">Add your server URL in Settings (your VPS or shop PC — $0 third-party fees).</string>
+    <string name="transfer_mode_server_ready">Upload target: %1$s</string>
+    <string name="transfer_mode_lan_hint">LAN push to %1$s:%2$d (same network often required).</string>
+    <string name="transfer_export_share_button">Export &amp; share (free)</string>
+    <string name="transfer_upload_server_button">Upload to your server</string>
+    <string name="transfer_set_drop_url">Set server URL</string>
+
     <string name="vin_scan_activity_label">Scan VIN</string>
     <string name="vin_scan_no_vin_found">No valid 17-character VIN found in photo.</string>
     <string name="vin_scan_ocr_failed">Could not read text from photo.</string>

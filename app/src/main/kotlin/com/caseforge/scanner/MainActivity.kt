@@ -368,6 +368,7 @@ class MainActivity : ComponentActivity() {
                             onHistory = { route = "history" },
                             onNotes = { route = "notes" },
                             onSettings = { route = "settings" },
+                            onOpenExport = { route = "export_data" },
                             onDiagnostics = { route = "vci_diagnostics" },
                             onCheckUpdate = { checkForAppUpdate() },
                             buildInfo = BuildConfig.BUILD_INFO,

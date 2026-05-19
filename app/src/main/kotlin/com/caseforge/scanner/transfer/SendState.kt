@@ -34,6 +34,7 @@ enum class Remediation {
     GRANT_ALL_FILES,
     RESCAN,
     EDIT_PC_IP,
+    EDIT_DROP_URL,
     RESUME,
     RETRY,
     OPEN_WIFI_SETTINGS,

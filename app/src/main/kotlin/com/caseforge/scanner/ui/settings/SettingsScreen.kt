@@ -48,6 +48,7 @@ import com.caseforge.scanner.BuildConfig
 import com.caseforge.scanner.R
 import com.caseforge.scanner.data.FastWorkflowState
 import com.caseforge.scanner.data.SettingsRepo
+import com.caseforge.scanner.transfer.TransferDeliveryMode
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -78,6 +79,8 @@ fun SettingsScreen(
     var receiverHost by remember { mutableStateOf(settings.receiverPcHost) }
     var receiverPortText by remember { mutableStateOf(settings.receiverPcPort.toString()) }
     var multipartFallback by remember { mutableStateOf(settings.useMultipartFallback) }
+    var transferMode by remember { mutableStateOf(settings.transferDeliveryMode) }
+    var transferDropUrl by remember { mutableStateOf(settings.transferDropUrl) }
     val context = LocalContext.current
     val recordAudioLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         voice = granted; settings.voiceEnabled = granted
@@ -198,6 +201,60 @@ fun SettingsScreen(
                         enabled = fastWorkflow.hasAnyMemory,
                     ) {
                         Text(stringResource(R.string.settings_fast_clear_memory))
+                    }
+                }
+            }
+
+            Card(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Vehicle data export", style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        "Default is free Share (no paid upload API). Optional: your own server URL or LAN PC.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        FilterChip(
+                            selected = transferMode == TransferDeliveryMode.SHARE,
+                            onClick = {
+                                transferMode = TransferDeliveryMode.SHARE
+                                settings.transferDeliveryMode = TransferDeliveryMode.SHARE
+                            },
+                            label = { Text("Share") },
+                        )
+                        FilterChip(
+                            selected = transferMode == TransferDeliveryMode.SELF_HOSTED,
+                            onClick = {
+                                transferMode = TransferDeliveryMode.SELF_HOSTED
+                                settings.transferDeliveryMode = TransferDeliveryMode.SELF_HOSTED
+                            },
+                            label = { Text("Your server") },
+                        )
+                        FilterChip(
+                            selected = transferMode == TransferDeliveryMode.LAN_PC,
+                            onClick = {
+                                transferMode = TransferDeliveryMode.LAN_PC
+                                settings.transferDeliveryMode = TransferDeliveryMode.LAN_PC
+                            },
+                            label = { Text("LAN PC") },
+                        )
+                    }
+                    if (transferMode == TransferDeliveryMode.SELF_HOSTED) {
+                        OutlinedTextField(
+                            value = transferDropUrl,
+                            onValueChange = {
+                                transferDropUrl = it
+                                settings.transferDropUrl = it
+                            },
+                            label = { Text("Drop URL (http://your-vps:8765)") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                    onOpenDataExport?.let { openExport ->
+                        OutlinedButton(onClick = openExport, modifier = Modifier.fillMaxWidth()) {
+                            Text("Open export screen")
+                        }
                     }
                 }
             }

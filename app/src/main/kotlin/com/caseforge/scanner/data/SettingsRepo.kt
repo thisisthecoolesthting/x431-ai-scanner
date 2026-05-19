@@ -7,6 +7,7 @@ import androidx.security.crypto.MasterKey
 import com.caseforge.scanner.BuildConfig
 import com.caseforge.scanner.transfer.DEFAULT_RECEIVER_HOST
 import com.caseforge.scanner.transfer.DEFAULT_RECEIVER_PORT
+import com.caseforge.scanner.transfer.TransferDeliveryMode
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -192,6 +193,24 @@ class SettingsRepo(context: Context) {
         get() = prefs.getBoolean(K_USE_MULTIPART_FALLBACK, false)
         set(value) { prefs.edit().putBoolean(K_USE_MULTIPART_FALLBACK, value).apply() }
 
+    /**
+     * Default [TransferDeliveryMode.SHARE] — zip + Android share sheet ($0, no upload API).
+     * [TransferDeliveryMode.SELF_HOSTED] posts to [transferDropUrl] you control (your VPS).
+     * [TransferDeliveryMode.LAN_PC] is legacy same-Wi‑Fi push to office PC.
+     */
+    var transferDeliveryMode: String
+        get() = TransferDeliveryMode.normalize(
+            prefs.getString(K_TRANSFER_DELIVERY_MODE, TransferDeliveryMode.SHARE) ?: TransferDeliveryMode.SHARE,
+        )
+        set(value) {
+            prefs.edit().putString(K_TRANSFER_DELIVERY_MODE, TransferDeliveryMode.normalize(value)).apply()
+        }
+
+    /** Full base URL for self-hosted drop, e.g. `http://187.124.246.154:8765`. Empty = not configured. */
+    var transferDropUrl: String
+        get() = prefs.getString(K_TRANSFER_DROP_URL, "").orEmpty()
+        set(value) { prefs.edit().putString(K_TRANSFER_DROP_URL, value.trim()).apply() }
+
     // ---- A6: overlayOnOemDiag ----
 
     /**
@@ -372,6 +391,8 @@ class SettingsRepo(context: Context) {
         private const val K_RECEIVER_PC_HOST = "receiver_pc_host"
         private const val K_RECEIVER_PC_PORT = "receiver_pc_port"
         private const val K_USE_MULTIPART_FALLBACK = "use_multipart_fallback"
+        private const val K_TRANSFER_DELIVERY_MODE = "transfer_delivery_mode"
+        private const val K_TRANSFER_DROP_URL = "transfer_drop_url"
         private const val K_OVERLAY_ONBOARDING_SEEN = "overlay_onboarding_seen"   // C2
         private const val K_EMERGENCY_DISMISS_HINT_SEEN = "emergency_dismiss_hint_seen"   // D1
         private const val K_FAST_LAST_VIN = "fast_last_vin"                               // DX8

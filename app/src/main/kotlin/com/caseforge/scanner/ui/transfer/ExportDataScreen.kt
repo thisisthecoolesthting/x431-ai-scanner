@@ -35,7 +35,7 @@ fun ExportDataScreen(
                 }
             },
         )
-        OneTapSendCard(
+        DataTransferCard(
             settings = settings,
             modifier = Modifier.padding(16.dp),
             onOpenTransferLog = onOpenTransferLog,

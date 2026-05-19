@@ -2,6 +2,7 @@ package com.caseforge.scanner.transfer
 
 import android.content.Context
 import com.caseforge.scanner.data.SettingsRepo
+import com.caseforge.scanner.transfer.TransferDeliveryMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -61,7 +62,10 @@ object LanPushUploader {
 
     /** Standalone health probe — used by the UI for the 30-second polling pill. */
     suspend fun checkHealth(host: String, port: Int): Result<PcHealthResult> =
-        withContext(Dispatchers.IO) { preFlight(host, port) }
+        withContext(Dispatchers.IO) { preFlight(TransferEndpoint.fromHostPort(host, port)) }
+
+    suspend fun checkHealth(endpoint: TransferEndpoint): Result<PcHealthResult> =
+        withContext(Dispatchers.IO) { preFlight(endpoint) }
 
     /**
      * Full send flow. Emits to [state] throughout. Callers should observe [state] for UI updates.
@@ -71,14 +75,34 @@ object LanPushUploader {
         settings: SettingsRepo,
         zipper: VehicleDatabaseZipper,
     ) = withContext(Dispatchers.IO) {
-        val host = settings.receiverPcHost
-        val port = settings.receiverPcPort
+        if (settings.transferDeliveryMode == TransferDeliveryMode.SHARE) {
+            _state.value = SendState.Failed(
+                "Share mode is active — use Export & Share instead of LAN upload.",
+                Remediation.OPEN_SETTINGS,
+            )
+            return@withContext
+        }
+        val endpoint = settings.resolveTransferEndpoint()
+        if (endpoint == null) {
+            val remediation = if (settings.transferDeliveryMode == TransferDeliveryMode.SELF_HOSTED) {
+                Remediation.EDIT_DROP_URL
+            } else {
+                Remediation.EDIT_PC_IP
+            }
+            _state.value = SendState.Failed(
+                "Set your drop URL in Settings (free — your own server, no paid API).",
+                remediation,
+            )
+            return@withContext
+        }
+        val host = endpoint.host
+        val port = endpoint.port
         val startMs = System.currentTimeMillis()
 
         // ---- Step 1: Pre-flight ------------------------------------------------
         _state.value = SendState.CheckingPc(host, port)
-        TransferLog.append("PREFLIGHT", "GET http://$host:$port/health")
-        val pcResult = preFlight(host, port)
+        TransferLog.append("PREFLIGHT", "GET ${endpoint.healthUrl()}")
+        val pcResult = preFlight(endpoint)
         if (pcResult.isFailure) {
             val reason = pcResult.exceptionOrNull()?.message ?: "Connection refused"
             val remediation = diagnosePcError(reason, host)
@@ -126,9 +150,9 @@ object LanPushUploader {
 
             // ---- Step 4: Upload ------------------------------------------------
             if (settings.useMultipartFallback) {
-                uploadMultipart(host, port, tmp, fileName, startMs, pc.savePath)
+                uploadMultipart(endpoint, tmp, fileName, startMs, pc.savePath)
             } else {
-                uploadRaw(host, port, tmp, fileName, sha256, startMs, pc.savePath, resumeAttempts = 2)
+                uploadRaw(endpoint, tmp, fileName, sha256, startMs, pc.savePath, resumeAttempts = 2)
             }
         } catch (e: VehicleDatabaseZipper.EmptyVehicleDatabaseException) {
             TransferLog.append("ZIP", "FAIL: ${e.message}")
@@ -145,10 +169,10 @@ object LanPushUploader {
     // Internal helpers
     // -------------------------------------------------------------------------
 
-    private fun preFlight(host: String, port: Int): Result<PcHealthResult> = runCatching {
+    private fun preFlight(endpoint: TransferEndpoint): Result<PcHealthResult> = runCatching {
         val t0 = System.currentTimeMillis()
         val req = Request.Builder()
-            .url("http://$host:$port/health")
+            .url(endpoint.healthUrl())
             .get()
             .build()
         httpCheck.newCall(req).execute().use { resp ->
@@ -203,8 +227,7 @@ object LanPushUploader {
     }
 
     private fun uploadRaw(
-        host: String,
-        port: Int,
+        endpoint: TransferEndpoint,
         file: File,
         fileName: String,
         sha256: String,
@@ -222,16 +245,16 @@ object LanPushUploader {
             try {
                 if (attempt > 0) {
                     // Resume: query how many bytes the server already has
-                    uploadOffset = queryHaveBytes(host, port, fileName)
+                    uploadOffset = queryHaveBytes(endpoint, fileName)
                     TransferLog.append("RESUME", "offset=$uploadOffset attempt=$attempt")
                     if (uploadOffset >= size) {
                         // Server already has the whole file — verify
                         break
                     }
-                    patchUpload(host, port, file, fileName, uploadOffset, size, startMs, savePath)
+                    patchUpload(endpoint, file, fileName, uploadOffset, size, startMs, savePath)
                     return
                 } else {
-                    postUpload(host, port, file, fileName, sha256, size, startMs, savePath)
+                    postUpload(endpoint, file, fileName, sha256, size, startMs, savePath)
                     return
                 }
             } catch (e: Exception) {
@@ -253,12 +276,11 @@ object LanPushUploader {
         }
 
         // If we got here without an early return we may still need to verify
-        finishUpload(host, port, fileName, file.length(), sha256, startMs, savePath)
+        finishUpload(fileName, file.length(), sha256, startMs, savePath)
     }
 
     private fun postUpload(
-        host: String,
-        port: Int,
+        endpoint: TransferEndpoint,
         file: File,
         fileName: String,
         sha256: String,
@@ -275,7 +297,7 @@ object LanPushUploader {
             _state.value = SendState.Uploading(sent, size, bps, etaMs)
         }
         val req = Request.Builder()
-            .url("http://$host:$port/upload?name=$fileName&size=$size&sha256=$sha256")
+            .url(endpoint.uploadUrl(fileName, size, sha256))
             .addHeader("Content-Type", "application/octet-stream")
             .addHeader("Content-Length", size.toString())
             .addHeader("User-Agent", "Together-Car-Works/1.0")
@@ -300,8 +322,7 @@ object LanPushUploader {
     }
 
     private fun patchUpload(
-        host: String,
-        port: Int,
+        endpoint: TransferEndpoint,
         file: File,
         fileName: String,
         offset: Long,
@@ -320,7 +341,7 @@ object LanPushUploader {
             _state.value = SendState.Uploading(totalSent, totalSize, bps, etaMs)
         }
         val req = Request.Builder()
-            .url("http://$host:$port/upload?name=$fileName&offset=$offset")
+            .url(endpoint.uploadPatchUrl(fileName, offset))
             .addHeader("Content-Type", "application/octet-stream")
             .addHeader("Content-Length", remaining.toString())
             .addHeader("User-Agent", "Together-Car-Works/1.0")
@@ -334,9 +355,9 @@ object LanPushUploader {
         }
     }
 
-    private fun queryHaveBytes(host: String, port: Int, fileName: String): Long {
+    private fun queryHaveBytes(endpoint: TransferEndpoint, fileName: String): Long {
         val req = Request.Builder()
-            .url("http://$host:$port/upload?name=$fileName")
+            .url(endpoint.uploadHeadUrl(fileName))
             .head()
             .build()
         return runCatching {
@@ -347,8 +368,6 @@ object LanPushUploader {
     }
 
     private fun finishUpload(
-        host: String,
-        port: Int,
         fileName: String,
         bytes: Long,
         sha256: String,
@@ -362,8 +381,7 @@ object LanPushUploader {
     }
 
     private fun uploadMultipart(
-        host: String,
-        port: Int,
+        endpoint: TransferEndpoint,
         file: File,
         fileName: String,
         startMs: Long,
@@ -375,7 +393,7 @@ object LanPushUploader {
             .addFormDataPart("file", fileName, file.asRequestBody("application/zip".toMediaType()))
             .build()
         val req = Request.Builder()
-            .url("http://$host:$port/upload-multipart")
+            .url(endpoint.uploadMultipartUrl())
             .addHeader("User-Agent", "Together-Car-Works/1.0")
             .post(body)
             .build()
