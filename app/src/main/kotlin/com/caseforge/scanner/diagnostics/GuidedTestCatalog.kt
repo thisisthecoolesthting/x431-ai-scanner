@@ -5,14 +5,14 @@ package com.caseforge.scanner.diagnostics
  */
 object GuidedTestCatalog {
 
-    val ALL: List<GuidedTest> = listOf(
+    val ALL: List<GuidedTest> by lazy { listOf(
         misfire,
         noStart,
         chargingLowVoltage,
         evapLeak,
         o2Sensor,
         overheating,
-    )
+    ) }
 
     fun byId(id: String): GuidedTest? = ALL.firstOrNull { it.id == id }
 

@@ -42,6 +42,7 @@ data class ShopExport(
             timestampMs: Long = state.updatedAtMs.takeIf { it > 0L } ?: System.currentTimeMillis(),
             technicianNotes: String = TECHNICIAN_NOTES_PLACEHOLDER,
             repairStoryText: String? = null,
+            symptom: String? = null,
             shopName: String = DEFAULT_SHOP_NAME,
             technicianName: String? = null,
         ): ShopExport = ShopExport(
@@ -53,6 +54,7 @@ data class ShopExport(
             liveData = state.liveData.formatLiveReadings(),
             technicianNotes = technicianNotes,
             repairStoryText = repairStoryText,
+            symptom = symptom,
             shopName = shopName,
             technicianName = technicianName,
         )
