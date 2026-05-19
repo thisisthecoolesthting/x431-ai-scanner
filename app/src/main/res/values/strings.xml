@@ -70,4 +70,8 @@
     <string name="tcw_export_log_email">Email to support</string>
     <string name="tcw_export_log_clear">Clear</string>
     <string name="tcw_export_log_empty">No log entries yet.</string>
+
+    <string name="vin_scan_activity_label">Scan VIN</string>
+    <string name="vin_scan_no_vin_found">No valid 17-character VIN found in photo.</string>
+    <string name="vin_scan_ocr_failed">Could not read text from photo.</string>
 </resources>
