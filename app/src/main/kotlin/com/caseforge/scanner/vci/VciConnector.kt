@@ -78,7 +78,7 @@ object VciConnector {
         settings: SettingsRepo,
         usbDevice: UsbDevice?,
     ): Result<ConnectResult> {
-        val usb = VciUsbClient(context, useHexEncoding = settings.vciUseHexEncoding)
+        val usb = OemUsbVciClient(context, useHexEncoding = settings.vciUseHexEncoding)
         val r = if (usbDevice != null) usb.connect(usbDevice) else usb.connectFirstAvailable()
         return r.map {
             ConnectResult(usb, "USB serial @ ${usbDevice?.deviceName ?: "first attached"}")
@@ -94,7 +94,7 @@ object VciConnector {
                 IllegalStateException("BLUETOOTH_CONNECT not granted"),
             )
         }
-        val bt = VciSocketClient(context, useHexEncoding = settings.vciUseHexEncoding)
+        val bt = BluetoothVciClient(context, useHexEncoding = settings.vciUseHexEncoding)
         val bonded = bt.findBondedVciDevices()
         val saved = settings.vciSelectedBtAddress
         val allBonded = bt.listBondedDevices()

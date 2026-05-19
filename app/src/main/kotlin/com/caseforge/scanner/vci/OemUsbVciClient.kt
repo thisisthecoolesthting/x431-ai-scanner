@@ -26,7 +26,7 @@ import java.io.OutputStream
 /**
  * USB OTG serial transport (CDC-ACM / FTDI / CH340 / PL2303 / CP21xx via usb-serial-for-android).
  */
-class VciUsbClient(
+class OemUsbVciClient(
     private val context: Context,
     val useHexEncoding: Boolean = false,
     val baudRate: Int = 115200,
@@ -35,7 +35,7 @@ class VciUsbClient(
 ) : VciTransport {
 
     companion object {
-        private const val TAG = "VciUsbClient"
+        private const val TAG = "OemUsbVciClient"
         const val ACTION_USB_PERMISSION = "com.caseforge.scanner.USB_PERMISSION"
     }
 

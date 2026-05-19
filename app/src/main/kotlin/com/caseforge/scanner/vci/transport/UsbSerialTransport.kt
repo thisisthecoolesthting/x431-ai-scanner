@@ -20,7 +20,7 @@ import java.io.InputStream
 import java.io.OutputStream
 
 /**
- * Low-level USB serial read/write shared by Launch VCI ([com.caseforge.scanner.vci.VciUsbClient])
+ * Low-level USB serial read/write shared by OEM VCI ([com.caseforge.scanner.vci.OemUsbVciClient])
  * and ELM327 USB-OBD ([com.caseforge.scanner.agent.ObdUsbTool]).
  */
 class UsbSerialTransport(
