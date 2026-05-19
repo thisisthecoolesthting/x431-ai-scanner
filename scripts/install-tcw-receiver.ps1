@@ -1,119 +1,128 @@
-# install-tcw-receiver.ps1 — One-time setup: Scheduled Task + Firewall rule for TCW Receiver.
-# Run as the user who will receive files (no admin needed for Task Scheduler if running for self;
-# admin IS needed for New-NetFirewallRule — script will warn if not elevated).
+# install-tcw-receiver.ps1 - one-time setup for the Together Car Works PC receiver.
 #
-# Usage:
-#   powershell -ExecutionPolicy Bypass -File scripts\install-tcw-receiver.ps1
+# Run from an elevated PowerShell:
+#   powershell -ExecutionPolicy Bypass -File "C:\Users\reasn\Documents\Claude\Projects\DEv1\_x431-work\scripts\install-tcw-receiver.ps1"
 #
-# After install, the receiver starts at logon and runs hidden.
-# Test it: http://<your-ip>:8765/health
+# The receiver listens on port 8765 and saves uploads to %USERPROFILE%\TCWBundles
+# unless TCW_SAVE_PATH is set.
 
 $ErrorActionPreference = "Stop"
+
 $ScriptDir = $PSScriptRoot
 $ReceiverScript = Join-Path $ScriptDir "lan-export-receiver.ps1"
 $TaskName = "TCWReceiver"
 $Port = 8765
 
-# ---- Verify receiver script exists ------------------------------------------
 if (-not (Test-Path $ReceiverScript)) {
     Write-Host "ERROR: lan-export-receiver.ps1 not found at $ReceiverScript"
-    Write-Host "Make sure you run this from the scripts\ folder or from the repo root."
     exit 1
 }
 
-Write-Host "=== Together Car Works — Receiver Setup ==="
+$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+$principal = New-Object Security.Principal.WindowsPrincipal($identity)
+$isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+Write-Host "=== Together Car Works Receiver Setup ==="
 Write-Host "Receiver script : $ReceiverScript"
 Write-Host "Scheduled Task  : $TaskName"
 Write-Host "Port            : $Port"
 Write-Host ""
 
-# ---- Firewall rule (requires elevation) -------------------------------------
-$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
-    [Security.Principal.WindowsBuiltInRole]::Administrator)
+if (-not $isAdmin) {
+    Write-Host "WARNING: This PowerShell is not running as Administrator."
+    Write-Host "The script will install the scheduled task, but firewall and URL ACL setup may be skipped."
+    Write-Host ""
+}
 
 if ($isAdmin) {
     $existingRule = Get-NetFirewallRule -DisplayName "TCW Receiver" -ErrorAction SilentlyContinue
     if ($existingRule) {
-        Write-Host "Firewall rule 'TCW Receiver' already exists — skipping."
-    } else {
-        Write-Host "Adding inbound firewall rule for port $Port..."
-        New-NetFirewallRule `
-            -DisplayName "TCW Receiver" `
-            -Direction Inbound `
-            -LocalPort $Port `
-            -Protocol TCP `
-            -Action Allow `
-            -Profile Any `
-            -Description "Allow Together Car Works tablet to push vehicle database zips" `
-            | Out-Null
+        Write-Host "Firewall rule 'TCW Receiver' already exists."
+    }
+    if (-not $existingRule) {
+        Write-Host "Adding inbound firewall rule for TCP $Port..."
+        $firewallRuleArgs = @{
+            DisplayName = "TCW Receiver"
+            Direction = "Inbound"
+            LocalPort = $Port
+            Protocol = "TCP"
+            Action = "Allow"
+            Profile = "Any"
+            Description = "Allow Together Car Works tablet uploads"
+        }
+        New-NetFirewallRule @firewallRuleArgs | Out-Null
         Write-Host "Firewall rule added."
     }
-} else {
-    Write-Host "WARNING: Not running as Administrator — skipping firewall rule."
-    Write-Host "To add the rule manually (run PowerShell as Admin):"
+}
+
+if (-not $isAdmin) {
+    Write-Host "To add the firewall rule manually, run PowerShell as Admin:"
     Write-Host "  New-NetFirewallRule -DisplayName 'TCW Receiver' -Direction Inbound -LocalPort $Port -Protocol TCP -Action Allow"
     Write-Host ""
 }
 
-# ---- URL ACL (required for HttpListener to bind on any interface) -----------
-Write-Host "Ensuring URL ACL for http://+:$Port/..."
+Write-Host "Checking URL ACL for http://+:$Port/..."
 $aclOutput = netsh http show urlacl url="http://+:$Port/" 2>&1
-if ($aclOutput -notmatch "Reserved URL") {
-    if ($isAdmin) {
-        netsh http add urlacl url="http://+:$Port/" user=Everyone | Out-Null
-        Write-Host "URL ACL added."
-    } else {
-        Write-Host "WARNING: URL ACL not set. Run once as Admin:"
-        Write-Host "  netsh http add urlacl url=http://+:$Port/ user=Everyone"
-    }
-} else {
+$hasUrlAcl = $aclOutput -match "Reserved URL"
+
+if ($hasUrlAcl) {
     Write-Host "URL ACL already set."
 }
 
-# ---- Scheduled Task ---------------------------------------------------------
-$psExe = "powershell.exe"
-$taskArgs = "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$ReceiverScript`""
+if (-not $hasUrlAcl) {
+    if ($isAdmin) {
+        netsh http add urlacl url="http://+:$Port/" user=Everyone | Out-Null
+        Write-Host "URL ACL added."
+    }
+    if (-not $isAdmin) {
+        Write-Host "URL ACL not set. Run once as Admin:"
+        Write-Host "  netsh http add urlacl url=http://+:$Port/ user=Everyone"
+    }
+}
 
-# Remove existing task if present (idempotent)
-$existing = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
-if ($existing) {
-    Write-Host "Removing existing task $TaskName..."
+$existingTask = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+if ($existingTask) {
+    Write-Host "Removing existing scheduled task $TaskName..."
     Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
 }
 
-Write-Host "Creating Scheduled Task '$TaskName'..."
-$action  = New-ScheduledTaskAction -Execute $psExe -Argument $taskArgs
+$psExe = "powershell.exe"
+$taskArgument = '-ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $ReceiverScript + '"'
+
+Write-Host "Creating scheduled task $TaskName..."
+$action = New-ScheduledTaskAction -Execute $psExe -Argument $taskArgument
 $trigger = New-ScheduledTaskTrigger -AtLogon
-$settings = New-ScheduledTaskSettingsSet `
-    -ExecutionTimeLimit (New-TimeSpan -Hours 0) `
-    -RestartCount 3 `
-    -RestartInterval (New-TimeSpan -Minutes 1) `
-    -MultipleInstances IgnoreNew
+$settingsArgs = @{
+    ExecutionTimeLimit = New-TimeSpan -Hours 0
+    RestartCount = 3
+    RestartInterval = New-TimeSpan -Minutes 1
+    MultipleInstances = "IgnoreNew"
+}
+$settings = New-ScheduledTaskSettingsSet @settingsArgs
+$registerArgs = @{
+    TaskName = $TaskName
+    Action = $action
+    Trigger = $trigger
+    Settings = $settings
+    Description = "Together Car Works vehicle database receiver on port $Port"
+    RunLevel = "Limited"
+}
+Register-ScheduledTask @registerArgs | Out-Null
 
-Register-ScheduledTask `
-    -TaskName $TaskName `
-    -Action $action `
-    -Trigger $trigger `
-    -Settings $settings `
-    -Description "Together Car Works vehicle database receiver — listens on port $Port" `
-    -RunLevel Limited `
-    | Out-Null
-
-Write-Host "Task registered."
-
-# ---- Start the task now -----------------------------------------------------
-Write-Host "Starting $TaskName now..."
+Write-Host "Starting $TaskName..."
 Start-ScheduledTask -TaskName $TaskName
 Start-Sleep -Seconds 2
 
-# ---- Show reachable IPs ------------------------------------------------------
 Write-Host ""
-Write-Host "Installed. Receiver is running. Reachable at:"
+Write-Host "Installed. Receiver should be reachable at:"
 $ips = Get-NetIPAddress -AddressFamily IPv4 |
     Where-Object { $_.InterfaceAlias -notmatch "Loopback" -and $_.IPAddress -ne "127.0.0.1" }
+
 foreach ($ip in $ips) {
     Write-Host "  http://$($ip.IPAddress):$Port/health"
 }
+
 Write-Host ""
-Write-Host "On the tablet, open Together Car Works -> Data Transfer and enter the IP above."
-Write-Host "The receiver starts automatically at every logon. To stop: Stop-ScheduledTask -TaskName $TaskName"
+Write-Host "On the tablet: Together Car Works -> Settings/Data Transfer -> PC host = the IP above, port = $Port."
+Write-Host "Uploads save to: $HOME\TCWBundles"
+Write-Host "To stop later: Stop-ScheduledTask -TaskName $TaskName"
