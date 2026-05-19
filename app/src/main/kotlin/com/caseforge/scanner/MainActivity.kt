@@ -64,6 +64,15 @@ import com.caseforge.scanner.ui.security.SecurityFunctionsScreen
 import com.caseforge.scanner.ui.settings.SettingsScreen
 import com.caseforge.scanner.ui.theme.TogetherCarWorksTheme
 import com.caseforge.scanner.ui.triage.TriageScreen
+import com.caseforge.scanner.oem.OemDataIndex
+import com.caseforge.scanner.offline.OfflineDtcLookup
+import com.caseforge.scanner.report.ShopExport
+import com.caseforge.scanner.report.ShopExportFormatter
+import com.caseforge.scanner.diagnostics.GuidedTestCatalog
+import com.caseforge.scanner.vin.VinCameraScanActivity
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.text.font.FontWeight
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -175,6 +184,39 @@ class MainActivity : ComponentActivity() {
                 var busy by remember { mutableStateOf(false) }
                 var homeMode by remember { mutableStateOf(app.settings.homeMode) }
                 var pendingCopilotSymptom by remember { mutableStateOf<String?>(null) }
+                var oemStoreReady by remember { mutableStateOf(OemDataIndex.lastSummary?.hasUsableData() == true) }
+
+                LaunchedEffect(Unit) {
+                    val summary = withContext(Dispatchers.IO) { OemDataIndex.scan() }
+                    oemStoreReady = summary.hasUsableData()
+                }
+
+                val vinScanLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.StartActivityForResult(),
+                ) { result ->
+                    val scan = VinCameraScanActivity.parseResult(result.data)
+                    if (scan != null) {
+                        vci.engineState.value = vci.engineState.value.copy(vehicleVin = scan.vin)
+                        toast("VIN captured: ${scan.vin}")
+                    }
+                }
+
+                fun shareShopExport() {
+                    val transport = ShopExport.transportLabel(app.settings.linkTransport)
+                        ?: vci.linkKind()?.name?.lowercase()
+                    val export = ShopExport.fromEngineState(
+                        state = engineState,
+                        transport = transport,
+                        symptom = pendingCopilotSymptom,
+                    )
+                    val body = ShopExportFormatter.toPlainText(export)
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_SUBJECT, "TCW shop export — ${export.vin ?: "vehicle"}")
+                        putExtra(Intent.EXTRA_TEXT, body)
+                    }
+                    startActivity(Intent.createChooser(intent, "Share shop export"))
+                }
 
                 fun runScanFromHome() {
                     vci.runFullScan(lifecycleScope) { ok ->
@@ -247,6 +289,14 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                         }
+                        CopilotAction.OpenSecurityAndKeys -> route = "security"
+                        CopilotAction.ScanVinCamera -> {
+                            vinScanLauncher.launch(VinCameraScanActivity.createIntent(context))
+                        }
+                        CopilotAction.OpenGuidedTests -> route = "guided_tests"
+                        CopilotAction.OpenOfflineDtcLookup -> route = "offline_dtc"
+                        CopilotAction.OpenOemDataSummary -> route = "oem_data"
+                        CopilotAction.OpenShopExport -> shareShopExport()
                         is CopilotAction.SubmitSymptom -> {
                             pendingCopilotSymptom = action.text.trim().ifBlank { null }
                         }
@@ -259,6 +309,8 @@ class MainActivity : ComponentActivity() {
                             AiCopilotHomeScreen(
                                 vciConnected = vci.isConnected,
                                 vin = engineState.vehicleVin,
+                                linkKind = vci.linkKind(),
+                                oemStoreReady = oemStoreReady,
                                 engineBusy = engineState.busy,
                                 engineState = engineState,
                                 buildInfo = BuildConfig.BUILD_INFO,
@@ -420,6 +472,90 @@ class MainActivity : ComponentActivity() {
                             },
                             onBack = { route = "main" },
                         )
+                        "guided_tests" -> SubScreenScaffold(
+                            title = "Guided tests",
+                            onBack = { route = "main" },
+                        ) {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize().padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                item {
+                                    Text(
+                                        "Bundled workflows — full runner UI ships in a follow-up lane.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+                                }
+                                items(GuidedTestCatalog.ALL, key = { it.id }) { test ->
+                                    Card(Modifier.fillMaxWidth()) {
+                                        Column(Modifier.padding(12.dp)) {
+                                            Text(test.title, fontWeight = FontWeight.SemiBold)
+                                            Text(
+                                                test.symptomAliases.take(3).joinToString(" · "),
+                                                style = MaterialTheme.typography.bodySmall,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        "offline_dtc" -> SubScreenScaffold(
+                            title = "Offline DTC lookup",
+                            onBack = { route = "main" },
+                        ) {
+                            val lookup = remember { OfflineDtcLookup(context) }
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize().padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                if (engineState.dtcs.isEmpty()) {
+                                    item {
+                                        Text("No codes on file — run a scan to populate this list.")
+                                    }
+                                } else {
+                                    items(engineState.dtcs, key = { it.code }) { scraped ->
+                                        val entry = lookup.lookup(scraped.code)
+                                        Card(Modifier.fillMaxWidth()) {
+                                            Column(Modifier.padding(12.dp)) {
+                                                Text(scraped.code, fontWeight = FontWeight.SemiBold)
+                                                Text(
+                                                    entry?.title
+                                                        ?: scraped.description.orEmpty().ifBlank { "No bundled entry" },
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                )
+                                                entry?.summary?.takeIf { it.isNotBlank() }?.let {
+                                                    Text(
+                                                        it,
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        modifier = Modifier.padding(top = 4.dp),
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        "oem_data" -> SubScreenScaffold(
+                            title = "OEM data summary",
+                            onBack = { route = "main" },
+                        ) {
+                            var summary by remember { mutableStateOf(OemDataIndex.lastSummary) }
+                            LaunchedEffect(Unit) {
+                                if (summary == null) {
+                                    summary = withContext(Dispatchers.IO) { OemDataIndex.scan() }
+                                }
+                            }
+                            val lines = summary?.displayLines().orEmpty()
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize().padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                                items(lines) { line ->
+                                    Text(line, style = MaterialTheme.typography.bodyMedium)
+                                }
+                            }
+                        }
                     }
                 }
             }

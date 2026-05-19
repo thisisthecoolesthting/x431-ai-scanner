@@ -29,6 +29,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -48,12 +49,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.overlay.compose.LiveActivityTicker
+import com.caseforge.scanner.vci.DiagnosticConnector
 import kotlinx.coroutines.launch
 
 private data class CopilotMessage(
     val role: CopilotRole,
     val text: String,
-    val actions: List<CopilotAction> = emptyList(),
+    val actions: List<CopilotActionPresentation> = emptyList(),
 )
 
 private enum class CopilotRole { User, Assistant }
@@ -62,6 +64,8 @@ private enum class CopilotRole { User, Assistant }
 fun AiCopilotHomeScreen(
     vciConnected: Boolean,
     vin: String?,
+    linkKind: DiagnosticConnector.LinkKind?,
+    oemStoreReady: Boolean,
     engineBusy: Boolean,
     engineState: EngineState,
     buildInfo: String,
@@ -73,6 +77,16 @@ fun AiCopilotHomeScreen(
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
+    val capabilityCards = remember(vciConnected, vin, engineState.dtcs.size, linkKind, oemStoreReady) {
+        CopilotActionAvailability.capabilityCards(
+            vciConnected = vciConnected,
+            vin = vin,
+            dtcCount = engineState.dtcs.size,
+            linkKind = linkKind,
+            oemStoreReady = oemStoreReady,
+        )
+    }
+
     val suggestedChips = listOf(
         "Scan this vehicle" to CopilotAction.ScanVehicle,
         "Explain current codes" to CopilotAction.ExplainCurrentCodes,
@@ -82,7 +96,7 @@ fun AiCopilotHomeScreen(
         "Send data to PC" to CopilotAction.SendDataToPc,
     )
 
-    fun appendAssistant(text: String, actions: List<CopilotAction>) {
+    fun appendAssistant(text: String, actions: List<CopilotActionPresentation>) {
         messages.add(CopilotMessage(CopilotRole.Assistant, text, actions))
     }
 
@@ -164,6 +178,15 @@ fun AiCopilotHomeScreen(
                 }
             }
         }
+        CapabilityCardsSection(
+            cards = capabilityCards,
+            engineBusy = engineBusy,
+            onAction = { presentation ->
+                if (presentation.enabled && !engineBusy) {
+                    dispatch(presentation.action)
+                }
+            },
+        )
         LazyColumn(
             state = listState,
             modifier = Modifier
@@ -200,7 +223,11 @@ fun AiCopilotHomeScreen(
                 key = { index -> "${messages[index].role}-$index-${messages[index].text.hashCode()}" },
             ) { index ->
                 val msg = messages[index]
-                CopilotBubble(message = msg, enabled = !engineBusy, onAction = { dispatch(it) })
+                CopilotBubble(
+                    message = msg,
+                    engineBusy = engineBusy,
+                    onAction = { dispatch(it) },
+                )
             }
         }
         FlowRow(
@@ -292,7 +319,37 @@ fun AiCopilotHomeScreen(
     }
 }
 
-private fun buildSuggestedActions(vciConnected: Boolean, engineState: EngineState): List<CopilotAction> {
+@Composable
+private fun CapabilityCardsSection(
+    cards: List<CopilotActionPresentation>,
+    engineBusy: Boolean,
+    onAction: (CopilotActionPresentation) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            "Bay tools",
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+        )
+        cards.forEach { presentation ->
+            CopilotActionCard(
+                presentation = presentation,
+                engineBusy = engineBusy,
+                onClick = { onAction(presentation) },
+            )
+        }
+    }
+}
+
+private fun buildSuggestedActions(
+    vciConnected: Boolean,
+    engineState: EngineState,
+): List<CopilotActionPresentation> {
     val actions = mutableListOf<CopilotAction>()
     if (!vciConnected) {
         actions += CopilotAction.ConnectUsbObd
@@ -313,13 +370,41 @@ private fun buildSuggestedActions(vciConnected: Boolean, engineState: EngineStat
     if (engineState.dtcs.isNotEmpty()) {
         actions += CopilotAction.ShareReport
     }
-    return actions.distinct()
+    return actions.distinct().map { actionPresentationForChat(it, vciConnected, engineState) }
+}
+
+private fun actionPresentationForChat(
+    action: CopilotAction,
+    vciConnected: Boolean,
+    engineState: EngineState,
+): CopilotActionPresentation {
+    val (title, subtitle) = chatActionLabels(action)
+    val disabledReason = when (action) {
+        CopilotAction.ExplainCurrentCodes,
+        CopilotAction.ShareReport,
+        CopilotAction.GenerateRepairStory,
+        -> if (engineState.dtcs.isEmpty()) "No DTCs — run a scan first" else null
+        CopilotAction.CheckRecalls -> if (engineState.vehicleVin.isNullOrBlank()) "No VIN on file" else null
+        CopilotAction.RunObdScan,
+        CopilotAction.StartLiveData,
+        CopilotAction.OpenLiveData,
+        CopilotAction.ClearCodes,
+        -> if (!vciConnected) "Disconnected — connect OBD first" else null
+        else -> null
+    }
+    return CopilotActionPresentation(
+        action = action,
+        title = title,
+        subtitle = subtitle,
+        enabled = disabledReason == null,
+        disabledReason = disabledReason,
+    )
 }
 
 @Composable
 private fun CopilotBubble(
     message: CopilotMessage,
-    enabled: Boolean,
+    engineBusy: Boolean,
     onAction: (CopilotAction) -> Unit,
 ) {
     val align = if (message.role == CopilotRole.User) Alignment.End else Alignment.Start
@@ -345,8 +430,16 @@ private fun CopilotBubble(
         }
         if (message.actions.isNotEmpty()) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                message.actions.forEach { action ->
-                    CopilotActionCard(action = action, enabled = enabled, onClick = { onAction(action) })
+                message.actions.forEach { presentation ->
+                    CopilotActionCard(
+                        presentation = presentation,
+                        engineBusy = engineBusy,
+                        onClick = {
+                            if (presentation.enabled && !engineBusy) {
+                                onAction(presentation.action)
+                            }
+                        },
+                    )
                 }
             }
         }
@@ -355,24 +448,48 @@ private fun CopilotBubble(
 
 @Composable
 private fun CopilotActionCard(
-    action: CopilotAction,
-    enabled: Boolean,
+    presentation: CopilotActionPresentation,
+    engineBusy: Boolean,
     onClick: () -> Unit,
 ) {
-    val (title, subtitle) = actionLabels(action)
-    FilledTonalButton(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
+    val enabled = presentation.enabled && !engineBusy
+    val buttonModifier = Modifier.fillMaxWidth()
+    val content: @Composable () -> Unit = {
         Column(Modifier.padding(vertical = 4.dp)) {
-            Text(title, fontWeight = FontWeight.SemiBold)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall)
+            Text(presentation.title, fontWeight = FontWeight.SemiBold)
+            Text(
+                presentation.subtitle,
+                style = MaterialTheme.typography.bodySmall,
+            )
+            if (!presentation.enabled && presentation.disabledReason != null) {
+                Text(
+                    presentation.disabledReason,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            } else if (engineBusy) {
+                Text(
+                    "Wait for the current operation to finish",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+        }
+    }
+    if (enabled) {
+        FilledTonalButton(onClick = onClick, modifier = buttonModifier) {
+            content()
+        }
+    } else {
+        OutlinedButton(onClick = {}, enabled = false, modifier = buttonModifier) {
+            content()
         }
     }
 }
 
-private fun actionLabels(action: CopilotAction): Pair<String, String> = when (action) {
+private fun chatActionLabels(action: CopilotAction): Pair<String, String> = when (action) {
     CopilotAction.ScanVehicle, CopilotAction.RunObdScan ->
         "Run OBD-II scan" to "Read stored and pending codes"
     CopilotAction.ExplainCurrentCodes ->
@@ -399,6 +516,18 @@ private fun actionLabels(action: CopilotAction): Pair<String, String> = when (ac
         "Settings" to "Home mode, transport, receiver"
     CopilotAction.OpenDiagnostics ->
         "Diagnostics" to "VCI probe and logs"
+    CopilotAction.OpenSecurityAndKeys ->
+        "Security & Keys" to "Authorized workflow in OEM app"
+    CopilotAction.ScanVinCamera ->
+        "Camera VIN" to "OCR from door jamb or windshield"
+    CopilotAction.OpenGuidedTests ->
+        "Guided tests" to "Step-by-step bay workflows"
+    CopilotAction.OpenOfflineDtcLookup ->
+        "Offline DTC lookup" to "Bundled definitions"
+    CopilotAction.OpenOemDataSummary ->
+        "OEM data summary" to "Tablet vehicle database inventory"
+    CopilotAction.OpenShopExport ->
+        "Shop export" to "CSV or plain text"
     is CopilotAction.SubmitSymptom ->
         "Continue" to "Use suggested actions above"
 }
