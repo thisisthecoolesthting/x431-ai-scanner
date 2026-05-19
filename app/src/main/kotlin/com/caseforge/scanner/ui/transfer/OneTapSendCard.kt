@@ -299,12 +299,6 @@ fun OneTapSendCard(
             }
 
             // ---- Action buttons --------------------------------------------
-            val isBusy = sendState is SendState.CheckingPc ||
-                sendState is SendState.ScanningFiles ||
-                sendState is SendState.Zipping ||
-                sendState is SendState.Uploading ||
-                sendState is SendState.Verifying
-
             if (!isBusy) {
                 val buttonLabel = when (deliveryMode) {
                     TransferDeliveryMode.SHARE ->
@@ -397,7 +391,7 @@ private fun PcPill(
             )
         } else {
             Text(
-                "PC offline ($host:$port)" + (if (!error.isNullOrBlank()) " — ${error.take(60)}" else ""),
+                "Receiver offline ($targetLabel)" + (if (!error.isNullOrBlank()) " — ${error.take(60)}" else ""),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.error,
                 maxLines = 1,

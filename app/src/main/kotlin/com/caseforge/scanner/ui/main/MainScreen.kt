@@ -60,6 +60,7 @@ fun MainScreen(
     onHistory: () -> Unit,
     onNotes: () -> Unit,
     onSettings: () -> Unit,
+    onOpenExport: () -> Unit = {},
     onDiagnostics: () -> Unit,
     onCheckUpdate: () -> Unit,
     buildInfo: String,
@@ -137,9 +138,17 @@ fun MainScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            OneTapSendCard(
+            TcwCommercialHero(connected = vciConnected, vin = vin)
+            TcwSetupStrip(
+                onConnect = { showDrawer = true },
+                onExport = onOpenExport,
+                onSettings = onSettings,
+                onUpdates = onCheckUpdate,
+            )
+            DataTransferCard(
                 settings = settings,
                 modifier = Modifier.fillMaxWidth(),
+                onOpenSettings = onSettings,
             )
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -257,7 +266,7 @@ fun MainScreen(
         TcwBusyOverlay(
             visible = engineBusy,
             title = "Working…",
-            subtitle = engineState.screen.name.replace('_', ' '),
+            subtitle = engineState.screen::class.simpleName?.replace(Regex("([a-z])([A-Z])"), "$1 $2") ?: "Please wait",
         )
     }
 }
