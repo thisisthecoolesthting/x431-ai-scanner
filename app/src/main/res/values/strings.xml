@@ -74,4 +74,24 @@
     <string name="vin_scan_activity_label">Scan VIN</string>
     <string name="vin_scan_no_vin_found">No valid 17-character VIN found in photo.</string>
     <string name="vin_scan_ocr_failed">Could not read text from photo.</string>
+
+    <!-- Settings: app behavior & fast workflow (CU1) -->
+    <string name="settings_section_app_behavior">App behavior</string>
+    <string name="settings_home_mode_label">Home screen</string>
+    <string name="settings_home_mode_scanner">Scanner Console</string>
+    <string name="settings_home_mode_copilot">AI Copilot</string>
+    <string name="settings_section_fast_workflow">Fast workflow</string>
+    <string name="settings_fast_workflow_empty">No remembered session yet — connect and scan once.</string>
+    <string name="settings_fast_last_vin">Last VIN: %1$s</string>
+    <string name="settings_fast_last_transport">Last transport: %1$s</string>
+    <string name="settings_fast_last_battery">Last battery: %1$s V</string>
+    <string name="settings_fast_receiver_host">Receiver host: %1$s</string>
+    <string name="settings_fast_last_scan">Last scan: %1$s</string>
+    <string name="settings_fast_clear_memory">Clear fast memory</string>
+    <string name="settings_section_receiver_advanced">Receiver (advanced)</string>
+    <string name="settings_receiver_host_label">PC host</string>
+    <string name="settings_receiver_port_label">Port</string>
+    <string name="settings_receiver_multipart">Use multipart upload fallback</string>
+    <string name="settings_show_advanced">Show advanced</string>
+    <string name="settings_hide_advanced">Hide advanced</string>
 </resources>
