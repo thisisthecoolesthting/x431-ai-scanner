@@ -24,6 +24,9 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_DOCUMENTS"
         tools:ignore="ProtectedPermissions" />
+  <!-- Full read of /sdcard/cnlaunch for X431 database export (API 30+) -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
 
     <!-- Vision tool (camera "look_at") -->
     <uses-permission android:name="android.permission.CAMERA" />
@@ -63,6 +66,7 @@
         android:theme="@style/Theme.CaseForge"
         android:usesCleartextTraffic="true"
         android:networkSecurityConfig="@xml/network_security_config"
+        android:requestLegacyExternalStorage="true"
         tools:targetApi="34">
 
         <activity

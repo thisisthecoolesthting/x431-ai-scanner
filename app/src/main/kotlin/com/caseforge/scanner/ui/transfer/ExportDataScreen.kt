@@ -23,6 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.R
 import com.caseforge.scanner.agent.AgentActionLog
+import com.caseforge.scanner.transfer.CnlaunchPathResolver
+import com.caseforge.scanner.transfer.CnlaunchStorageAccess
 import com.caseforge.scanner.transfer.CnlaunchZipper
 import com.caseforge.scanner.transfer.LanExportConfig
 import com.caseforge.scanner.transfer.LanFileServer
@@ -41,7 +43,16 @@ fun ExportDataScreen(
 ) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
-    val zipper = remember { CnlaunchZipper() }
+    var inventory by remember { mutableStateOf(CnlaunchPathResolver.scan()) }
+    val zipper = remember(inventory.root) { CnlaunchZipper(inventory.root) }
+
+    fun refreshInventory() {
+        inventory = CnlaunchPathResolver.scan()
+    }
+
+    LaunchedEffect(Unit) {
+        refreshInventory()
+    }
 
     val candidates = remember { NetworkInterfaceHelper.mergeCandidates(ctx) }
     var selectedHost by remember {
@@ -97,8 +108,13 @@ fun ExportDataScreen(
             error = ctx.getString(R.string.export_error_no_wifi)
             return
         }
+        refreshInventory()
         if (!zipper.exists) {
             error = ctx.getString(R.string.export_error_no_cnlaunch)
+            return
+        }
+        if (!zipper.hasExportableData) {
+            error = CnlaunchZipper.EmptyCnlaunchException.emptyMessage(zipper.inventory)
             return
         }
         startBusy = true
@@ -107,9 +123,10 @@ fun ExportDataScreen(
                 serverRef?.stopServer()
                 val code = LanFileServer.randomPassCode()
                 LanFileServer.create(
+                    context = ctx,
                     displayHost = host,
                     passCode = code,
-                    zipper = zipper,
+                    zipper = CnlaunchZipper(inventory.root),
                     actionLog = actionLog,
                     scope = scope,
                     onAutoStop = {
@@ -156,13 +173,20 @@ fun ExportDataScreen(
     fun pushToOfficePc() {
         error = null
         pushResult = null
+        refreshInventory()
         if (!zipper.exists) {
             error = ctx.getString(R.string.export_error_no_cnlaunch)
             return
         }
+        if (!zipper.hasExportableData) {
+            error = CnlaunchZipper.EmptyCnlaunchException.emptyMessage(zipper.inventory)
+            return
+        }
         pushBusy = true
         scope.launch {
-            val r = LanPushUploader.pushToOfficePc(ctx, zipper) { }
+            val r = LanPushUploader.pushToOfficePc(ctx, CnlaunchZipper(inventory.root)) { msg ->
+                pushResult = msg
+            }
             pushResult = r.fold(
                 onSuccess = { ctx.getString(R.string.export_push_ok, it) },
                 onFailure = { ctx.getString(R.string.export_push_fail, it.message ?: "failed") },
@@ -235,7 +259,7 @@ fun ExportDataScreen(
             )
             Button(
                 onClick = { pushToOfficePc() },
-                enabled = !pushBusy && zipper.exists,
+                enabled = !pushBusy && zipper.hasExportableData,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(
@@ -338,7 +362,7 @@ fun ExportDataScreen(
             } else {
                 Button(
                     onClick = { startServer() },
-                    enabled = !startBusy && selectedHost != null,
+                    enabled = !startBusy && selectedHost != null && zipper.hasExportableData,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(

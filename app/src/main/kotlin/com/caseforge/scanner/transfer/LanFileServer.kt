@@ -1,5 +1,6 @@
 package com.caseforge.scanner.transfer
 
+import android.content.Context
 import com.caseforge.scanner.agent.AgentActionLog
 import fi.iki.elonen.NanoHTTPD
 import kotlinx.coroutines.CoroutineScope
@@ -12,8 +13,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.IOException
-import java.io.PipedInputStream
-import java.io.PipedOutputStream
 import java.net.BindException
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
@@ -28,6 +27,7 @@ class LanFileServer private constructor(
     requestedPort: Int,
     val passCode: String,
     val displayHost: String,
+    private val appContext: Context,
     private val zipper: CnlaunchZipper,
     private val actionLog: AgentActionLog,
     private val scope: CoroutineScope,
@@ -53,6 +53,7 @@ class LanFileServer private constructor(
          * Try ports until one binds; returns configured server or failure.
          */
         fun create(
+            context: Context,
             displayHost: String,
             passCode: String,
             zipper: CnlaunchZipper,
@@ -66,6 +67,7 @@ class LanFileServer private constructor(
                     requestedPort = port,
                     passCode = passCode,
                     displayHost = displayHost,
+                    appContext = context.applicationContext,
                     zipper = zipper,
                     actionLog = actionLog,
                     scope = scope,
@@ -215,24 +217,45 @@ class LanFileServer private constructor(
                 "cnlaunch folder not found on tablet",
             )
         }
+        if (!zipper.hasExportableData) {
+            val inv = zipper.inventory
+            return newFixedLengthResponse(
+                Response.Status.BAD_REQUEST,
+                MIME_PLAINTEXT,
+                CnlaunchZipper.EmptyCnlaunchException.emptyMessage(inv),
+            )
+        }
         downloadStarted.set(true)
-        val pipeIn = PipedInputStream(256 * 1024)
-        val pipeOut = PipedOutputStream(pipeIn)
-        scope.launch(Dispatchers.IO) {
-            try {
-                zipper.zipProgressFlow(pipeOut).collect { }
-                pipeOut.close()
-            } catch (t: Throwable) {
-                actionLog.event("lan_export.zip_error", t.message ?: "zip failed")
-                runCatching { pipeOut.close() }
-            } finally {
+        val zipFile = java.io.File(appContext.cacheDir, "cnlaunch-export-${System.currentTimeMillis()}.zip")
+        return try {
+            val progress = zipper.zipToFileBlocking(zipFile)
+            actionLog.event(
+                "lan_export.zip_ready",
+                "files=${progress.filesZipped} bytes=${progress.bytesWritten} path=${zipFile.absolutePath}",
+            )
+            val resp = newFixedLengthResponse(
+                Response.Status.OK,
+                "application/zip",
+                zipFile.inputStream(),
+                zipFile.length(),
+            )
+            resp.addHeader("Content-Disposition", "attachment; filename=\"$ZIP_NAME\"")
+            scope.launch(Dispatchers.IO) {
+                kotlinx.coroutines.delay(120_000)
+                runCatching { zipFile.delete() }
                 actionLog.event("lan_export.download_complete", ZIP_NAME)
                 stopServer()
             }
+            resp
+        } catch (t: Throwable) {
+            runCatching { zipFile.delete() }
+            actionLog.event("lan_export.zip_error", t.message ?: "zip failed")
+            newFixedLengthResponse(
+                Response.Status.INTERNAL_ERROR,
+                MIME_PLAINTEXT,
+                t.message ?: "zip failed",
+            )
         }
-        val resp = newChunkedResponse(Response.Status.OK, "application/zip", pipeIn)
-        resp.addHeader("Content-Disposition", "attachment; filename=\"$ZIP_NAME\"")
-        return resp
     }
 
     private fun isAuthed(session: IHTTPSession): Boolean {

@@ -2,7 +2,6 @@ package com.caseforge.scanner.transfer
 
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
@@ -31,14 +30,18 @@ object LanPushUploader {
     ): Result<String> = withContext(Dispatchers.IO) {
         runCatching {
             if (!zipper.exists) error("cnlaunch folder not found")
+            if (!zipper.hasExportableData) {
+                throw CnlaunchZipper.EmptyCnlaunchException(zipper.inventory)
+            }
             val url = LanExportConfig.receiverUploadUrl()
-            onProgress("Building zip…")
+            onProgress("Building zip (${zipper.inventory.fileCount} files)…")
             val tmp = File(context.cacheDir, "cnlaunch-push-${System.currentTimeMillis()}.zip")
             try {
-                tmp.outputStream().use { out ->
-                    zipper.zipProgressFlow(out).last()
+                val built = zipper.zipToFileBlocking(tmp)
+                if (tmp.length() < 512) {
+                    throw CnlaunchZipper.EmptyCnlaunchException(zipper.inventory)
                 }
-                onProgress("Uploading to $url …")
+                onProgress("Uploading ${built.filesZipped} files (${tmp.length() / 1024} KB)…")
                 val body = MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
                     .addFormDataPart(
@@ -52,7 +55,7 @@ object LanPushUploader {
                     val text = resp.body?.string().orEmpty()
                     if (!resp.isSuccessful) error("HTTP ${resp.code}: ${text.take(200)}")
                     onProgress("Upload complete")
-                    text.ifBlank { "OK" }
+                    text.ifBlank { "OK (${tmp.length()} bytes)" }
                 }
             } finally {
                 runCatching { tmp.delete() }
