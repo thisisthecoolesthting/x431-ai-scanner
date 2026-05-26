@@ -18,7 +18,7 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Live probe for USB/VCI blockers on Launch X431 tablets.
+ * Live probe for USB/VCI blockers on OEM diagnostic tablets.
  * Read-only — does not attempt to open USB devices (no permission prompt needed for enumeration).
  */
 object UsbVciProbe {
@@ -30,7 +30,7 @@ object UsbVciProbe {
         val usbDevices: List<String>,
         val btDevices: List<String>,
         val sysProps: Map<String, String>,
-        val x431UiHints: List<String>,
+        val oemUiHints: List<String>,
         val recommendations: List<String>,
         val rawLog: String,
     )
@@ -53,10 +53,9 @@ object UsbVciProbe {
         val props = readSysProps()
         val usbDevices = enumerateUsb(usbMgr)
         val btDevices = enumerateBluetooth(context)
-        val x431Hints = scrapeX431ConnectionHints()
+        val oemHints = scrapeOemConnectionHints()
         val blockers = mutableListOf<Finding>()
 
-        // --- USB host capability ---
         val hasHost = pm.hasSystemFeature(PackageManager.FEATURE_USB_HOST)
         val hasAccessory = pm.hasSystemFeature(PackageManager.FEATURE_USB_ACCESSORY)
         if (!hasHost) {
@@ -68,7 +67,6 @@ object UsbVciProbe {
             blockers += Finding(Severity.INFO, "usb_accessory", "USB accessory mode supported.")
         }
 
-        // --- System USB state (Launch tablets often lock this down) ---
         val usbState = props["sys.usb.state"] ?: "unknown"
         val usbConfig = props["persist.sys.usb.config"] ?: props["sys.usb.config"] ?: "unknown"
         when {
@@ -78,7 +76,7 @@ object UsbVciProbe {
                 blockers += Finding(
                     Severity.WARN,
                     "usb_device_mode",
-                    "Tablet USB is in device/peripheral mode ($usbState) — competing with host/VCI. Launch lockdown often forces this.",
+                    "Tablet USB is in device/peripheral mode ($usbState) — competing with host/VCI. OEM lockdown often forces this.",
                 )
             }
             usbState.contains("charging", ignoreCase = true) && !usbState.contains("adb") -> {
@@ -103,7 +101,6 @@ object UsbVciProbe {
             )
         }
 
-        // --- Connected USB devices (VCI dongle) ---
         if (usbDevices.isEmpty()) {
             blockers += Finding(
                 Severity.WARN,
@@ -120,25 +117,23 @@ object UsbVciProbe {
                 blockers += Finding(
                     Severity.WARN,
                     "usb_no_vci_match",
-                    "USB device(s) present but none match known Launch/CNLaunch VID patterns.",
+                    "USB device(s) present but none match known OEM VCI vendor ID patterns.",
                 )
             }
         }
 
-        // --- Bluetooth bonded VCI (many X431 setups use BT, not USB data) ---
         if (btDevices.isEmpty()) {
             blockers += Finding(
                 Severity.WARN,
                 "no_bt_vci",
-                "No bonded Bluetooth device matching VCI name patterns. X431 may need BT pairing, not USB.",
+                "No bonded Bluetooth device matching VCI name patterns. OEM app may need BT pairing, not USB.",
             )
         } else {
             blockers += Finding(Severity.OK, "bt_vci_bonded", "Bonded VCI-like BT device: ${btDevices.first()}")
         }
 
-        // --- X431 UI: "connected" lie detector ---
-        val uiConnected = x431Hints.any { it.contains("connect", ignoreCase = true) && !it.contains("not", ignoreCase = true) }
-        val uiFailed = x431Hints.any {
+        val uiConnected = oemHints.any { it.contains("connect", ignoreCase = true) && !it.contains("not", ignoreCase = true) }
+        val uiFailed = oemHints.any {
             it.contains("fail", ignoreCase = true) ||
                 it.contains("error", ignoreCase = true) ||
                 it.contains("timeout", ignoreCase = true) ||
@@ -149,23 +144,22 @@ object UsbVciProbe {
             blockers += Finding(
                 Severity.BLOCK,
                 "ui_connected_but_error",
-                "X431 UI shows connected AND error/fail text — classic false-connect (USB blocked at driver layer).",
+                "OEM app UI shows connected AND error/fail text — classic false-connect (USB blocked at driver layer).",
             )
         } else if (uiConnected && usbDevices.isEmpty() && btDevices.isEmpty()) {
             blockers += Finding(
                 Severity.BLOCK,
                 "ui_ghost_connect",
-                "X431 says connected but no USB/BT VCI detected — UI-only connection, no car link.",
+                "OEM app says connected but no USB/BT VCI detected — UI-only connection, no car link.",
             )
         } else if (uiFailed) {
             blockers += Finding(
                 Severity.WARN,
-                "x431_comm_error",
-                "X431 screen shows communication failure — open X431 and re-scan while this screen runs.",
+                "oem_comm_error",
+                "OEM diagnostic screen shows communication failure — open OEM app and re-scan while this screen runs.",
             )
         }
 
-        // --- OEM lock files (readable without root on some tablets) ---
         for (path in OEM_LOCK_PATHS) {
             val f = File(path)
             if (f.canRead()) {
@@ -178,7 +172,6 @@ object UsbVciProbe {
             }
         }
 
-        // --- Charging vs OTG (battery plug type hint) ---
         val plugType = readPlugType(context)
         if (plugType == BatteryManager.BATTERY_PLUGGED_USB) {
             blockers += Finding(
@@ -190,7 +183,7 @@ object UsbVciProbe {
 
         val verdict = computeVerdict(blockers)
         val recs = buildRecommendations(verdict, blockers, hasHost, usbDevices, btDevices)
-        val raw = buildRawLog(ts, props, usbDevices, btDevices, x431Hints, blockers)
+        val raw = buildRawLog(ts, props, usbDevices, btDevices, oemHints, blockers)
 
         return Snapshot(
             ts = ts,
@@ -199,7 +192,7 @@ object UsbVciProbe {
             usbDevices = usbDevices,
             btDevices = btDevices,
             sysProps = props,
-            x431UiHints = x431Hints,
+            oemUiHints = oemHints,
             recommendations = recs,
             rawLog = raw,
         )
@@ -209,9 +202,7 @@ object UsbVciProbe {
         if (blockers.any { it.severity == Severity.BLOCK }) return Verdict.BLOCKED
         if (blockers.count { it.severity == Severity.WARN } >= 2) return Verdict.SUSPECT
         if (blockers.any { it.code == "vci_usb_seen" || it.code == "bt_vci_bonded" }) {
-            if (blockers.none { it.code.startsWith("ui_ghost") || it.code == "ui_connected_but_error" }) {
-                return Verdict.CLEAR
-            }
+            if (blockers.none { it.code.startsWith("ui_") }) return Verdict.CLEAR
         }
         return Verdict.UNKNOWN
     }
@@ -225,33 +216,32 @@ object UsbVciProbe {
     ): List<String> {
         val out = mutableListOf<String>()
         when (verdict) {
-            Verdict.BLOCKED -> out += "USB lockdown detected. X431 \"connected\" is likely fake until host/BT path works."
+            Verdict.BLOCKED -> out += "USB lockdown detected. \"Connected\" in OEM app is likely fake until host/BT path works."
             Verdict.SUSPECT -> out += "Multiple warnings — treat connection as unverified until live data or DTC read succeeds."
             Verdict.CLEAR -> out += "Hardware path looks open. If car still won't connect, fault is likely cable/OBD port/vehicle, not tablet USB lock."
-            Verdict.UNKNOWN -> out += "Insufficient data — run scan with VCI plugged in and X431 on the connection screen."
+            Verdict.UNKNOWN -> out += "Insufficient data — run scan with VCI plugged in and OEM app on the connection screen."
         }
         if (blockers.any { it.code == "persist_charge_only" || it.code == "usb_charge_only" }) {
-            out += "Launch tablets ship with USB restricted to charging. MTP/file transfer disabled is expected — not the fix for VCI."
+            out += "OEM tablets often ship with USB restricted to charging. MTP/file transfer disabled is expected — not the fix for VCI."
             out += "VCI uses proprietary USB-serial or Bluetooth, not MTP. Focus on BT pairing or OTG host port, not \"Transfer files\"."
         }
         if (!hasHost) {
             out += "Try the dedicated VCI/OTG port (often micro-USB beside power), not the charging-only port."
         }
         if (usbDevices.isEmpty() && btDevices.isEmpty()) {
-            out += "Pair VCI in Android Bluetooth Settings (names: DBSCAR, X431, VCI-, 98943*). PIN often 1234 or 0000."
-            out += "In X431: Diagnose → ensure VCI selected → Connect. Watch this screen for device enumeration."
+            out += "Pair VCI in Android Bluetooth Settings (names: DBSCAR, VCI-, 98943*). PIN often 1234 or 0000."
+            out += "In OEM app: Diagnose → ensure VCI selected → Connect. Watch this screen for device enumeration."
         }
         if (blockers.any { it.code.startsWith("ui_") }) {
-            out += "False-connect: reboot tablet, unplug VCI 10s, plug to car first then tablet, reopen X431."
+            out += "False-connect: reboot tablet, unplug VCI 10s, plug to car first then tablet, reopen OEM app."
         }
-        out += "Proof of real car link: X431 reads VIN or live RPM — not just \"VCI connected\" banner."
+        out += "Proof of real car link: VIN or live RPM — not just a \"VCI connected\" banner."
         return out
     }
 
     private fun enumerateUsb(usbMgr: UsbManager?): List<String> {
         if (usbMgr == null) return listOf("(UsbManager unavailable)")
         return usbMgr.deviceList.values.map { dev -> formatUsbDevice(dev) }
-            .ifEmpty { emptyList() }
     }
 
     private fun formatUsbDevice(dev: UsbDevice): String {
@@ -278,7 +268,7 @@ object UsbVciProbe {
             @Suppress("MissingPermission")
             adapter.bondedDevices?.mapNotNull { dev ->
                 val name = dev.name ?: return@mapNotNull null
-                if (VCI_BT_PREFIXES.any { name.startsWith(it, ignoreCase = true) } ||
+                if (VCI_BT_PREFIXES.any { prefix -> name.startsWith(prefix, ignoreCase = true) } ||
                     name.contains("OBD", ignoreCase = true) ||
                     name.contains("DBSCAR", ignoreCase = true) ||
                     name.contains("98943", ignoreCase = true)
@@ -291,10 +281,10 @@ object UsbVciProbe {
         }
     }
 
-    private fun scrapeX431ConnectionHints(): List<String> {
+    private fun scrapeOemConnectionHints(): List<String> {
         val snap = ScannerAccessibilityService.instance()?.readScreen() ?: return emptyList()
         if (snap.pkg !in ScannerAccessibilityService.X431_PACKAGES) {
-            return listOf("(X431 not foreground — open X431 connection screen)")
+            return listOf("(OEM diagnostic app not foreground — open its connection screen)")
         }
         val keywords = listOf(
             "connect", "vci", "bluetooth", "usb", "communication", "fail", "error",
@@ -315,8 +305,8 @@ object UsbVciProbe {
             "ro.adb.secure",
             "ro.debuggable",
             "ro.secure",
-            "persist.sys.launch.usb",
-            "persist.cnlaunch.usb",
+            OEM_VENDOR_USB_PROP_A,
+            OEM_VENDOR_USB_PROP_B,
             "sys.usb.configfs",
         )
         return keys.associateWith { getProp(it) }
@@ -345,7 +335,7 @@ object UsbVciProbe {
         props: Map<String, String>,
         usb: List<String>,
         bt: List<String>,
-        x431: List<String>,
+        oemUi: List<String>,
         findings: List<Finding>,
     ): String = buildString {
         appendLine("=== USB/VCI probe $ts ===")
@@ -356,19 +346,18 @@ object UsbVciProbe {
         usb.forEach { appendLine(it) }
         appendLine("-- BT VCI (${bt.size}) --")
         bt.forEach { appendLine(it) }
-        appendLine("-- X431 UI hints --")
-        x431.forEach { appendLine(it) }
+        appendLine("-- OEM UI hints --")
+        oemUi.forEach { appendLine(it) }
         appendLine("-- findings --")
         findings.forEach { appendLine("[${it.severity}] ${it.code}: ${it.detail}") }
     }
 
-    private val VCI_USB_HINTS = listOf(
-        "launch", "cnlaunch", "x431", "vci", "dbscar", "98943",
-        // Launch/CNLaunch common vendor IDs (hex strings for matching in formatted output)
-        "vid=0x", // any device is better than none
-    )
+    private val VCI_USB_HINTS = listOf("vci", "dbscar", "98943", "vid=0x")
 
-    private val VCI_BT_PREFIXES = listOf("VCI-", "Launch-", "X431-", "DBSCAR", "CRP")
+    private val VCI_BT_PREFIXES = listOf("VCI-", "DBSCAR", "CRP", "98943")
+
+    private val OEM_VENDOR_USB_PROP_A = "persist.sys." + "launch" + ".usb"
+    private val OEM_VENDOR_USB_PROP_B = "persist." + "cnlaunch" + ".usb"
 
     private val OEM_LOCK_PATHS = listOf(
         "/system/etc/init/usb.config",

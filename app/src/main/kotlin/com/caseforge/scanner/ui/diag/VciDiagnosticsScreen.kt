@@ -174,9 +174,9 @@ fun VciDiagnosticsScreen(
                             add("BT VCI:")
                             snap.btDevices.forEach { add("  $it") }
                         }
-                        if (snap.x431UiHints.isNotEmpty()) {
-                            add("X431 UI:")
-                            snap.x431UiHints.forEach { add("  $it") }
+                        if (snap.oemUiHints.isNotEmpty()) {
+                            add("OEM app UI:")
+                            snap.oemUiHints.forEach { add("  $it") }
                         }
                         snap.recommendations.forEach { add("→ $it") }
                     },

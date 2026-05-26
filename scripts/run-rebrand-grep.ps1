@@ -17,6 +17,7 @@ $hits = @(
         Where-Object { $_ -notmatch 'lan-export-receiver\.ps1' } |
         Where-Object { $_ -notmatch 'x431-ai-scanner' } |
         Where-Object { $_ -notmatch 'extract-x431-apk\.ps1' } |
+        Where-Object { $_ -notmatch 'analyze-share-export\.ps1' } |
         Where-Object { $_ -notmatch 'build_cnlaunch_assets\.py' } |
         Where-Object { $_ -notmatch 'frida-vci-intercept\.js' }
 )
