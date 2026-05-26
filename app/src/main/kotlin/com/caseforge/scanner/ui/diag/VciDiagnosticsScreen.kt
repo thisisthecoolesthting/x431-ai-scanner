@@ -2,7 +2,11 @@
 
 package com.caseforge.scanner.ui.diag
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.pm.PackageManager
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,12 +36,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.agent.ScannerAccessibilityService
 import com.caseforge.scanner.data.SettingsRepo
+import com.caseforge.scanner.diagnostics.UsbVciProbe
 import com.caseforge.scanner.oem.OemDataIndex
 import com.caseforge.scanner.pc.PcAssistantClient
 import com.caseforge.scanner.pc.PcHealthInfo
 import com.caseforge.scanner.pc.PcProcessState
 import com.caseforge.scanner.pc.PcProcessStatus
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -62,6 +69,9 @@ fun VciDiagnosticsScreen(
 
     var pcLines by remember { mutableStateOf<List<String>>(emptyList()) }
     var pcBusy by remember { mutableStateOf(true) }
+
+    var usbSnap by remember { mutableStateOf<UsbVciProbe.Snapshot?>(null) }
+    var usbPolling by remember { mutableStateOf(true) }
 
     val oemAppInstalled = remember(context) { detectOemDiagInstalled(context.packageManager) }
 
@@ -98,6 +108,15 @@ fun VciDiagnosticsScreen(
     LaunchedEffect(Unit) {
         refreshOem()
         refreshPc()
+    }
+
+    LaunchedEffect(usbPolling) {
+        while (isActive && usbPolling) {
+            usbSnap = withContext(Dispatchers.IO) {
+                UsbVciProbe.capture(context.applicationContext)
+            }
+            delay(2000)
+        }
     }
 
     Column(Modifier.fillMaxSize()) {
@@ -137,6 +156,41 @@ fun VciDiagnosticsScreen(
                 title = "PC assistant",
                 lines = pcLines,
                 busy = pcBusy,
+            )
+
+            usbSnap?.let { snap ->
+                CapabilitySummaryCard(
+                    title = "USB / VCI blocker check — ${snap.verdict.name}",
+                    lines = buildList {
+                        add("Last scan: ${snap.ts}")
+                        snap.blockers.forEach { f ->
+                            add("[${f.severity}] ${f.detail}")
+                        }
+                        if (snap.usbDevices.isNotEmpty()) {
+                            add("USB devices:")
+                            snap.usbDevices.forEach { add("  $it") }
+                        }
+                        if (snap.btDevices.isNotEmpty()) {
+                            add("BT VCI:")
+                            snap.btDevices.forEach { add("  $it") }
+                        }
+                        if (snap.x431UiHints.isNotEmpty()) {
+                            add("X431 UI:")
+                            snap.x431UiHints.forEach { add("  $it") }
+                        }
+                        snap.recommendations.forEach { add("→ $it") }
+                    },
+                )
+                OutlinedButton(
+                    onClick = { copyUsbDiagLog(context, snap.rawLog) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Copy USB/VCI diagnostic log")
+                }
+            } ?: CapabilitySummaryCard(
+                title = "USB / VCI blocker check",
+                lines = listOf("Scanning… plug VCI and open X431 connect screen."),
+                busy = true,
             )
 
             SecurityReadinessCard(
@@ -270,4 +324,10 @@ private fun formatBytesForPc(bytes: Long): String = when {
     bytes < 1024 * 1024 -> "${bytes / 1024} KB"
     bytes < 1024 * 1024 * 1024 -> "${bytes / (1024 * 1024)} MB"
     else -> String.format("%.1f GB", bytes / (1024.0 * 1024.0 * 1024.0))
+}
+
+private fun copyUsbDiagLog(context: Context, text: String) {
+    val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    cm.setPrimaryClip(ClipData.newPlainText("usb_vci_diag", text))
+    Toast.makeText(context, "USB/VCI log copied", Toast.LENGTH_SHORT).show()
 }

@@ -26,6 +26,7 @@ fun HomeScreen(
     onOpenApprovals: () -> Unit,
     onTalkToAgent: () -> Unit,
     onOpenLog: () -> Unit,
+    onOpenVciDiagnostics: () -> Unit = {},
     onBack: () -> Unit = {},
 ) {
     Column(Modifier.fillMaxSize()) {
@@ -66,6 +67,7 @@ fun HomeScreen(
                     OutlinedButton(onClick = onOpenApprovals) { Text("Pending Approvals") }
                     OutlinedButton(onClick = onOpenHistory) { Text("Session History") }
                     OutlinedButton(onClick = onOpenLog) { Text("View Action Log (debug)") }
+                    Button(onClick = onOpenVciDiagnostics) { Text("USB / VCI Blocker Check") }
                 }
             }
 
