@@ -283,7 +283,7 @@ object UsbVciProbe {
 
     private fun scrapeOemConnectionHints(): List<String> {
         val snap = ScannerAccessibilityService.instance()?.readScreen() ?: return emptyList()
-        if (snap.pkg !in ScannerAccessibilityService.X431_PACKAGES) {
+        if (snap.pkg !in ScannerAccessibilityService.OEM_DIAG_PACKAGES) {
             return listOf("(OEM diagnostic app not foreground — open its connection screen)")
         }
         val keywords = listOf(
