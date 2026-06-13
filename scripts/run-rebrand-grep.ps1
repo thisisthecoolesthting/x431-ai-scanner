@@ -2,6 +2,11 @@
 $pattern = '\b(Launch|X431|x431|cnlaunch|CaseForge|caseforge)\b'
 $paths = @('app/src', '.github/workflows', 'scripts', 'README.md', 'docs/STANDALONE-vs-FACTORY-OVERLAY.md')
 
+# Only scan paths that actually exist on disk. Passing a missing path to ripgrep
+# makes it exit non-zero (os error 2), which fails the CI step before any content
+# check runs. Filtering here keeps the gate about branding, not about file presence.
+$paths = @($paths | Where-Object { Test-Path $_ })
+
 $rawHits = & rg --no-heading --line-number $pattern $paths 2>$null
 $hits = @(
     $rawHits |
