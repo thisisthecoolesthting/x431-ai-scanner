@@ -234,34 +234,7 @@ fun MainScreen(
                 }
             }
         }
-        Surface(shadowElevation = 8.dp) {
-            Row(
-                Modifier.fillMaxWidth().padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                OutlinedTextField(
-                    value = aiInput,
-                    onValueChange = { aiInput = it },
-                    modifier = Modifier.weight(1f),
-                    placeholder = { Text("Tell Together what is wrong…") },
-                    maxLines = 2,
-                )
-                Button(
-                    onClick = {
-                        val t = aiInput.trim()
-                        aiInput = ""
-                        scope.launch {
-                            AgentStatus.setActivity("AI: ${t.take(40)}")
-                            onAiPrompt(t.ifBlank { null })
-                        }
-                    },
-                    enabled = !engineBusy && aiInput.isNotBlank(),
-                ) {
-                    Text("Ask")
-                }
-            }
-        }
+        // AI prompt bar hidden from build (overlay/AI feature parked for later).
     }
         TcwBusyOverlay(
             visible = engineBusy,
