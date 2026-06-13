@@ -10,11 +10,11 @@ import com.caseforge.scanner.evidence.EvidenceType
 @Dao
 interface EvidenceDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(evidence: Evidence)
+    suspend fun insert(evidence: Evidence)
 
     @Query("SELECT * FROM evidence WHERE ticketId = :ticketId ORDER BY timestamp ASC")
-    fun getByTicket(ticketId: String): List<Evidence>
+    suspend fun getByTicket(ticketId: String): List<Evidence>
 
     @Query("UPDATE evidence SET photoUri = :uri WHERE id = :id")
-    fun updatePhotoUri(id: String, uri: String)
+    suspend fun updatePhotoUri(id: String, uri: String)
 }

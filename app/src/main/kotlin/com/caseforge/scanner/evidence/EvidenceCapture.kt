@@ -18,7 +18,7 @@ class EvidenceCapture(
 ) {
     private val json = Json { encodeDefaults = true; ignoreUnknownKeys = true }
 
-    fun bookmark(
+    suspend fun bookmark(
         state: EngineState,
         ticketId: String,
         type: EvidenceType,
@@ -39,7 +39,7 @@ class EvidenceCapture(
             label = label,
             snapshotJson = snapshot,
         )
-        db.evidenceDao().insert(row)
+        withContext(Dispatchers.IO) { db.evidenceDao().insert(row) }
         return row
     }
 

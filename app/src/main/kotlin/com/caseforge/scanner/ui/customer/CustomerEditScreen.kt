@@ -151,14 +151,24 @@ fun CustomerEditScreen(
                         saving = true
                         scope.launch {
                             withContext(Dispatchers.IO) {
-                                db.sessionDao().insertCustomer(
-                                    CustomerEntity(
+                                if (isEditMode && customerId != null) {
+                                    db.sessionDao().updateCustomer(
+                                        id = customerId,
                                         name = name.trim(),
                                         phone = phone.trim().ifBlank { null },
                                         email = email.trim().ifBlank { null },
                                         notes = notes.trim().ifBlank { null },
                                     )
-                                )
+                                } else {
+                                    db.sessionDao().insertCustomer(
+                                        CustomerEntity(
+                                            name = name.trim(),
+                                            phone = phone.trim().ifBlank { null },
+                                            email = email.trim().ifBlank { null },
+                                            notes = notes.trim().ifBlank { null },
+                                        )
+                                    )
+                                }
                             }
                             saving = false
                             onSaved()

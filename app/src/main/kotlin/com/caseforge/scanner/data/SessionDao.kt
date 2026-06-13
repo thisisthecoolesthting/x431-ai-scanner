@@ -38,6 +38,8 @@ interface SessionDao {
     suspend fun insertCustomer(c: CustomerEntity): Long
     @Query("SELECT * FROM customers ORDER BY name ASC")
     suspend fun listCustomers(): List<CustomerEntity>
+    @Query("UPDATE customers SET name = :name, phone = :phone, email = :email, notes = :notes WHERE id = :id")
+    suspend fun updateCustomer(id: Long, name: String, phone: String?, email: String?, notes: String?)
 
     // Repair orders
     @Insert
