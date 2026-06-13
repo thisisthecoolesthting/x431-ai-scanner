@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.timeout
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import kotlin.coroutines.coroutineContext
 import kotlin.time.Duration
@@ -97,6 +99,9 @@ class VciCommunicator(
         const val OBD_MODE_VEHICLE_INFO  = 0x09
     }
 
+    /** Serialises all send+await pairs so two concurrent callers cannot interleave. */
+    private val commandMutex = Mutex()
+
     // ------------------------------------------------------------------
     // readDtcs — OBD Mode 03
     // ------------------------------------------------------------------
@@ -114,18 +119,20 @@ class VciCommunicator(
      * UNKNOWN: Whether the VCI uses opcode 0x0103 or a different encoding.
      */
     suspend fun readDtcs(): Result<List<Dtc>> = safeRequest("readDtcs") {
-        // Send Mode 03 request (no PID needed)
-        transport.send(KnownOpcode.OBD_MODE03_DTC_REQ)
+        commandMutex.withLock {
+            // Send Mode 03 request (no PID needed)
+            transport.send(KnownOpcode.OBD_MODE03_DTC_REQ)
 
-        // Wait for a DTC response frame
-        val responseFrame = awaitResponse(KnownOpcode.OBD_MODE03_DTC_RESP)
-            ?: return@safeRequest Result.failure(
-                VciException.Timeout(KnownOpcode.OBD_MODE03_DTC_REQ, requestTimeoutMs)
-            )
+            // Wait for a DTC response frame
+            val responseFrame = awaitResponse(KnownOpcode.OBD_MODE03_DTC_RESP)
+                ?: return@withLock Result.failure(
+                    VciException.Timeout(KnownOpcode.OBD_MODE03_DTC_REQ, requestTimeoutMs)
+                )
 
-        val dtcs = parseDtcPayload(responseFrame.payload).map { enrichDescription(it) }
-        Log.i(TAG, "readDtcs: found ${dtcs.size} DTCs")
-        Result.success(dtcs)
+            val dtcs = parseDtcPayload(responseFrame.payload).map { enrichDescription(it) }
+            Log.i(TAG, "readDtcs: found ${dtcs.size} DTCs")
+            Result.success(dtcs)
+        }
     }
 
     // ------------------------------------------------------------------
@@ -142,16 +149,18 @@ class VciCommunicator(
      * @return [Result.success] of [Unit] on confirmation, or [Result.failure].
      */
     suspend fun clearCodes(): Result<Unit> = safeRequest("clearCodes") {
-        transport.send(KnownOpcode.OBD_MODE04_CLEAR_DTC)
+        commandMutex.withLock {
+            transport.send(KnownOpcode.OBD_MODE04_CLEAR_DTC)
 
-        val ack = awaitResponse(KnownOpcode.OBD_MODE04_CLEAR_RESP)
-            ?: return@safeRequest Result.failure(
-                VciException.Timeout(KnownOpcode.OBD_MODE04_CLEAR_DTC, requestTimeoutMs)
-            )
+            val ack = awaitResponse(KnownOpcode.OBD_MODE04_CLEAR_RESP)
+                ?: return@withLock Result.failure(
+                    VciException.Timeout(KnownOpcode.OBD_MODE04_CLEAR_DTC, requestTimeoutMs)
+                )
 
-        // Positive response payload should be empty or contain 0x44 (0x40+mode)
-        Log.i(TAG, "clearCodes: confirmed, payload=${ack.payload.toHexString()}")
-        Result.success(Unit)
+            // Positive response payload should be empty or contain 0x44 (0x40+mode)
+            Log.i(TAG, "clearCodes: confirmed, payload=${ack.payload.toHexString()}")
+            Result.success(Unit)
+        }
     }
 
     // ------------------------------------------------------------------
@@ -249,26 +258,28 @@ class VciCommunicator(
      * DO NOT USE IN PRODUCTION until the opcode is confirmed via Frida or tcpdump.
      */
     suspend fun actuate(testId: String): Result<ActuationResult> = safeRequest("actuate") {
-        Log.w(TAG, "actuate: STUB — opcode 0x${KnownOpcode.PROPRIETARY_ACTIVE_TEST.value.toString(16)} is UNCONFIRMED")
+        commandMutex.withLock {
+            Log.w(TAG, "actuate: STUB — opcode 0x${KnownOpcode.PROPRIETARY_ACTIVE_TEST.value.toString(16)} is UNCONFIRMED")
 
-        // Encode testId as ASCII bytes in payload (best guess)
-        val payload = testId.toByteArray(Charsets.US_ASCII)
-        transport.send(KnownOpcode.PROPRIETARY_ACTIVE_TEST, payload)
+            // Encode testId as ASCII bytes in payload (best guess)
+            val payload = testId.toByteArray(Charsets.US_ASCII)
+            transport.send(KnownOpcode.PROPRIETARY_ACTIVE_TEST, payload)
 
-        // No reliable response opcode known — just wait for any frame
-        val response = awaitAnyFrame(timeoutMs = requestTimeoutMs)
+            // No reliable response opcode known — just wait for any frame
+            val response = awaitAnyFrame(timeoutMs = requestTimeoutMs)
 
-        val success = response != null
-        Result.success(
-            ActuationResult(
-                testId  = testId,
-                success = success,
-                log     = listOf(
-                    "STUB: sent opcode=${KnownOpcode.PROPRIETARY_ACTIVE_TEST.value} payload=${payload.toHexString()}",
-                    "response=${response?.toString() ?: "TIMEOUT"}",
-                ),
+            val success = response != null
+            Result.success(
+                ActuationResult(
+                    testId  = testId,
+                    success = success,
+                    log     = listOf(
+                        "STUB: sent opcode=${KnownOpcode.PROPRIETARY_ACTIVE_TEST.value} payload=${payload.toHexString()}",
+                        "response=${response?.toString() ?: "TIMEOUT"}",
+                    ),
+                )
             )
-        )
+        }
     }
 
     // ------------------------------------------------------------------
@@ -283,20 +294,22 @@ class VciCommunicator(
      * @return 17-character VIN string, or failure if not supported.
      */
     suspend fun readVin(): Result<String> = safeRequest("readVin") {
-        val payload = byteArrayOf(0x02.toByte())  // Info type 0x02 = VIN
-        transport.send(KnownOpcode.OBD_MODE09_VEH_INFO_REQ, payload)
+        commandMutex.withLock {
+            val payload = byteArrayOf(0x02.toByte())  // Info type 0x02 = VIN
+            transport.send(KnownOpcode.OBD_MODE09_VEH_INFO_REQ, payload)
 
-        val response = awaitResponse(KnownOpcode.OBD_MODE09_VEH_INFO_RESP)
-            ?: return@safeRequest Result.failure(
-                VciException.Timeout(KnownOpcode.OBD_MODE09_VEH_INFO_REQ, requestTimeoutMs)
-            )
+            val response = awaitResponse(KnownOpcode.OBD_MODE09_VEH_INFO_RESP)
+                ?: return@withLock Result.failure(
+                    VciException.Timeout(KnownOpcode.OBD_MODE09_VEH_INFO_REQ, requestTimeoutMs)
+                )
 
-        val vin = parseVinPayload(response.payload)
-            ?: return@safeRequest Result.failure(
-                VciException.ProtocolError("Could not parse VIN from payload: ${response.payload.toHexString()}")
-            )
+            val vin = parseVinPayload(response.payload)
+                ?: return@withLock Result.failure(
+                    VciException.ProtocolError("Could not parse VIN from payload: ${response.payload.toHexString()}")
+                )
 
-        Result.success(vin)
+            Result.success(vin)
+        }
     }
 
     // ------------------------------------------------------------------
@@ -304,15 +317,17 @@ class VciCommunicator(
     // ------------------------------------------------------------------
 
     private suspend fun readPendingDtcs(): Result<List<Dtc>> = safeRequest("readPendingDtcs") {
-        // Mode 07 uses the same opcode category as Mode 03 but different mode byte
-        // For the spike we reuse OBD_MODE03_DTC_REQ with a payload byte override
-        // FIXME: define a proper PENDING_DTC opcode once wire format is confirmed
-        val pending = byteArrayOf(OBD_MODE_PENDING_DTC.toByte())
-        transport.sendRaw(KnownOpcode.OBD_MODE03_DTC_REQ.value, pending)
+        commandMutex.withLock {
+            // Mode 07 uses the same opcode category as Mode 03 but different mode byte
+            // For the spike we reuse OBD_MODE03_DTC_REQ with a payload byte override
+            // FIXME: define a proper PENDING_DTC opcode once wire format is confirmed
+            val pending = byteArrayOf(OBD_MODE_PENDING_DTC.toByte())
+            transport.sendRaw(KnownOpcode.OBD_MODE03_DTC_REQ.value, pending)
 
-        val response = awaitResponse(KnownOpcode.OBD_MODE03_DTC_RESP)
-        val dtcs = response?.let { parseDtcPayload(it.payload) } ?: emptyList()
-        Result.success(dtcs.map { enrichDescription(it.copy(code = "PENDING:${it.code}")) })
+            val response = awaitResponse(KnownOpcode.OBD_MODE03_DTC_RESP)
+            val dtcs = response?.let { parseDtcPayload(it.payload) } ?: emptyList()
+            Result.success(dtcs.map { enrichDescription(it.copy(code = "PENDING:${it.code}")) })
+        }
     }
 
     // ------------------------------------------------------------------
@@ -321,9 +336,11 @@ class VciCommunicator(
 
     private suspend fun requestLivePid(pid: Int): LiveSample? {
         return try {
-            transport.send(KnownOpcode.OBD_MODE01_PID_REQ, byteArrayOf(pid.toByte()))
-            val response = awaitResponse(KnownOpcode.OBD_MODE01_PID_RESP)
-            response?.let { parsePidResponse(pid, it.payload) }
+            commandMutex.withLock {
+                transport.send(KnownOpcode.OBD_MODE01_PID_REQ, byteArrayOf(pid.toByte()))
+                val response = awaitResponse(KnownOpcode.OBD_MODE01_PID_RESP)
+                response?.let { parsePidResponse(pid, it.payload) }
+            }
         } catch (e: VciException) {
             Log.w(TAG, "livePid PID=0x${pid.toString(16)} error: ${e.message}")
             null

@@ -1,6 +1,7 @@
 package com.caseforge.scanner.transfer
 
 import android.content.Context
+import android.util.Log
 import com.caseforge.scanner.data.SettingsRepo
 import com.caseforge.scanner.transfer.TransferDeliveryMode
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +35,8 @@ import java.util.concurrent.TimeUnit
  * Multipart fallback gated by [SettingsRepo.useMultipartFallback] (default off).
  */
 object LanPushUploader {
+
+    private const val TAG = "LanPushUploader"
 
     private val _state = MutableStateFlow<SendState>(SendState.Idle)
     val state: StateFlow<SendState> = _state.asStateFlow()
@@ -162,6 +165,7 @@ object LanPushUploader {
             _state.value = SendState.Failed(e.message ?: "Unexpected error", Remediation.RETRY)
         } finally {
             runCatching { tmp.delete() }
+                .onFailure { Log.w(TAG, "Failed to delete temp zip ${tmp.absolutePath}", it) }
         }
     }
 

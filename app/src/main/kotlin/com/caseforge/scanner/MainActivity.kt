@@ -138,7 +138,7 @@ class MainActivity : ComponentActivity() {
                 fun startConnect() {
                     lifecycleScope.launch {
                         AgentStatus.setActivity("Connecting…")
-                        vci.connect()
+                        vci.connect(lifecycleScope)
                     }
                 }
 
@@ -761,17 +761,25 @@ class MainActivity : ComponentActivity() {
                 }.onFailure { app.actionLog.event("session.persist_error", it.message.orEmpty()) }
 
                 lifecycleScope.launch(Dispatchers.Main) {
-                    toast(
-                        if (outcome.finished) "Agent finished — see History."
-                        else "Agent stopped: ${outcome.stoppedReason.take(220)}"
-                    )
+                    try {
+                        toast(
+                            if (outcome.finished) "Agent finished — see History."
+                            else "Agent stopped: ${outcome.stoppedReason.take(220)}"
+                        )
+                    } catch (e: Exception) {
+                        app.actionLog.event("session.toast_error", e.message.orEmpty())
+                    }
                 }
             }
         } catch (t: Throwable) {
             app.actionLog.event("session.error", t.message.orEmpty())
             com.caseforge.scanner.agent.AgentStatus.setActivity("Agent error: ${t.message?.take(220) ?: t.javaClass.simpleName}")
             lifecycleScope.launch(Dispatchers.Main) {
-                toast("Agent error: ${t.message?.take(100) ?: t.javaClass.simpleName}")
+                try {
+                    toast("Agent error: ${t.message?.take(100) ?: t.javaClass.simpleName}")
+                } catch (e: Exception) {
+                    app.actionLog.event("session.toast_error", e.message.orEmpty())
+                }
             }
         }
     }

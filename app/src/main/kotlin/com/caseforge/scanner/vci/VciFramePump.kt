@@ -68,18 +68,22 @@ internal object VciFramePump {
         isActiveLink: () -> Boolean,
     ) {
         val reader = BufferedReader(InputStreamReader(inputStream), receiveBufferSize)
-        while (coroutineContext.isActive && isActiveLink()) {
-            try {
-                val line = reader.readLine() ?: break
-                when (val result = VciFrame.decodeHex(line)) {
-                    is VciFrame.DecodeResult.Ok -> frameChannel.trySend(result.frame)
-                    is VciFrame.DecodeResult.ChecksumMismatch -> frameChannel.trySend(result.frame)
-                    is VciFrame.DecodeResult.Error -> Log.e(TAG, "Hex decode: ${result.reason}")
+        try {
+            while (coroutineContext.isActive && isActiveLink()) {
+                try {
+                    val line = reader.readLine() ?: break
+                    when (val result = VciFrame.decodeHex(line)) {
+                        is VciFrame.DecodeResult.Ok -> frameChannel.trySend(result.frame)
+                        is VciFrame.DecodeResult.ChecksumMismatch -> frameChannel.trySend(result.frame)
+                        is VciFrame.DecodeResult.Error -> Log.e(TAG, "Hex decode: ${result.reason}")
+                    }
+                } catch (e: IOException) {
+                    Log.w(TAG, "Hex read: ${e.message}")
+                    break
                 }
-            } catch (e: IOException) {
-                Log.w(TAG, "Hex read: ${e.message}")
-                break
             }
+        } finally {
+            runCatching { reader.close() }
         }
     }
 

@@ -26,7 +26,11 @@ import kotlinx.coroutines.Dispatchers
 
 import kotlinx.coroutines.Job
 
+import kotlinx.coroutines.delay
+
 import kotlinx.coroutines.flow.collectLatest
+
+import kotlinx.coroutines.isActive
 
 import kotlinx.coroutines.launch
 
@@ -78,9 +82,102 @@ class StandaloneVciController(
 
     private var liveJob: Job? = null
 
+    // Polling job that watches for mid-session link drops.
+    private var linkWatchJob: Job? = null
+
+    // True while an intentional disconnect() is in progress; suppresses the drop banner.
+    @Volatile private var intentionalDisconnect = false
+
+    /**
+     * Starts a polling loop (every [intervalMs] ms) that calls [DirectVciSession.isLinkLive].
+     * On the first failed poll while we believed we were connected, it sets the error banner
+     * and stops the live-data stream.
+     *
+     * Design note: a fully reactive path via [VciTransport.connectionState] is not reachable
+     * from [DirectVciSession] without modifying [DiagnosticConnector] (which is out of scope).
+     * Polling [isLinkLive] is therefore the correct approach here.  The 3-second default keeps
+     * latency low while avoiding OBD bus spam.
+     *
+     * Call this at the end of a successful [connect] — [connect] does this automatically.
+     * Cancels any prior watch job before starting a new one.
+     */
+    fun observeConnection(scope: CoroutineScope, intervalMs: Long = 3_000L) {
+        linkWatchJob?.cancel()
+        linkWatchJob = scope.launch(Dispatchers.IO) {
+            while (isActive) {
+                delay(intervalMs)
+                // Only fire when we believe we are connected and this isn't an intentional teardown.
+                if (!intentionalDisconnect && session.isConnected) {
+                    val live = session.isLinkLive()
+                    if (!live && !intentionalDisconnect) {
+                        liveJob?.cancel()
+                        liveJob = null
+                        withContext(Dispatchers.Main) {
+                            engineState.value = engineState.value.copy(
+                                busy = false,
+                                liveData = emptyMap(),
+                                errorBanner = "Connection lost — tap Reconnect",
+                            )
+                        }
+                        // Stop polling; session is now in a disconnected state.
+                        break
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Tears down the current link and re-establishes it via [DirectVciSession.reconnect].
+     * Clears the error banner on success; sets it on failure.  Mirrors the structure of
+     * [connect] and calls [observeConnection] again on success so the watch loop resumes.
+     */
+    fun reconnect(scope: CoroutineScope, onDone: (Boolean) -> Unit) {
+        linkWatchJob?.cancel()
+        linkWatchJob = null
+        scope.launch(Dispatchers.IO) {
+            withContext(Dispatchers.Main) {
+                engineState.value = engineState.value.copy(busy = true, errorBanner = null)
+            }
+            val r = session.reconnect()
+            if (r.isSuccess) {
+                val vin = session.readVinOrNull()
+                withContext(Dispatchers.Main) {
+                    engineState.value = engineState.value.copy(
+                        vehicleVin = vin ?: engineState.value.vehicleVin,
+                        busy = false,
+                        errorBanner = null,
+                    )
+                }
+                observeConnection(scope)
+                onDone(true)
+            } else {
+                withContext(Dispatchers.Main) {
+                    engineState.value = engineState.value.copy(
+                        busy = false,
+                        errorBanner = session.lastConnectError() ?: "Reconnect failed",
+                    )
+                }
+                onDone(false)
+            }
+        }
+    }
 
 
-    suspend fun connect(): Result<Unit> {
+
+    /**
+     * Connects (or no-ops if already connected).
+     *
+     * Pass a [watchScope] to automatically start the link-drop watch loop on success.  The
+     * ViewModel's viewModelScope is the intended owner; it is automatically cancelled when the
+     * ViewModel is cleared, so the watch job never leaks.
+     *
+     * Callers that do NOT have a convenient scope (e.g. [MainActivity] using the old zero-arg
+     * call) may omit it — drop-detection via [observeConnection] is then inactive for that
+     * call site until a follow-up migration passes a scope.  The [reconnect] path always
+     * restarts the watch loop.
+     */
+    suspend fun connect(watchScope: CoroutineScope? = null): Result<Unit> {
 
         val r = session.ensureConnected()
 
@@ -99,6 +196,8 @@ class StandaloneVciController(
                 )
 
             }
+
+            if (watchScope != null) observeConnection(watchScope)
 
         } else {
 
@@ -122,6 +221,12 @@ class StandaloneVciController(
 
     fun disconnect() {
 
+        intentionalDisconnect = true
+
+        linkWatchJob?.cancel()
+
+        linkWatchJob = null
+
         liveJob?.cancel()
 
         liveJob = null
@@ -135,6 +240,8 @@ class StandaloneVciController(
             liveData = emptyMap(),
 
         )
+
+        intentionalDisconnect = false
 
     }
 
