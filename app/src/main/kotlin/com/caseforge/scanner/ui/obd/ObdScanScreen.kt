@@ -34,6 +34,14 @@ import android.content.Context
 import com.caseforge.scanner.agent.ObdBluetoothTool
 import com.caseforge.scanner.agent.MonitorState
 import com.caseforge.scanner.agent.ReadinessStatus
+import android.content.Intent
+import androidx.core.content.FileProvider
+import com.caseforge.scanner.report.ShopExport
+import com.caseforge.scanner.report.ShopExportDtcRow
+import com.caseforge.scanner.report.ShopExportFormatter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.File
 import com.caseforge.scanner.ai.ClaudeClient
 import com.caseforge.scanner.data.SettingsRepo
 import com.caseforge.scanner.offline.OfflineDtcLookup
@@ -288,6 +296,53 @@ fun ObdScanScreen(
                         Text("Tap Check to read monitor readiness.", style = MaterialTheme.typography.bodySmall)
                     }
                 }
+            }
+
+            // Export session to CSV
+            OutlinedButton(
+                modifier = Modifier.fillMaxWidth(),
+                enabled = codes.isNotEmpty() || live.rpm != null || live.coolantC != null,
+                onClick = {
+                    scope.launch {
+                        try {
+                            val liveMap = LinkedHashMap<String, String>()
+                            live.rpm?.let { liveMap["RPM"] = "%.0f".format(it) }
+                            live.coolantC?.let { liveMap["Coolant"] = "%.0f C".format(it) }
+                            live.speedKmh?.let { liveMap["Speed"] = "%.0f km/h".format(it) }
+                            live.throttlePct?.let { liveMap["Throttle"] = "%.0f %%".format(it) }
+                            live.intakeC?.let { liveMap["Intake air"] = "%.0f C".format(it) }
+                            live.mapKpa?.let { liveMap["MAP"] = "%.0f kPa".format(it) }
+                            val export = ShopExport(
+                                vin = null,
+                                vehicleSummary = null,
+                                timestampMs = System.currentTimeMillis(),
+                                transport = "ELM327 Bluetooth",
+                                dtcs = codes.map { ShopExportDtcRow(it, null, null, "stored") },
+                                liveData = liveMap,
+                            )
+                            val csv = ShopExportFormatter.toCsv(export)
+                            val file = withContext(Dispatchers.IO) {
+                                val dir = File(ctx.cacheDir, "tcw-export").apply { mkdirs() }
+                                val out = File(dir, "session-" + System.currentTimeMillis() + ".csv")
+                                out.writeText(csv)
+                                out
+                            }
+                            val uri = FileProvider.getUriForFile(ctx, ctx.packageName + ".fileprovider", file)
+                            val intent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/csv"
+                                putExtra(Intent.EXTRA_STREAM, uri)
+                                putExtra(Intent.EXTRA_SUBJECT, file.name)
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            ctx.startActivity(Intent.createChooser(intent, "Export session CSV"))
+                        } catch (t: Throwable) {
+                            status = "Export failed: " + (t.message ?: t.javaClass.simpleName)
+                        }
+                    }
+                },
+            ) {
+                Text("Export session CSV")
             }
 
             // DTC results
