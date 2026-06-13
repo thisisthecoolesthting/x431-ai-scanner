@@ -479,7 +479,8 @@ private suspend fun explainCode(context: Context, settings: SettingsRepo, code: 
 
     // 3. API key present — call Claude, fall back to offline on error.
     return try {
-        val client = ClaudeClient(apiKey = key, model = settings.model)
+        // DTC explanation is a cheap, frequent lookup — use Haiku (much cheaper, plenty good here).
+        val client = ClaudeClient(apiKey = key, model = "claude-haiku-4-5-20251001")
         val prompt = "DTC $code. Give: (1) one-line meaning, (2) likely causes in order of probability, " +
             "(3) cheap tests a tech can run in 10 min. Be concise — bullet style, no preamble."
         val resp = client.sendMessages(

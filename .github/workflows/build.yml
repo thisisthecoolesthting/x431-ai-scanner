@@ -52,7 +52,7 @@ jobs:
           gradle-version: 8.13
 
       - name: Build debug APK
-        run: gradle :app:assembleDebug --no-daemon
+        run: gradle :app:assembleDebug --no-daemon --build-cache --parallel
 
       - name: Rename APK with build number
         run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/tcw-${{ github.run_number }}.apk
