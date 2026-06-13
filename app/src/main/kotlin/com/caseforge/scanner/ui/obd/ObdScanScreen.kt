@@ -30,9 +30,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import android.content.Context
 import com.caseforge.scanner.agent.ObdBluetoothTool
 import com.caseforge.scanner.ai.ClaudeClient
 import com.caseforge.scanner.data.SettingsRepo
+import com.caseforge.scanner.offline.OfflineDtcLookup
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -267,8 +269,8 @@ fun ObdScanScreen(
                                             scope.launch {
                                                 busy = true
                                                 explanationFor = code
-                                                explanation = "Asking Claude…"
-                                                explanation = explainCode(settings, code)
+                                                explanation = "Looking up…"
+                                                explanation = explainCode(ctx, settings, code)
                                                 busy = false
                                             }
                                         },
@@ -352,9 +354,33 @@ private fun pidNumberOrNull(formatted: String): Double? {
     return m.value.toDoubleOrNull()
 }
 
-private suspend fun explainCode(settings: SettingsRepo, code: String): String {
+private suspend fun explainCode(context: Context, settings: SettingsRepo, code: String): String {
+    // 1. Try offline DB first — always works, no network needed.
+    val offlineLookup = OfflineDtcLookup(context)
+    val off = offlineLookup.lookup(code)
+    val offlineAnswer: String? = off?.let { dtc ->
+        buildString {
+            append(dtc.title)
+            if (dtc.summary.isNotBlank()) append("\n\n${dtc.summary}")
+            if (dtc.likelyCauses.isNotEmpty()) {
+                append("\n\nLikely causes:")
+                dtc.likelyCauses.forEachIndexed { i, cause -> append("\n${i + 1}. $cause") }
+            }
+            if (dtc.firstChecks.isNotEmpty()) {
+                append("\n\nFirst checks:")
+                dtc.firstChecks.forEachIndexed { i, check -> append("\n${i + 1}. $check") }
+            }
+        }
+    }
+
+    // 2. If no API key, return offline answer or a clear "no entry" message.
     val key = settings.claudeApiKey
-    if (key.isBlank()) return "Set a Claude API key in Settings first."
+    if (key.isBlank()) {
+        return offlineAnswer
+            ?: "No offline entry for $code. Add a Claude API key in Settings for AI analysis."
+    }
+
+    // 3. API key present — call Claude, fall back to offline on error.
     return try {
         val client = ClaudeClient(apiKey = key, model = settings.model)
         val prompt = "DTC $code. Give: (1) one-line meaning, (2) likely causes in order of probability, " +
@@ -364,8 +390,9 @@ private suspend fun explainCode(settings: SettingsRepo, code: String): String {
             messages = listOf(ClaudeClient.userText(prompt)),
             maxTokens = 700,
         )
-        resp.firstText().orEmpty().ifBlank { "(no response)" }
+        resp.firstText().orEmpty().ifBlank { offlineAnswer ?: "(no response)" }
     } catch (t: Throwable) {
-        "Error: ${t.message?.take(200) ?: t.javaClass.simpleName}"
+        // Claude failed — return offline answer if available, otherwise surface the error.
+        offlineAnswer ?: "Error: ${t.message?.take(200) ?: t.javaClass.simpleName}"
     }
 }

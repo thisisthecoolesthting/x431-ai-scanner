@@ -5,281 +5,1575 @@
       "code": "P0300",
       "title": "Random/Multiple Cylinder Misfire Detected",
       "summary": "The ECM sees misfire activity across more than one cylinder or cannot isolate it to a single cylinder.",
-      "likelyCauses": ["Worn spark plugs", "Weak coil packs", "Vacuum leak", "Low fuel pressure", "Contaminated injector"],
-      "firstChecks": ["Check freeze frame for RPM/load", "Inspect plugs and boots", "Monitor misfire counters on live data", "Smoke-test intake for leaks"],
-      "tags": ["misfire", "ignition", "fuel"]
+      "likelyCauses": [
+        "Worn spark plugs",
+        "Weak coil packs",
+        "Vacuum leak",
+        "Low fuel pressure",
+        "Contaminated injector"
+      ],
+      "firstChecks": [
+        "Check freeze frame for RPM/load",
+        "Inspect plugs and boots",
+        "Monitor misfire counters on live data",
+        "Smoke-test intake for leaks"
+      ],
+      "tags": [
+        "misfire",
+        "ignition",
+        "fuel"
+      ]
     },
     {
       "code": "P0301",
       "title": "Cylinder 1 Misfire Detected",
       "summary": "Combustion instability detected on cylinder 1.",
-      "likelyCauses": ["Failed coil on cyl 1", "Clogged injector", "Low compression on cyl 1", "Vacuum leak at intake runner 1"],
-      "firstChecks": ["Swap coil/plug to adjacent cylinder", "Compare injector balance if available", "Compression test cylinder 1"],
-      "tags": ["misfire", "cylinder 1"]
+      "likelyCauses": [
+        "Failed coil on cyl 1",
+        "Clogged injector",
+        "Low compression on cyl 1",
+        "Vacuum leak at intake runner 1"
+      ],
+      "firstChecks": [
+        "Swap coil/plug to adjacent cylinder",
+        "Compare injector balance if available",
+        "Compression test cylinder 1"
+      ],
+      "tags": [
+        "misfire",
+        "cylinder 1"
+      ]
     },
     {
       "code": "P0302",
       "title": "Cylinder 2 Misfire Detected",
       "summary": "Combustion instability detected on cylinder 2.",
-      "likelyCauses": ["Failed coil on cyl 2", "Clogged injector", "Low compression on cyl 2"],
-      "firstChecks": ["Swap coil/plug with another cylinder", "Inspect plug condition", "Check for intake leak at runner 2"],
-      "tags": ["misfire", "cylinder 2"]
+      "likelyCauses": [
+        "Failed coil on cyl 2",
+        "Clogged injector",
+        "Low compression on cyl 2"
+      ],
+      "firstChecks": [
+        "Swap coil/plug with another cylinder",
+        "Inspect plug condition",
+        "Check for intake leak at runner 2"
+      ],
+      "tags": [
+        "misfire",
+        "cylinder 2"
+      ]
     },
     {
       "code": "P0303",
       "title": "Cylinder 3 Misfire Detected",
       "summary": "Combustion instability detected on cylinder 3.",
-      "likelyCauses": ["Failed coil on cyl 3", "Clogged injector", "Low compression on cyl 3"],
-      "firstChecks": ["Swap coil/plug with another cylinder", "Inspect plug condition", "Compression test if swap does not move the code"],
-      "tags": ["misfire", "cylinder 3"]
+      "likelyCauses": [
+        "Failed coil on cyl 3",
+        "Clogged injector",
+        "Low compression on cyl 3"
+      ],
+      "firstChecks": [
+        "Swap coil/plug with another cylinder",
+        "Inspect plug condition",
+        "Compression test if swap does not move the code"
+      ],
+      "tags": [
+        "misfire",
+        "cylinder 3"
+      ]
     },
     {
       "code": "P0304",
       "title": "Cylinder 4 Misfire Detected",
       "summary": "Combustion instability detected on cylinder 4.",
-      "likelyCauses": ["Failed coil on cyl 4", "Clogged injector", "Low compression on cyl 4"],
-      "firstChecks": ["Swap coil/plug with another cylinder", "Inspect plug condition", "Check fuel trim on that bank"],
-      "tags": ["misfire", "cylinder 4"]
+      "likelyCauses": [
+        "Failed coil on cyl 4",
+        "Clogged injector",
+        "Low compression on cyl 4"
+      ],
+      "firstChecks": [
+        "Swap coil/plug with another cylinder",
+        "Inspect plug condition",
+        "Check fuel trim on that bank"
+      ],
+      "tags": [
+        "misfire",
+        "cylinder 4"
+      ]
     },
     {
-      "code": "P0171",
-      "title": "System Too Lean (Bank 1)",
-      "summary": "Oxygen sensor reports excess oxygen on bank 1 — more air or less fuel than expected.",
-      "likelyCauses": ["Vacuum leak", "Weak MAF signal", "Low fuel pressure", "Dirty injector", "Exhaust leak before O2 sensor"],
-      "firstChecks": ["Inspect intake boots and vacuum lines", "Compare MAF grams/sec to spec at idle", "Check fuel trims STFT/LTFT", "Verify fuel pressure"],
-      "tags": ["fuel trim", "lean", "bank 1"]
+      "code": "P0305",
+      "title": "Cylinder 5 Misfire Detected",
+      "summary": "Combustion instability detected on cylinder 5.",
+      "likelyCauses": [
+        "Failed coil on cyl 5",
+        "Clogged injector",
+        "Low compression on cyl 5"
+      ],
+      "firstChecks": [
+        "Swap coil/plug with another cylinder",
+        "Inspect plug condition",
+        "Check spark plug gap"
+      ],
+      "tags": [
+        "misfire",
+        "cylinder 5"
+      ]
     },
     {
-      "code": "P0174",
-      "title": "System Too Lean (Bank 2)",
-      "summary": "Oxygen sensor reports excess oxygen on bank 2.",
-      "likelyCauses": ["Vacuum leak on bank 2 runner", "Weak MAF", "Low fuel pressure", "Injector restriction"],
-      "firstChecks": ["Check bank-specific trims", "Inspect intake gaskets", "Smoke test intake", "Fuel pressure test"],
-      "tags": ["fuel trim", "lean", "bank 2"]
+      "code": "P0306",
+      "title": "Cylinder 6 Misfire Detected",
+      "summary": "Combustion instability detected on cylinder 6.",
+      "likelyCauses": [
+        "Failed coil on cyl 6",
+        "Clogged injector",
+        "Low compression on cyl 6"
+      ],
+      "firstChecks": [
+        "Swap coil/plug with another cylinder",
+        "Inspect plug condition",
+        "Compression test if needed"
+      ],
+      "tags": [
+        "misfire",
+        "cylinder 6"
+      ]
     },
     {
-      "code": "P0172",
-      "title": "System Too Rich (Bank 1)",
-      "summary": "Too little oxygen reported on bank 1 — excess fuel or restricted air.",
-      "likelyCauses": ["Leaking injector", "Faulty fuel pressure regulator", "Contaminated MAF", "EVAP purge stuck open"],
-      "firstChecks": ["Check negative fuel trims", "Look for black smoke or fuel smell", "Test fuel pressure and leak-down", "Verify purge valve operation"],
-      "tags": ["fuel trim", "rich", "bank 1"]
+      "code": "P0307",
+      "title": "Cylinder 7 Misfire Detected",
+      "summary": "Combustion instability detected on cylinder 7.",
+      "likelyCauses": [
+        "Failed coil on cyl 7",
+        "Clogged injector",
+        "Low compression on cyl 7"
+      ],
+      "firstChecks": [
+        "Swap coil/plug with another cylinder",
+        "Inspect plug condition",
+        "Check fuel trim"
+      ],
+      "tags": [
+        "misfire",
+        "cylinder 7"
+      ]
     },
     {
-      "code": "P0420",
-      "title": "Catalyst System Efficiency Below Threshold (Bank 1)",
-      "summary": "Rear O2 activity suggests the catalytic converter is not storing oxygen effectively on bank 1.",
-      "likelyCauses": ["Aged catalyst", "Exhaust leak", "Upstream misfire or rich condition damaged catalyst", "Faulty rear O2 sensor"],
-      "firstChecks": ["Confirm no active misfire codes", "Compare upstream vs downstream O2 waveforms", "Inspect exhaust for leaks", "Verify rear O2 heater and response"],
-      "tags": ["emissions", "catalyst", "bank 1"]
-    },
-    {
-      "code": "P0430",
-      "title": "Catalyst System Efficiency Below Threshold (Bank 2)",
-      "summary": "Bank 2 catalyst efficiency is below the ECM threshold.",
-      "likelyCauses": ["Aged catalyst", "Exhaust leak", "Rich running history", "Faulty rear O2"],
-      "firstChecks": ["Clear underlying fuel/misfire faults first", "Graph bank 2 O2 sensors", "Physical inspection of converter and pipes"],
-      "tags": ["emissions", "catalyst", "bank 2"]
-    },
-    {
-      "code": "P0128",
-      "title": "Coolant Thermostat (Coolant Temperature Below Thermostat Regulating Temperature)",
-      "summary": "Engine coolant is not reaching operating temperature in the expected time.",
-      "likelyCauses": ["Stuck-open thermostat", "Wrong thermostat temperature rating", "ECT sensor skew", "Low coolant level"],
-      "firstChecks": ["Verify warm-up time on live ECT", "Feel upper/lower hose temperature delta", "Replace thermostat if engine runs cool", "Check ECT sensor vs IR gun"],
-      "tags": ["cooling", "thermostat"]
+      "code": "P0308",
+      "title": "Cylinder 8 Misfire Detected",
+      "summary": "Combustion instability detected on cylinder 8.",
+      "likelyCauses": [
+        "Failed coil on cyl 8",
+        "Clogged injector",
+        "Low compression on cyl 8"
+      ],
+      "firstChecks": [
+        "Swap coil/plug with another cylinder",
+        "Inspect plug condition",
+        "Check fuel trim on that bank"
+      ],
+      "tags": [
+        "misfire",
+        "cylinder 8"
+      ]
     },
     {
       "code": "P0101",
       "title": "Mass or Volume Air Flow (MAF) Circuit Range/Performance",
       "summary": "MAF reading is outside expected range for current engine conditions.",
-      "likelyCauses": ["Dirty MAF sensor", "Intake leak after MAF", "Incorrect MAF housing", "Wiring or connector fault"],
-      "firstChecks": ["Clean MAF with MAF-safe cleaner", "Compare MAF g/s to MAP/VE at idle", "Inspect boot between MAF and throttle body", "Check power/ground/reference voltage"],
-      "tags": ["maf", "air meter"]
+      "likelyCauses": [
+        "Dirty MAF sensor",
+        "Intake leak after MAF",
+        "Incorrect MAF housing",
+        "Wiring or connector fault"
+      ],
+      "firstChecks": [
+        "Clean MAF with MAF-safe cleaner",
+        "Compare MAF g/s to MAP/VE at idle",
+        "Inspect boot between MAF and throttle body",
+        "Check power/ground/reference voltage"
+      ],
+      "tags": [
+        "maf",
+        "air meter"
+      ]
     },
     {
       "code": "P0102",
       "title": "Mass or Volume Air Flow (MAF) Circuit Low Input",
       "summary": "MAF signal voltage or frequency is lower than expected.",
-      "likelyCauses": ["Open MAF signal circuit", "Failed MAF sensor", "Poor ground"],
-      "firstChecks": ["Back-probe MAF signal at idle and snap throttle", "Inspect connector pins", "Compare to known-good sensor if available"],
-      "tags": ["maf", "circuit"]
+      "likelyCauses": [
+        "Open MAF signal circuit",
+        "Failed MAF sensor",
+        "Poor ground"
+      ],
+      "firstChecks": [
+        "Back-probe MAF signal at idle and snap throttle",
+        "Inspect connector pins",
+        "Compare to known-good sensor if available"
+      ],
+      "tags": [
+        "maf",
+        "circuit"
+      ]
     },
     {
       "code": "P0103",
       "title": "Mass or Volume Air Flow (MAF) Circuit High Input",
       "summary": "MAF signal is higher than the calibrated range.",
-      "likelyCauses": ["Short to power on signal", "Contaminated or damaged MAF", "Incorrect sensor for housing size"],
-      "firstChecks": ["Check reference voltage", "Inspect for oil contamination on hot wire", "Verify correct part number"],
-      "tags": ["maf", "circuit"]
+      "likelyCauses": [
+        "Short to power on signal",
+        "Contaminated or damaged MAF",
+        "Incorrect sensor for housing size"
+      ],
+      "firstChecks": [
+        "Check reference voltage",
+        "Inspect for oil contamination on hot wire",
+        "Verify correct part number"
+      ],
+      "tags": [
+        "maf",
+        "circuit"
+      ]
     },
     {
-      "code": "P0135",
-      "title": "O2 Sensor Heater Circuit Malfunction (Bank 1 Sensor 1)",
-      "summary": "Upstream O2 heater on bank 1 is not drawing expected current.",
-      "likelyCauses": ["Blown fuse", "Open heater circuit", "Failed sensor", "Water intrusion in connector"],
-      "firstChecks": ["Verify heater fuse", "Measure heater resistance at connector", "Inspect harness near exhaust heat"],
-      "tags": ["o2", "heater", "bank 1"]
+      "code": "P0104",
+      "title": "Mass or Volume Air Flow (MAF) Circuit Intermittent",
+      "summary": "MAF signal is intermittent or drops out.",
+      "likelyCauses": [
+        "Loose connector",
+        "Corroded pins",
+        "Failing sensor",
+        "Wiring break"
+      ],
+      "firstChecks": [
+        "Inspect connector and reseat pins",
+        "Wiggle harness while observing scope",
+        "Clean pins"
+      ],
+      "tags": [
+        "maf",
+        "circuit"
+      ]
     },
     {
-      "code": "P0141",
-      "title": "O2 Sensor Heater Circuit Malfunction (Bank 1 Sensor 2)",
-      "summary": "Downstream O2 heater circuit fault on bank 1.",
-      "likelyCauses": ["Failed rear O2", "Corroded connector", "Open heater wire"],
-      "firstChecks": ["Swap test only if OEM allows", "Check voltage supply with key on", "Replace sensor if heater resistance is open"],
-      "tags": ["o2", "heater", "downstream"]
+      "code": "P0105",
+      "title": "Manifold Absolute Pressure/Barometric Pressure Circuit Malfunction",
+      "summary": "MAP/BARO sensor circuit has an electrical fault.",
+      "likelyCauses": [
+        "Failed sensor",
+        "Wiring open/short",
+        "Blown fuse"
+      ],
+      "firstChecks": [
+        "Verify fuse and power supply",
+        "Measure voltage at sensor",
+        "Inspect connectors"
+      ],
+      "tags": [
+        "map",
+        "circuit"
+      ]
     },
     {
-      "code": "P0442",
-      "title": "EVAP System Leak Detected (Small Leak)",
-      "summary": "Fuel vapor system failed the small-leak monitor.",
-      "likelyCauses": ["Loose or missing gas cap", "Cracked EVAP hose", "Leaking purge or vent valve", "Faulty leak detection pump"],
-      "firstChecks": ["Reseat or replace gas cap", "Smoke test EVAP lines and charcoal canister", "Command purge/vent valves closed and test"],
-      "tags": ["evap", "emissions"]
+      "code": "P0106",
+      "title": "Manifold Absolute Pressure/Barometric Pressure Circuit Range/Performance",
+      "summary": "MAP sensor reading is outside expected range for operating conditions.",
+      "likelyCauses": [
+        "Dirty MAP sensor",
+        "Vacuum leak at sensor",
+        "Incorrect hose routing",
+        "Sensor malfunction"
+      ],
+      "firstChecks": [
+        "Inspect hose and ports for leaks/blockage",
+        "Graph MAP vs throttle position",
+        "Compare to known-good sensor"
+      ],
+      "tags": [
+        "map",
+        "air meter"
+      ]
     },
     {
-      "code": "P0455",
-      "title": "EVAP System Leak Detected (Large Leak)",
-      "summary": "A large leak was detected in the evaporative emissions system.",
-      "likelyCauses": ["Missing gas cap", "Disconnected EVAP hose", "Stuck-open purge valve", "Damaged filler neck"],
-      "firstChecks": ["Visual inspection under hood and at tank", "Verify cap seals", "Smoke test with valves sealed"],
-      "tags": ["evap", "emissions"]
+      "code": "P0107",
+      "title": "Manifold Absolute Pressure/Barometric Pressure Circuit Low Input",
+      "summary": "MAP voltage is lower than expected.",
+      "likelyCauses": [
+        "Open MAP signal circuit",
+        "Failed sensor",
+        "Poor ground connection"
+      ],
+      "firstChecks": [
+        "Measure voltage at sensor with key on",
+        "Inspect connector",
+        "Test reference voltage"
+      ],
+      "tags": [
+        "map",
+        "circuit"
+      ]
     },
     {
-      "code": "P0456",
-      "title": "EVAP System Leak Detected (Very Small Leak)",
-      "summary": "Very small leak detected — often cap seal or pinhole hose.",
-      "likelyCauses": ["Cap seal", "Minor hose crack", "Leaking vent valve seat"],
-      "firstChecks": ["New OEM gas cap", "Ultrasonic or smoke leak detection", "Inspect canister vent valve"],
-      "tags": ["evap", "emissions"]
+      "code": "P0108",
+      "title": "Manifold Absolute Pressure/Barometric Pressure Circuit High Input",
+      "summary": "MAP voltage is higher than the expected range.",
+      "likelyCauses": [
+        "Short to power on signal",
+        "Failed sensor",
+        "Incorrect sensor"
+      ],
+      "firstChecks": [
+        "Check reference voltage",
+        "Inspect for shorts in harness",
+        "Verify correct part number"
+      ],
+      "tags": [
+        "map",
+        "circuit"
+      ]
     },
     {
-      "code": "P0401",
-      "title": "Exhaust Gas Recirculation Flow Insufficient",
-      "summary": "EGR flow is lower than commanded for the operating point.",
-      "likelyCauses": ["Carbon-clogged EGR passages", "Stuck EGR valve", "Failed EGR position sensor", "Restricted vacuum supply"],
-      "firstChecks": ["Command EGR open on scan tool and verify movement", "Clean passages and valve", "Check differential pressure feedback if equipped"],
-      "tags": ["egr", "emissions"]
+      "code": "P0109",
+      "title": "Manifold Absolute Pressure/Barometric Pressure Circuit Intermittent",
+      "summary": "MAP sensor signal is intermittent or drops out.",
+      "likelyCauses": [
+        "Loose connector",
+        "Corroded pins",
+        "Failing sensor"
+      ],
+      "firstChecks": [
+        "Inspect connector and reseat",
+        "Wiggle harness while observing",
+        "Clean pins"
+      ],
+      "tags": [
+        "map",
+        "circuit"
+      ]
     },
     {
-      "code": "P0562",
-      "title": "System Voltage Low",
-      "summary": "ECM detected supply voltage below the low threshold.",
-      "likelyCauses": ["Weak battery", "Failing alternator", "High resistance cables", "Parasitic draw"],
-      "firstChecks": ["Measure battery at rest and cranking", "Charging voltage at 2000 rpm", "Voltage drop tests on grounds", "Load test battery"],
-      "tags": ["electrical", "charging"]
+      "code": "P0110",
+      "title": "Intake Air Temperature Sensor Circuit Malfunction",
+      "summary": "IAT sensor circuit has an electrical fault.",
+      "likelyCauses": [
+        "Failed sensor",
+        "Wiring open/short",
+        "Blown fuse"
+      ],
+      "firstChecks": [
+        "Verify fuse and power supply",
+        "Measure voltage at sensor",
+        "Inspect connectors"
+      ],
+      "tags": [
+        "iat",
+        "circuit"
+      ]
     },
     {
-      "code": "P0299",
-      "title": "Turbo/Super Charger Underboost",
-      "summary": "Boost pressure did not reach the target for the given load.",
-      "likelyCauses": ["Boost leak", "Failed wastegate or VGT actuator", "Restricted intake", "Faulty boost sensor"],
-      "firstChecks": ["Pressure test charge pipes and intercooler", "Check boost solenoid and vacuum lines", "Log requested vs actual boost"],
-      "tags": ["turbo", "boost"]
+      "code": "P0111",
+      "title": "Intake Air Temperature Sensor Circuit Range/Performance",
+      "summary": "IAT sensor reading is inconsistent or outside expected range.",
+      "likelyCauses": [
+        "Dirty or contaminated sensor",
+        "Wiring fault",
+        "Failed sensor"
+      ],
+      "firstChecks": [
+        "Graph IAT and compare to ambient",
+        "Inspect sensor for dirt",
+        "Check connectors"
+      ],
+      "tags": [
+        "iat",
+        "sensor"
+      ]
     },
     {
-      "code": "P0234",
-      "title": "Turbo/Super Charger Overboost",
-      "summary": "Boost exceeded the maximum allowed limit.",
-      "likelyCauses": ["Stuck wastegate closed", "Failed boost control solenoid", "Incorrect tune", "Sensor reading high"],
-      "firstChecks": ["Verify wastegate movement", "Inspect control hoses", "Compare MAP to boost sensor"],
-      "tags": ["turbo", "boost"]
+      "code": "P0112",
+      "title": "Intake Air Temperature Sensor Circuit Low Input",
+      "summary": "IAT voltage is lower than the minimum threshold.",
+      "likelyCauses": [
+        "Short to ground",
+        "Open sensor",
+        "Wiring issue"
+      ],
+      "firstChecks": [
+        "Measure resistance at sensor",
+        "Check voltage with key on",
+        "Inspect connectors"
+      ],
+      "tags": [
+        "iat",
+        "circuit"
+      ]
     },
     {
-      "code": "P0325",
-      "title": "Knock Sensor 1 Circuit Malfunction (Bank 1 or Single Sensor)",
-      "summary": "Knock sensor signal is missing or out of range.",
-      "likelyCauses": ["Failed knock sensor", "Wiring open/short", "Loose sensor torque", "Excessive engine noise misread as knock"],
-      "firstChecks": ["Inspect connector at sensor", "Resistance test per service manual", "Listen for mechanical knock or rod bearing noise"],
-      "tags": ["knock", "sensor"]
+      "code": "P0113",
+      "title": "Intake Air Temperature Sensor Circuit High Input",
+      "summary": "IAT voltage is higher than the maximum threshold.",
+      "likelyCauses": [
+        "Short to power",
+        "Failed sensor",
+        "Open ground"
+      ],
+      "firstChecks": [
+        "Check reference voltage",
+        "Test ground at sensor",
+        "Verify sensor resistance"
+      ],
+      "tags": [
+        "iat",
+        "circuit"
+      ]
     },
     {
-      "code": "P0335",
-      "title": "Crankshaft Position Sensor A Circuit Malfunction",
-      "summary": "CKP signal is absent or erratic — engine may not start or stall.",
-      "likelyCauses": ["Failed CKP sensor", "Damaged reluctor wheel", "Wiring fault", "Poor sensor air gap"],
-      "firstChecks": ["Scope CKP pattern if available", "Inspect tone ring for damage", "Check sensor resistance and gap"],
-      "tags": ["crank", "sensor", "no-start"]
+      "code": "P0114",
+      "title": "Intake Air Temperature Sensor Circuit Intermittent",
+      "summary": "IAT sensor signal is intermittent or drops out.",
+      "likelyCauses": [
+        "Loose connector",
+        "Corroded pins",
+        "Failing sensor"
+      ],
+      "firstChecks": [
+        "Inspect connector and reseat pins",
+        "Wiggle harness",
+        "Clean pins"
+      ],
+      "tags": [
+        "iat",
+        "circuit"
+      ]
     },
     {
-      "code": "P0340",
-      "title": "Camshaft Position Sensor Circuit Malfunction (Bank 1)",
-      "summary": "CMP signal missing or out of sync with crank signal.",
-      "likelyCauses": ["Failed cam sensor", "Timing chain stretch", "Wiring issue", "Contaminated sensor tip"],
-      "firstChecks": ["Compare cam/crank correlation on scope", "Inspect oil contamination on sensor", "Verify timing marks if chain suspected"],
-      "tags": ["cam", "sensor", "timing"]
+      "code": "P0115",
+      "title": "Engine Coolant Temperature Sensor Circuit Malfunction",
+      "summary": "ECT sensor circuit has an electrical fault.",
+      "likelyCauses": [
+        "Failed sensor",
+        "Wiring open/short",
+        "Blown fuse"
+      ],
+      "firstChecks": [
+        "Verify fuse and power supply",
+        "Measure voltage at sensor",
+        "Inspect connectors"
+      ],
+      "tags": [
+        "coolant",
+        "circuit"
+      ]
     },
     {
-      "code": "P0016",
-      "title": "Crankshaft Position - Camshaft Position Correlation (Bank 1 Sensor A)",
-      "summary": "Cam and crank signals are not aligned within the calibrated window.",
-      "likelyCauses": ["Stretched timing chain", "Jumped timing", "Failed VVT actuator", "Wrong timing after service"],
-      "firstChecks": ["Verify repair history", "Check oil level and VVT solenoid operation", "Mechanical timing inspection if correlation is off"],
-      "tags": ["timing", "vvt"]
+      "code": "P0116",
+      "title": "Engine Coolant Temperature Sensor Circuit Range/Performance",
+      "summary": "ECT reading does not match expected engine operating temperature.",
+      "likelyCauses": [
+        "Failed ECT sensor",
+        "Stuck thermostat",
+        "Wiring issue",
+        "Sensor skew"
+      ],
+      "firstChecks": [
+        "Compare ECT to IR gun",
+        "Check warm-up time",
+        "Inspect connector",
+        "Feel radiator hose"
+      ],
+      "tags": [
+        "coolant",
+        "sensor"
+      ]
+    },
+    {
+      "code": "P0117",
+      "title": "Engine Coolant Temperature Sensor Circuit Low Input",
+      "summary": "ECT voltage is lower than the minimum threshold.",
+      "likelyCauses": [
+        "Sensor failed",
+        "Open circuit",
+        "Short to ground"
+      ],
+      "firstChecks": [
+        "Measure resistance at sensor",
+        "Check voltage on key-on",
+        "Inspect wiring and connectors"
+      ],
+      "tags": [
+        "coolant",
+        "circuit"
+      ]
+    },
+    {
+      "code": "P0118",
+      "title": "Engine Coolant Temperature Sensor Circuit High Input",
+      "summary": "ECT voltage is higher than the maximum threshold.",
+      "likelyCauses": [
+        "Sensor failed",
+        "Short to power",
+        "Open ground"
+      ],
+      "firstChecks": [
+        "Check ground connection",
+        "Test sensor resistance",
+        "Verify power supply"
+      ],
+      "tags": [
+        "coolant",
+        "circuit"
+      ]
     },
     {
       "code": "P0121",
       "title": "Throttle/Pedal Position Sensor/Switch A Circuit Range/Performance",
       "summary": "TPS A reading does not match expected correlation with pedal or secondary sensor.",
-      "likelyCauses": ["Carbon in throttle body", "Faulty TPS", "Wiring issue", "PCM needs relearn after cleaning"],
-      "firstChecks": ["Clean throttle body if coked", "Graph TPS vs APP on scan tool", "Perform idle relearn procedure"],
-      "tags": ["throttle", "driveability"]
+      "likelyCauses": [
+        "Carbon in throttle body",
+        "Faulty TPS",
+        "Wiring issue",
+        "PCM needs relearn after cleaning"
+      ],
+      "firstChecks": [
+        "Clean throttle body if coked",
+        "Graph TPS vs APP on scan tool",
+        "Perform idle relearn procedure"
+      ],
+      "tags": [
+        "throttle",
+        "driveability"
+      ]
     },
     {
-      "code": "P0505",
-      "title": "Idle Control System Malfunction",
-      "summary": "Idle speed cannot be stabilized by the idle air control system.",
-      "likelyCauses": ["Vacuum leak", "Dirty throttle body", "Failed IAC if equipped", "Large cam overlap"],
-      "firstChecks": ["Smoke test intake", "Clean throttle bore and plate", "Check for aftermarket cam or vacuum leaks"],
-      "tags": ["idle"]
+      "code": "P0122",
+      "title": "Throttle/Pedal Position Sensor/Switch A Circuit Low Input",
+      "summary": "TPS A voltage is lower than the minimum expected.",
+      "likelyCauses": [
+        "Sensor failed",
+        "Short to ground",
+        "Wiring issue"
+      ],
+      "firstChecks": [
+        "Measure voltage at sensor",
+        "Inspect connector pins",
+        "Check reference voltage"
+      ],
+      "tags": [
+        "throttle",
+        "circuit"
+      ]
     },
     {
-      "code": "P0507",
-      "title": "Idle Control System RPM Higher Than Expected",
-      "summary": "Idle RPM is above the target without driver demand.",
-      "likelyCauses": ["Vacuum leak", "Stuck throttle", "EVAP purge flow at idle", "Residual ECU adaptation"],
-      "firstChecks": ["Inspect all vacuum lines and PCV", "Command purge closed", "Throttle body cleaning and relearn"],
-      "tags": ["idle", "high rpm"]
+      "code": "P0123",
+      "title": "Throttle/Pedal Position Sensor/Switch A Circuit High Input",
+      "summary": "TPS A voltage is higher than the maximum expected.",
+      "likelyCauses": [
+        "Sensor failed",
+        "Short to power",
+        "Open ground"
+      ],
+      "firstChecks": [
+        "Check ground at sensor",
+        "Measure reference voltage",
+        "Test sensor resistance"
+      ],
+      "tags": [
+        "throttle",
+        "circuit"
+      ]
     },
     {
-      "code": "P0087",
-      "title": "Fuel Rail/System Pressure Too Low",
-      "summary": "Measured fuel rail pressure is below command during demand.",
-      "likelyCauses": ["Weak fuel pump", "Clogged filter", "Leaking injector return", "Faulty pressure sensor"],
-      "firstChecks": ["Gauge fuel pressure at rail", "Listen for pump prime", "Replace filter if overdue", "Compare commanded vs actual on GDI systems"],
-      "tags": ["fuel", "pressure"]
+      "code": "P0125",
+      "title": "Coolant Thermostat (Coolant Temperature Below Thermostat Regulating Temperature)",
+      "summary": "Engine coolant is not reaching operating temperature in the expected time.",
+      "likelyCauses": [
+        "Stuck-open thermostat",
+        "Wrong thermostat temperature rating",
+        "ECT sensor skew",
+        "Low coolant level"
+      ],
+      "firstChecks": [
+        "Verify warm-up time on live ECT",
+        "Feel upper/lower hose temperature delta",
+        "Replace thermostat if engine runs cool",
+        "Check ECT sensor vs IR gun"
+      ],
+      "tags": [
+        "cooling",
+        "thermostat"
+      ]
     },
     {
-      "code": "P0351",
-      "title": "Ignition Coil A Primary/Secondary Circuit Malfunction",
-      "summary": "ECM detected a fault in the ignition coil A driver circuit.",
-      "likelyCauses": ["Failed coil pack A", "Open primary circuit", "Short to ground", "Moisture in connector"],
-      "firstChecks": ["Swap coil with another cylinder", "Inspect boot for carbon tracking", "Measure primary resistance if spec available"],
-      "tags": ["ignition", "coil"]
+      "code": "P0126",
+      "title": "Coolant Temperature Below Thermostat Regulating Temperature (Too Long to Warm Up)",
+      "summary": "Engine taking too long to reach operating temperature.",
+      "likelyCauses": [
+        "Stuck-open thermostat",
+        "Wrong thermostat",
+        "ECT sensor fault"
+      ],
+      "firstChecks": [
+        "Check warm-up time on live data",
+        "Feel radiator hoses",
+        "Monitor ECT sensor"
+      ],
+      "tags": [
+        "cooling",
+        "thermostat"
+      ]
     },
     {
-      "code": "P0700",
-      "title": "Transmission Control System Malfunction",
-      "summary": "Generic transmission fault — additional codes may be stored in the TCM.",
-      "likelyCauses": ["Internal trans fault", "Low fluid level", "Failed solenoid", "TCM communication issue"],
-      "firstChecks": ["Scan TCM for specific codes", "Check fluid level and condition", "Review shift adapt data if supported"],
-      "tags": ["transmission"]
+      "code": "P0128",
+      "title": "Coolant Thermostat (Coolant Temperature Below Thermostat Regulating Temperature)",
+      "summary": "Engine coolant is not reaching operating temperature in the expected time.",
+      "likelyCauses": [
+        "Stuck-open thermostat",
+        "Wrong thermostat temperature rating",
+        "ECT sensor skew",
+        "Low coolant level"
+      ],
+      "firstChecks": [
+        "Verify warm-up time on live ECT",
+        "Feel upper/lower hose temperature delta",
+        "Replace thermostat if engine runs cool",
+        "Check ECT sensor vs IR gun"
+      ],
+      "tags": [
+        "cooling",
+        "thermostat"
+      ]
     },
     {
-      "code": "P0606",
-      "title": "ECM/PCM Processor Fault",
-      "summary": "Internal control module self-test failure.",
-      "likelyCauses": ["PCM hardware fault", "Voltage spike damage", "Corrupted calibration", "Aftermarket tune issue"],
-      "firstChecks": ["Verify battery/charging system health", "Check for other U-codes", "Reflash PCM if OEM allows", "Compare to known-good module test"],
-      "tags": ["pcm", "electrical"]
+      "code": "P0131",
+      "title": "Oxygen Sensor Circuit Malfunction (Bank 1 Sensor 1)",
+      "summary": "Upstream O2 sensor signal is missing or out of range.",
+      "likelyCauses": [
+        "Failed O2 sensor",
+        "Wiring open/short",
+        "Exhaust leak",
+        "Contaminated sensor"
+      ],
+      "firstChecks": [
+        "Scope O2 waveform if available",
+        "Check connector for corrosion",
+        "Inspect for soot buildup"
+      ],
+      "tags": [
+        "o2-sensor",
+        "bank 1"
+      ]
     },
     {
-      "code": "P0440",
-      "title": "Evaporative Emission Control System Malfunction",
-      "summary": "General EVAP system fault without pinpointing leak size.",
-      "likelyCauses": ["Gas cap", "Purge/vent valve", "Canister", "Hose routing fault"],
-      "firstChecks": ["Cap and seal inspection", "Command solenoids on bench or scan tool", "Smoke test entire EVAP tree"],
-      "tags": ["evap", "emissions"]
+      "code": "P0132",
+      "title": "Oxygen Sensor Circuit High Voltage (Bank 1 Sensor 1)",
+      "summary": "O2 sensor is stuck at high voltage or responding incorrectly.",
+      "likelyCauses": [
+        "Sensor contamination",
+        "Rich condition",
+        "Failed sensor",
+        "Wiring short"
+      ],
+      "firstChecks": [
+        "Check fuel trims",
+        "Inspect sensor tip for deposits",
+        "Test waveform on scope"
+      ],
+      "tags": [
+        "o2-sensor",
+        "bank 1"
+      ]
+    },
+    {
+      "code": "P0133",
+      "title": "Oxygen Sensor Circuit Slow Response (Bank 1 Sensor 1)",
+      "summary": "O2 sensor is responding too slowly to mixture changes.",
+      "likelyCauses": [
+        "Aged sensor",
+        "Carbon buildup",
+        "Contaminated sensor",
+        "Heater not working"
+      ],
+      "firstChecks": [
+        "Check heater operation on scope",
+        "Monitor sensor response time to throttle snap",
+        "Inspect tip condition"
+      ],
+      "tags": [
+        "o2-sensor",
+        "bank 1"
+      ]
+    },
+    {
+      "code": "P0134",
+      "title": "Oxygen Sensor Circuit (No Activity)",
+      "summary": "O2 sensor shows no switching activity.",
+      "likelyCauses": [
+        "Failed sensor heater",
+        "No switching due to age",
+        "Wiring open",
+        "ECM issue"
+      ],
+      "firstChecks": [
+        "Check heater voltage and function",
+        "Verify ground connection",
+        "Scope signal pin at idle and load"
+      ],
+      "tags": [
+        "o2-sensor",
+        "bank 1"
+      ]
+    },
+    {
+      "code": "P0135",
+      "title": "O2 Sensor Heater Circuit Malfunction (Bank 1 Sensor 1)",
+      "summary": "Upstream O2 heater on bank 1 is not drawing expected current.",
+      "likelyCauses": [
+        "Blown fuse",
+        "Open heater circuit",
+        "Failed sensor",
+        "Water intrusion in connector"
+      ],
+      "firstChecks": [
+        "Verify heater fuse",
+        "Measure heater resistance at connector",
+        "Inspect harness near exhaust heat"
+      ],
+      "tags": [
+        "o2",
+        "heater",
+        "bank 1"
+      ]
+    },
+    {
+      "code": "P0136",
+      "title": "Oxygen Sensor Circuit Malfunction (Bank 1 Sensor 2)",
+      "summary": "Downstream O2 sensor signal is missing or erratic.",
+      "likelyCauses": [
+        "Failed sensor",
+        "Exhaust leak",
+        "Wiring fault",
+        "Connector corrosion"
+      ],
+      "firstChecks": [
+        "Inspect connector pins",
+        "Check for exhaust leaks upstream",
+        "Test sensor response"
+      ],
+      "tags": [
+        "o2-sensor",
+        "downstream"
+      ]
+    },
+    {
+      "code": "P0137",
+      "title": "Oxygen Sensor Circuit Low Voltage (Bank 1 Sensor 2)",
+      "summary": "Downstream O2 sensor is stuck at low voltage.",
+      "likelyCauses": [
+        "Failed sensor",
+        "Lean condition",
+        "Exhaust leak",
+        "Sensor contamination"
+      ],
+      "firstChecks": [
+        "Inspect exhaust before sensor",
+        "Check for lean codes",
+        "Compare to bank 2 sensor"
+      ],
+      "tags": [
+        "o2-sensor",
+        "downstream"
+      ]
+    },
+    {
+      "code": "P0138",
+      "title": "Oxygen Sensor Circuit High Voltage (Bank 1 Sensor 2)",
+      "summary": "Downstream O2 sensor is stuck at high voltage.",
+      "likelyCauses": [
+        "Failed sensor",
+        "Rich condition",
+        "Wiring short",
+        "Heater stuck on"
+      ],
+      "firstChecks": [
+        "Check fuel trims",
+        "Inspect sensor tip",
+        "Verify heater off when engine off"
+      ],
+      "tags": [
+        "o2-sensor",
+        "downstream"
+      ]
+    },
+    {
+      "code": "P0140",
+      "title": "Oxygen Sensor Circuit (No Activity)",
+      "summary": "Downstream O2 sensor shows no switching.",
+      "likelyCauses": [
+        "Failed heater",
+        "No activity due to age",
+        "Wiring open",
+        "ECM issue"
+      ],
+      "firstChecks": [
+        "Check heater operation",
+        "Verify ground",
+        "Scope signal for any activity"
+      ],
+      "tags": [
+        "o2-sensor",
+        "downstream"
+      ]
+    },
+    {
+      "code": "P0141",
+      "title": "O2 Sensor Heater Circuit Malfunction (Bank 1 Sensor 2)",
+      "summary": "Downstream O2 heater circuit fault on bank 1.",
+      "likelyCauses": [
+        "Failed rear O2",
+        "Corroded connector",
+        "Open heater wire"
+      ],
+      "firstChecks": [
+        "Swap test only if OEM allows",
+        "Check voltage supply with key on",
+        "Replace sensor if heater resistance is open"
+      ],
+      "tags": [
+        "o2",
+        "heater",
+        "downstream"
+      ]
+    },
+    {
+      "code": "P0151",
+      "title": "Oxygen Sensor Circuit Malfunction (Bank 2 Sensor 1)",
+      "summary": "Bank 2 upstream O2 sensor signal is missing or out of range.",
+      "likelyCauses": [
+        "Failed O2 sensor",
+        "Wiring open/short",
+        "Exhaust leak",
+        "Contaminated sensor"
+      ],
+      "firstChecks": [
+        "Inspect connector for corrosion",
+        "Scope O2 waveform",
+        "Check for soot buildup"
+      ],
+      "tags": [
+        "o2-sensor",
+        "bank 2"
+      ]
+    },
+    {
+      "code": "P0152",
+      "title": "Oxygen Sensor Circuit High Voltage (Bank 2 Sensor 1)",
+      "summary": "Bank 2 O2 sensor is stuck at high voltage.",
+      "likelyCauses": [
+        "Sensor contamination",
+        "Rich condition",
+        "Failed sensor"
+      ],
+      "firstChecks": [
+        "Check bank 2 fuel trims",
+        "Inspect sensor for deposits",
+        "Test waveform"
+      ],
+      "tags": [
+        "o2-sensor",
+        "bank 2"
+      ]
+    },
+    {
+      "code": "P0153",
+      "title": "Oxygen Sensor Circuit Slow Response (Bank 2 Sensor 1)",
+      "summary": "Bank 2 O2 sensor responds slowly to mixture changes.",
+      "likelyCauses": [
+        "Aged sensor",
+        "Carbon buildup",
+        "Contaminated sensor"
+      ],
+      "firstChecks": [
+        "Check heater operation",
+        "Monitor response time",
+        "Inspect tip condition"
+      ],
+      "tags": [
+        "o2-sensor",
+        "bank 2"
+      ]
+    },
+    {
+      "code": "P0155",
+      "title": "Oxygen Sensor Heater Circuit Malfunction (Bank 2 Sensor 1)",
+      "summary": "Bank 2 upstream O2 heater is not drawing expected current.",
+      "likelyCauses": [
+        "Blown fuse",
+        "Open heater circuit",
+        "Failed sensor",
+        "Water intrusion"
+      ],
+      "firstChecks": [
+        "Verify heater fuse",
+        "Measure heater resistance",
+        "Inspect harness near heat"
+      ],
+      "tags": [
+        "o2",
+        "heater",
+        "bank 2"
+      ]
+    },
+    {
+      "code": "P0161",
+      "title": "Oxygen Sensor Heater Circuit Malfunction (Bank 2 Sensor 2)",
+      "summary": "Bank 2 downstream O2 heater circuit fault.",
+      "likelyCauses": [
+        "Failed sensor heater",
+        "Corroded connector",
+        "Open heater wire"
+      ],
+      "firstChecks": [
+        "Check voltage supply with key on",
+        "Inspect connector",
+        "Replace sensor if heater open"
+      ],
+      "tags": [
+        "o2",
+        "heater",
+        "bank 2"
+      ]
+    },
+    {
+      "code": "P0170",
+      "title": "Fuel Trim System Malfunction (Bank 1)",
+      "summary": "Bank 1 fuel trim adaptation is at its limit and cannot correct the mixture.",
+      "likelyCauses": [
+        "Vacuum leak",
+        "Faulty O2 sensor",
+        "Injector leaking",
+        "MAF sensor error"
+      ],
+      "firstChecks": [
+        "Check STFT/LTFT values and direction",
+        "Smoke test intake",
+        "Test fuel pressure",
+        "Compare O2 waveforms"
+      ],
+      "tags": [
+        "fuel-trim",
+        "bank 1"
+      ]
+    },
+    {
+      "code": "P0171",
+      "title": "System Too Lean (Bank 1)",
+      "summary": "Oxygen sensor reports excess oxygen on bank 1 \u2014 more air or less fuel than expected.",
+      "likelyCauses": [
+        "Vacuum leak",
+        "Weak MAF signal",
+        "Low fuel pressure",
+        "Dirty injector",
+        "Exhaust leak before O2 sensor"
+      ],
+      "firstChecks": [
+        "Inspect intake boots and vacuum lines",
+        "Compare MAF grams/sec to spec at idle",
+        "Check fuel trims STFT/LTFT",
+        "Verify fuel pressure"
+      ],
+      "tags": [
+        "fuel trim",
+        "lean",
+        "bank 1"
+      ]
+    },
+    {
+      "code": "P0172",
+      "title": "System Too Rich (Bank 1)",
+      "summary": "Too little oxygen reported on bank 1 \u2014 excess fuel or restricted air.",
+      "likelyCauses": [
+        "Leaking injector",
+        "Faulty fuel pressure regulator",
+        "Contaminated MAF",
+        "EVAP purge stuck open"
+      ],
+      "firstChecks": [
+        "Check negative fuel trims",
+        "Look for black smoke or fuel smell",
+        "Test fuel pressure and leak-down",
+        "Verify purge valve operation"
+      ],
+      "tags": [
+        "fuel trim",
+        "rich",
+        "bank 1"
+      ]
+    },
+    {
+      "code": "P0173",
+      "title": "Fuel Trim System Malfunction (Bank 2)",
+      "summary": "Bank 2 fuel trim adaptation has reached its limit.",
+      "likelyCauses": [
+        "Vacuum leak on bank 2",
+        "Faulty O2 sensor bank 2",
+        "Injector issue",
+        "MAF fault"
+      ],
+      "firstChecks": [
+        "Check bank 2 fuel trims",
+        "Smoke test bank 2 intake",
+        "Verify O2 sensor health",
+        "Test pressure"
+      ],
+      "tags": [
+        "fuel-trim",
+        "bank 2"
+      ]
+    },
+    {
+      "code": "P0174",
+      "title": "System Too Lean (Bank 2)",
+      "summary": "Oxygen sensor reports excess oxygen on bank 2.",
+      "likelyCauses": [
+        "Vacuum leak on bank 2 runner",
+        "Weak MAF",
+        "Low fuel pressure",
+        "Injector restriction"
+      ],
+      "firstChecks": [
+        "Check bank-specific trims",
+        "Inspect intake gaskets",
+        "Smoke test intake",
+        "Fuel pressure test"
+      ],
+      "tags": [
+        "fuel trim",
+        "lean",
+        "bank 2"
+      ]
+    },
+    {
+      "code": "P0175",
+      "title": "System Too Rich (Bank 2)",
+      "summary": "Too little oxygen detected on bank 2 \u2014 excess fuel or restricted air.",
+      "likelyCauses": [
+        "Leaking injector",
+        "Faulty fuel pressure regulator",
+        "EVAP purge stuck open"
+      ],
+      "firstChecks": [
+        "Check negative fuel trims",
+        "Verify purge valve operation",
+        "Test fuel pressure and leak-down"
+      ],
+      "tags": [
+        "fuel-trim",
+        "rich",
+        "bank 2"
+      ]
+    },
+    {
+      "code": "P0190",
+      "title": "Fuel Rail Pressure Sensor Circuit Malfunction",
+      "summary": "Fuel pressure sensor signal is missing or out of range.",
+      "likelyCauses": [
+        "Failed sensor",
+        "Wiring open/short",
+        "Connector issue"
+      ],
+      "firstChecks": [
+        "Measure voltage at sensor",
+        "Check connector pins",
+        "Test sensor resistance"
+      ],
+      "tags": [
+        "fuel",
+        "sensor"
+      ]
+    },
+    {
+      "code": "P0191",
+      "title": "Fuel Rail Pressure Sensor Circuit Range/Performance",
+      "summary": "Fuel pressure sensor reading is erratic or outside normal range.",
+      "likelyCauses": [
+        "Failing sensor",
+        "Dirty sensor",
+        "Wiring noise"
+      ],
+      "firstChecks": [
+        "Gauge actual fuel pressure",
+        "Compare to sensor reading",
+        "Check for noise on waveform"
+      ],
+      "tags": [
+        "fuel",
+        "sensor"
+      ]
+    },
+    {
+      "code": "P0192",
+      "title": "Fuel Rail Pressure Sensor Circuit Low Input",
+      "summary": "Fuel pressure sensor voltage is lower than minimum.",
+      "likelyCauses": [
+        "Sensor failed",
+        "Short to ground",
+        "Wiring issue"
+      ],
+      "firstChecks": [
+        "Measure resistance at sensor",
+        "Check ground",
+        "Inspect connector"
+      ],
+      "tags": [
+        "fuel",
+        "sensor"
+      ]
+    },
+    {
+      "code": "P0193",
+      "title": "Fuel Rail Pressure Sensor Circuit High Input",
+      "summary": "Fuel pressure sensor voltage is higher than maximum.",
+      "likelyCauses": [
+        "Sensor failed",
+        "Short to power",
+        "Open ground"
+      ],
+      "firstChecks": [
+        "Check reference voltage",
+        "Test ground at sensor",
+        "Verify power supply"
+      ],
+      "tags": [
+        "fuel",
+        "sensor"
+      ]
+    },
+    {
+      "code": "P0201",
+      "title": "Fuel Injector Circuit Malfunction (Cylinder 1)",
+      "summary": "Injector 1 control circuit is open, shorted, or has no signal.",
+      "likelyCauses": [
+        "Failed injector",
+        "Wiring open/short",
+        "Blown fuse",
+        "ECM driver fault"
+      ],
+      "firstChecks": [
+        "Check injector resistance",
+        "Verify fuse and power",
+        "Inspect connectors"
+      ],
+      "tags": [
+        "injector"
+      ]
+    },
+    {
+      "code": "P0202",
+      "title": "Fuel Injector Circuit Malfunction (Cylinder 2)",
+      "summary": "Injector 2 control circuit is open, shorted, or has no signal.",
+      "likelyCauses": [
+        "Failed injector",
+        "Wiring fault",
+        "Blown fuse"
+      ],
+      "firstChecks": [
+        "Check injector resistance",
+        "Verify fuse and power",
+        "Inspect wiring"
+      ],
+      "tags": [
+        "injector"
+      ]
+    },
+    {
+      "code": "P0203",
+      "title": "Fuel Injector Circuit Malfunction (Cylinder 3)",
+      "summary": "Injector 3 control circuit is open, shorted, or has no signal.",
+      "likelyCauses": [
+        "Failed injector",
+        "Wiring open/short",
+        "Blown fuse"
+      ],
+      "firstChecks": [
+        "Check injector resistance",
+        "Verify fuse and power",
+        "Inspect connectors"
+      ],
+      "tags": [
+        "injector"
+      ]
+    },
+    {
+      "code": "P0204",
+      "title": "Fuel Injector Circuit Malfunction (Cylinder 4)",
+      "summary": "Injector 4 control circuit is open, shorted, or has no signal.",
+      "likelyCauses": [
+        "Failed injector",
+        "Wiring fault",
+        "Blown fuse"
+      ],
+      "firstChecks": [
+        "Check injector resistance",
+        "Verify fuse and power",
+        "Inspect wiring"
+      ],
+      "tags": [
+        "injector"
+      ]
+    },
+    {
+      "code": "P0205",
+      "title": "Fuel Injector Circuit Malfunction (Cylinder 5)",
+      "summary": "Injector 5 control circuit is open, shorted, or has no signal.",
+      "likelyCauses": [
+        "Failed injector",
+        "Wiring open/short",
+        "Blown fuse"
+      ],
+      "firstChecks": [
+        "Check injector resistance",
+        "Verify fuse and power",
+        "Inspect connectors"
+      ],
+      "tags": [
+        "injector"
+      ]
+    },
+    {
+      "code": "P0206",
+      "title": "Fuel Injector Circuit Malfunction (Cylinder 6)",
+      "summary": "Injector 6 control circuit is open, shorted, or has no signal.",
+      "likelyCauses": [
+        "Failed injector",
+        "Wiring fault",
+        "Blown fuse"
+      ],
+      "firstChecks": [
+        "Check injector resistance",
+        "Verify fuse and power",
+        "Inspect wiring"
+      ],
+      "tags": [
+        "injector"
+      ]
+    },
+    {
+      "code": "P0230",
+      "title": "Fuel Pump Primary Circuit Malfunction",
+      "summary": "Fuel pump power control circuit is open, shorted, or has no signal.",
+      "likelyCauses": [
+        "Failed fuel pump relay",
+        "Wiring open/short",
+        "Blown fuse",
+        "ECM issue"
+      ],
+      "firstChecks": [
+        "Check fuel pump relay operation",
+        "Verify fuse and power",
+        "Inspect wiring and connectors"
+      ],
+      "tags": [
+        "fuel",
+        "pump"
+      ]
+    },
+    {
+      "code": "P0231",
+      "title": "Fuel Pump Secondary Circuit Low",
+      "summary": "Fuel pump secondary circuit voltage is too low.",
+      "likelyCauses": [
+        "Failed pump",
+        "Low voltage supply",
+        "Connector corrosion"
+      ],
+      "firstChecks": [
+        "Check voltage at pump connector",
+        "Measure pump resistance",
+        "Inspect connectors"
+      ],
+      "tags": [
+        "fuel",
+        "pump"
+      ]
+    },
+    {
+      "code": "P0232",
+      "title": "Fuel Pump Secondary Circuit High",
+      "summary": "Fuel pump secondary circuit voltage is too high.",
+      "likelyCauses": [
+        "Shorted relay",
+        "Faulty relay control",
+        "Wiring short"
+      ],
+      "firstChecks": [
+        "Check relay operation",
+        "Inspect for shorts in harness",
+        "Verify ground"
+      ],
+      "tags": [
+        "fuel",
+        "pump"
+      ]
+    },
+    {
+      "code": "P0234",
+      "title": "Turbo/Super Charger Overboost",
+      "summary": "Boost exceeded the maximum allowed limit.",
+      "likelyCauses": [
+        "Stuck wastegate closed",
+        "Failed boost control solenoid",
+        "Incorrect tune",
+        "Sensor reading high"
+      ],
+      "firstChecks": [
+        "Verify wastegate movement",
+        "Inspect control hoses",
+        "Compare MAP to boost sensor"
+      ],
+      "tags": [
+        "turbo",
+        "boost"
+      ]
+    },
+    {
+      "code": "P0299",
+      "title": "Turbo/Super Charger Underboost",
+      "summary": "Boost pressure did not reach the target for the given load.",
+      "likelyCauses": [
+        "Boost leak",
+        "Failed wastegate or VGT actuator",
+        "Restricted intake",
+        "Faulty boost sensor"
+      ],
+      "firstChecks": [
+        "Pressure test charge pipes and intercooler",
+        "Check boost solenoid and vacuum lines",
+        "Log requested vs actual boost"
+      ],
+      "tags": [
+        "turbo",
+        "boost"
+      ]
+    },
+    {
+      "code": "P0325",
+      "title": "Knock Sensor 1 Circuit Malfunction (Bank 1 or Single Sensor)",
+      "summary": "Knock sensor signal is missing or out of range.",
+      "likelyCauses": [
+        "Failed knock sensor",
+        "Wiring open/short",
+        "Loose sensor torque",
+        "Excessive engine noise misread as knock"
+      ],
+      "firstChecks": [
+        "Inspect connector at sensor",
+        "Resistance test per service manual",
+        "Listen for mechanical knock or rod bearing noise"
+      ],
+      "tags": [
+        "knock",
+        "sensor"
+      ]
+    },
+    {
+      "code": "P0326",
+      "title": "Knock Sensor 1 Circuit Range/Performance",
+      "summary": "Knock sensor signal is noisy or out of normal range.",
+      "likelyCauses": [
+        "Sensor mounting loose",
+        "Excessive engine noise",
+        "Wiring noise pickup",
+        "Sensor failing"
+      ],
+      "firstChecks": [
+        "Inspect sensor torque",
+        "Scope waveform for noise",
+        "Listen for engine knock"
+      ],
+      "tags": [
+        "knock",
+        "sensor"
+      ]
+    },
+    {
+      "code": "P0327",
+      "title": "Knock Sensor 1 Circuit Low Input",
+      "summary": "Knock sensor signal voltage is too low.",
+      "likelyCauses": [
+        "Failed sensor",
+        "Short to ground",
+        "Wiring issue"
+      ],
+      "firstChecks": [
+        "Measure resistance at sensor",
+        "Check ground",
+        "Inspect connector"
+      ],
+      "tags": [
+        "knock",
+        "sensor"
+      ]
+    },
+    {
+      "code": "P0328",
+      "title": "Knock Sensor 1 Circuit High Input",
+      "summary": "Knock sensor signal voltage is too high.",
+      "likelyCauses": [
+        "Failed sensor",
+        "Short to power",
+        "Open ground"
+      ],
+      "firstChecks": [
+        "Check reference voltage",
+        "Test ground at sensor",
+        "Verify power supply"
+      ],
+      "tags": [
+        "knock",
+        "sensor"
+      ]
+    },
+    {
+      "code": "P0335",
+      "title": "Crankshaft Position Sensor A Circuit Malfunction",
+      "summary": "CKP signal is absent or erratic \u2014 engine may not start or stall.",
+      "likelyCauses": [
+        "Failed CKP sensor",
+        "Damaged reluctor wheel",
+        "Wiring fault",
+        "Poor sensor air gap"
+      ],
+      "firstChecks": [
+        "Scope CKP pattern if available",
+        "Inspect tone ring for damage",
+        "Check sensor resistance and gap"
+      ],
+      "tags": [
+        "crank",
+        "sensor",
+        "no-start"
+      ]
+    },
+    {
+      "code": "P0336",
+      "title": "Crankshaft Position Sensor A Circuit Range/Performance",
+      "summary": "CKP sensor signal is erratic or out of normal range.",
+      "likelyCauses": [
+        "Dirty CKP sensor",
+        "Damaged reluctor wheel",
+        "Wiring issue",
+        "Air gap incorrect"
+      ],
+      "firstChecks": [
+        "Inspect tone ring for cracks",
+        "Check sensor gap",
+        "Measure resistance and clean sensor"
+      ],
+      "tags": [
+        "crank",
+        "sensor"
+      ]
+    },
+    {
+      "code": "P0340",
+      "title": "Camshaft Position Sensor Circuit Malfunction (Bank 1)",
+      "summary": "CMP signal missing or out of sync with crank signal.",
+      "likelyCauses": [
+        "Failed cam sensor",
+        "Timing chain stretch",
+        "Wiring issue",
+        "Contaminated sensor tip"
+      ],
+      "firstChecks": [
+        "Compare cam/crank correlation on scope",
+        "Inspect oil contamination on sensor",
+        "Verify timing marks if chain suspected"
+      ],
+      "tags": [
+        "cam",
+        "sensor",
+        "timing"
+      ]
+    },
+    {
+      "code": "P0341",
+      "title": "Camshaft Position Sensor Circuit Range/Performance (Bank 1)",
+      "summary": "CMP signal is erratic or delayed compared to crank signal.",
+      "likelyCauses": [
+        "Dirty cam sensor",
+        "Timing drift",
+        "Wiring issue",
+        "Sensor contamination"
+      ],
+      "firstChecks": [
+        "Check oil contamination on sensor",
+        "Verify timing marks",
+        "Clean or replace sensor"
+      ],
+      "tags": [
+        "cam",
+        "sensor",
+        "timing"
+      ]
+    },
+    {
+      "code": "P0342",
+      "title": "Camshaft Position Sensor Circuit Low Input (Bank 1)",
+      "summary": "CMP sensor voltage is lower than minimum.",
+      "likelyCauses": [
+        "Sensor failed",
+        "Short to ground",
+        "Wiring issue"
+      ],
+      "firstChecks": [
+        "Measure voltage at sensor",
+        "Check ground",
+        "Inspect connector pins"
+      ],
+      "tags": [
+        "cam",
+        "sensor"
+      ]
+    },
+    {
+      "code": "P0343",
+      "title": "Camshaft Position Sensor Circuit High Input (Bank 1)",
+      "summary": "CMP sensor voltage is higher than maximum.",
+      "likelyCauses": [
+        "Sensor failed",
+        "Short to power",
+        "Open ground"
+      ],
+      "firstChecks": [
+        "Check reference voltage",
+        "Test ground at sensor",
+        "Verify power supply"
+      ],
+      "tags": [
+        "cam",
+        "sensor"
+      ]
+    },
+    {
+      "code": "P0344",
+      "title": "Camshaft Position Sensor Circuit Intermittent (Bank 1)",
+      "summary": "CMP sensor signal is intermittent or dropouts occur.",
+      "likelyCauses": [
+        "Loose connector",
+        "Corroded pins",
+        "Failing sensor",
+        "Wiring break"
+      ],
+      "firstChecks": [
+        "Inspect connector and reseat pins",
+        "Wiggle harness while observing scope",
+        "Clean pins"
+      ],
+      "tags": [
+        "cam",
+        "sensor"
+      ]
     }
   ]
 }
