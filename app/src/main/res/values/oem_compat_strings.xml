@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Factory-tablet accessibility filter — package IDs only; see OemTabletCompat.kt -->
+    <string name="oem_diag_accessibility_packages" translatable="false">com.cnlaunch.x431padv,com.cnlaunch.x431padv2,com.cnlaunch.diagnose.x431pro,com.cnlaunch.diagnosemodule,com.cnlaunch.x431pro,com.cnlaunch.x431pro3,com.x431.diagnose</string>
+</resources>
