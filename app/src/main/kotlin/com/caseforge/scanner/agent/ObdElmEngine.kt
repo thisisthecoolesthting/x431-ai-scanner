@@ -23,6 +23,7 @@ class ObdElmEngine(private val io: ElmIo) {
             io.sendRaw("ATS0")
             io.sendRaw("ATH0")
             io.sendRaw("ATSP0")
+            io.sendRaw("ATAT2")
             val voltage = io.sendRaw("ATRV").trim()
             val ready = io.sendRaw("0100")
             "ELM327 ready (battery $voltage, 0100=$ready)"

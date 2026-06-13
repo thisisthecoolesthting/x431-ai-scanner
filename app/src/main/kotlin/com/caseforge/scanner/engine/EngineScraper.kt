@@ -1,6 +1,7 @@
 package com.caseforge.scanner.engine
 
 import com.caseforge.scanner.agent.ScreenSnapshot
+import com.caseforge.scanner.oem.OemTabletCompat
 
 /**
  * Pattern-match an OEM diagnostic app accessibility ScreenSnapshot into a typed [EngineState].
@@ -84,14 +85,6 @@ object EngineScraper {
             .toList()
     }
 
-    private val KNOWN_OEM_DIAG_PKGS = setOf(
-        "com.cnlaunch.x431padv",
-        "com.cnlaunch.x431padv2",
-        "com.cnlaunch.diagnose.x431pro",
-        "com.cnlaunch.diagnosemodule",
-        "com.cnlaunch.x431pro",
-        "com.x431.diagnose",
-        // Phase-2 clone package — will be populated when we ship the rebrand.
-        "com.caseforge.tcw.engine",
-    )
+    private val KNOWN_OEM_DIAG_PKGS: Set<String> =
+        OemTabletCompat.diagnosticAppPackages + "com.caseforge.tcw.engine"
 }

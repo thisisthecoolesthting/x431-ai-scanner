@@ -9,6 +9,7 @@ import com.caseforge.scanner.agent.AgentTts
 import com.caseforge.scanner.data.AppDatabase
 import com.caseforge.scanner.data.SettingsRepo
 import com.caseforge.scanner.overlay.FullScreenOverlayService
+import com.caseforge.scanner.oem.OemTabletCompat
 import com.caseforge.scanner.vci.OemVehicleAssetIndex
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,13 +22,6 @@ class App : Application() {
     companion object {
         const val TAG = "TcwAgent.App"
 
-        private val OEM_DIAG_PACKAGES = setOf(
-            "com.cnlaunch.x431padv",
-            "com.cnlaunch.x431pro",
-            "com.cnlaunch.x431pro3",
-            "com.cnlaunch.x431padv2",
-        )
-
         fun isOemDiagForeground(context: android.content.Context): Boolean {
             return runCatching {
                 val usm = context.getSystemService(USAGE_STATS_SERVICE) as? UsageStatsManager
@@ -35,7 +29,7 @@ class App : Application() {
                 val now = System.currentTimeMillis()
                 val stats = usm.queryUsageStats(UsageStatsManager.INTERVAL_BEST, now - 5000, now)
                 val foregroundPkg = stats.maxByOrNull { it.lastTimeUsed }?.packageName
-                foregroundPkg in OEM_DIAG_PACKAGES
+                foregroundPkg in OemTabletCompat.diagnosticAppPackages
             }.getOrDefault(false)
         }
     }

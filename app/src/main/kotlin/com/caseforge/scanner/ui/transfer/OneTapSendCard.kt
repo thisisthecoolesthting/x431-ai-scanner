@@ -44,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.caseforge.scanner.R
 import com.caseforge.scanner.data.SettingsRepo
+import com.caseforge.scanner.oem.OemTabletCompat
 import com.caseforge.scanner.transfer.LanPushUploader
 import com.caseforge.scanner.transfer.Remediation
 import com.caseforge.scanner.transfer.SendState
@@ -56,7 +57,9 @@ import com.caseforge.scanner.transfer.resolveTransferEndpoint
 import com.caseforge.scanner.ui.components.TcwWorkingBar
 import androidx.compose.material3.FilterChip
 import androidx.compose.ui.res.stringResource
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 private val ColorGray   = Color(0xFF8A9099)
@@ -137,7 +140,7 @@ fun OneTapSendCard(
     // Poll /health only for upload modes (not free share)
     LaunchedEffect(deliveryMode) {
         if (deliveryMode == TransferDeliveryMode.SHARE) return@LaunchedEffect
-        while (true) {
+        while (currentCoroutineContext().isActive) {
             val ep = settings.resolveTransferEndpoint()
             if (ep != null) {
                 LanPushUploader.checkHealth(ep)
@@ -316,13 +319,20 @@ fun OneTapSendCard(
                         }
                         inventory = VehicleDatabasePathResolver.scan()
                         scope.launch {
-                            when (deliveryMode) {
-                                TransferDeliveryMode.SHARE ->
-                                    VehicleDatabaseShareExport.exportAndShare(ctx)
-                                else -> {
-                                    val zipper = VehicleDatabaseZipper(inventory.root)
-                                    LanPushUploader.send(ctx, settings, zipper)
+                            try {
+                                when (deliveryMode) {
+                                    TransferDeliveryMode.SHARE ->
+                                        VehicleDatabaseShareExport.exportAndShare(ctx)
+                                    else -> {
+                                        val zipper = VehicleDatabaseZipper(inventory.root)
+                                        LanPushUploader.send(ctx, settings, zipper)
+                                    }
                                 }
+                            } catch (t: Throwable) {
+                                TransferLog.append(
+                                    "SEND",
+                                    "Uncaught error: ${t.javaClass.simpleName}: ${t.message?.take(200)}",
+                                )
                             }
                         }
                     },
@@ -503,11 +513,7 @@ private fun ErrorBanner(
                 Remediation.OPEN_DIAGNOSTIC_APP  -> "Open diagnostic app" to {
                     runCatching {
                         val pm = ctx.packageManager
-                        val packages = listOf(
-                            "com.cnlaunch.x431padv",
-                            "com.cnlaunch.diagnosemodule",
-                            "com.cnlaunch.x431pro",
-                        )
+                        val packages = OemTabletCompat.diagnosticAppPackages.toList()
                         val launch = packages.mapNotNull { pm.getLaunchIntentForPackage(it) }.firstOrNull()
                         if (launch != null) {
                             launch.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)

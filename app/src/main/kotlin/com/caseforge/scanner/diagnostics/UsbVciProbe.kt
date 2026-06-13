@@ -12,6 +12,7 @@ import android.hardware.usb.UsbManager
 import android.os.BatteryManager
 import android.os.Build
 import com.caseforge.scanner.agent.ScannerAccessibilityService
+import com.caseforge.scanner.oem.OemTabletCompat
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -305,10 +306,8 @@ object UsbVciProbe {
             "ro.adb.secure",
             "ro.debuggable",
             "ro.secure",
-            OEM_VENDOR_USB_PROP_A,
-            OEM_VENDOR_USB_PROP_B,
             "sys.usb.configfs",
-        )
+        ) + OEM_VENDOR_USB_PROPS
         return keys.associateWith { getProp(it) }
     }
 
@@ -356,8 +355,7 @@ object UsbVciProbe {
 
     private val VCI_BT_PREFIXES = listOf("VCI-", "DBSCAR", "CRP", "98943")
 
-    private val OEM_VENDOR_USB_PROP_A = "persist.sys." + "launch" + ".usb"
-    private val OEM_VENDOR_USB_PROP_B = "persist." + "cnlaunch" + ".usb"
+    private val OEM_VENDOR_USB_PROPS = OemTabletCompat.vendorUsbSystemProperties()
 
     private val OEM_LOCK_PATHS = listOf(
         "/system/etc/init/usb.config",

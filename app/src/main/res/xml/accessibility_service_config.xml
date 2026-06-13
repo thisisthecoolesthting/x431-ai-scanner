@@ -7,5 +7,5 @@
     android:canRetrieveWindowContent="true"
     android:description="@string/accessibility_service_description"
     android:notificationTimeout="100"
-    android:packageNames="com.cnlaunch.x431padv,com.cnlaunch.x431padv2,com.cnlaunch.diagnose.x431pro,com.cnlaunch.diagnosemodule,com.cnlaunch.x431pro,com.x431.diagnose"
+    android:packageNames="@string/oem_diag_accessibility_packages"
     android:summary="@string/accessibility_service_summary" />

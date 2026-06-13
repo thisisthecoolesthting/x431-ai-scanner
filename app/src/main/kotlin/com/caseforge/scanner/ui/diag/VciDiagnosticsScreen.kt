@@ -189,7 +189,7 @@ fun VciDiagnosticsScreen(
                 }
             } ?: CapabilitySummaryCard(
                 title = "USB / VCI blocker check",
-                lines = listOf("Scanning… plug VCI and open X431 connect screen."),
+                lines = listOf("Scanning… plug VCI and open the factory app connect screen."),
                 busy = true,
             )
 

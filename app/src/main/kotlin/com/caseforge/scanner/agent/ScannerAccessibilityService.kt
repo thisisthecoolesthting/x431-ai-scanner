@@ -11,7 +11,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
-import com.caseforge.scanner.data.SettingsRepo
+import com.caseforge.scanner.oem.OemTabletCompat
 import com.caseforge.scanner.overlay.FullScreenOverlayService
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
@@ -31,15 +31,7 @@ class ScannerAccessibilityService : AccessibilityService() {
     companion object {
         const val TAG = "TcwAgent.A11y"
 
-        // The OEM diagnostic app family ships under several package names depending on model/region.
-        val OEM_DIAG_PACKAGES = setOf(
-            "com.cnlaunch.x431padv",
-            "com.cnlaunch.x431padv2",
-            "com.cnlaunch.diagnose.x431pro",
-            "com.cnlaunch.diagnosemodule",
-            "com.cnlaunch.x431pro",
-            "com.x431.diagnose",
-        )
+        val OEM_DIAG_PACKAGES = OemTabletCompat.diagnosticAppPackages
 
         private val VIN_REGEX = Regex("\\b[A-HJ-NPR-Z0-9]{17}\\b")
 

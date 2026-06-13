@@ -187,8 +187,13 @@ class MainActivity : ComponentActivity() {
                 var oemStoreReady by remember { mutableStateOf(OemDataIndex.lastSummary?.hasUsableData() == true) }
 
                 LaunchedEffect(Unit) {
-                    val summary = withContext(Dispatchers.IO) { OemDataIndex.scan() }
-                    oemStoreReady = summary.hasUsableData()
+                    try {
+                        val summary = withContext(Dispatchers.IO) { OemDataIndex.scan() }
+                        oemStoreReady = summary.hasUsableData()
+                    } catch (t: Throwable) {
+                        android.util.Log.w("MainActivity", "OemDataIndex.scan() failed: ${t.message}", t)
+                        oemStoreReady = false
+                    }
                 }
 
                 val vinScanLauncher = rememberLauncherForActivityResult(

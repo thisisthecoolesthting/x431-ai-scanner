@@ -332,7 +332,7 @@ private fun CapabilityCardsSection(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
-            "Bay tools",
+            "Available actions",
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold,
         )

@@ -1,32 +1,17 @@
 package com.caseforge.scanner.transfer
 
 import android.os.Environment
+import com.caseforge.scanner.oem.OemTabletCompat
 import java.io.File
 
 /**
- * Locates vehicle database files written by the OEM diagnostic app.
- * The OEM stores data under shared storage; the exact path varies by tablet
- * OS version, app variant, and Android storage policy.
- *
- * The canonical storage path is encapsulated in [OEM_DATA_PATH] and nowhere else.
+ * Locates vehicle database files written by the factory diagnostic app.
  */
 object VehicleDatabasePathResolver {
 
-    /** Canonical OEM data path — the only place this literal may appear. */
-    private const val OEM_DATA_PATH = "/sdcard/cnlaunch/"
-
-    /** OEM diagnostic app package names (all variants). */
-    private val OEM_PACKAGES = listOf(
-        "com.cnlaunch.x431padv",
-        "com.cnlaunch.x431padv2",
-        "com.cnlaunch.diagnose.x431pro",
-        "com.cnlaunch.diagnosemodule",
-        "com.cnlaunch.x431pro",
-        "com.cnlaunch.x431pro3",
-        "com.x431.diagnose",
-    )
-
-    private val OEM_DIR_NAME = OEM_DATA_PATH.trimEnd('/').substringAfterLast('/')
+    private val OEM_PACKAGES = OemTabletCompat.diagnosticAppPackages.toList()
+    private val OEM_DATA_PATH = OemTabletCompat.oemVehicleDataDir
+    private val OEM_DIR_NAME = OemTabletCompat.oemVehicleDataDirName
 
     data class Inventory(
         val root: File,

@@ -256,7 +256,7 @@ fun MainScreen(
                             onAiPrompt(t.ifBlank { null })
                         }
                     },
-                    enabled = !engineBusy,
+                    enabled = !engineBusy && aiInput.isNotBlank(),
                 ) {
                     Text("Ask")
                 }

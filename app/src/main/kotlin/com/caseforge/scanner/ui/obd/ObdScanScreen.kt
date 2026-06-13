@@ -66,6 +66,7 @@ fun ObdScanScreen(
     var codes by remember { mutableStateOf(emptyList<String>()) }
     var explanationFor by remember { mutableStateOf<String?>(null) }
     var explanation by remember { mutableStateOf("") }
+    var showClearConfirm by remember { mutableStateOf(false) }
 
     // Live data poll
     var liveOn by remember { mutableStateOf(false) }
@@ -211,20 +212,37 @@ fun ObdScanScreen(
                 FilledTonalButton(
                     modifier = Modifier.weight(1f),
                     enabled = connected && !busy,
-                    onClick = {
-                        scope.launch {
-                            busy = true
-                            dtcsText = "Clearing codes…"
-                            val txt = ObdBluetoothTool.clearCodes()
-                            dtcsText = txt
-                            codes = emptyList(); explanation = ""; explanationFor = null
-                            busy = false
-                        }
-                    },
+                    onClick = { showClearConfirm = true },
                 ) {
                     Icon(Icons.Default.CleaningServices, contentDescription = null)
                     Spacer(Modifier.width(6.dp))
                     Text("Clear codes")
+                }
+
+                if (showClearConfirm) {
+                    AlertDialog(
+                        onDismissRequest = { showClearConfirm = false },
+                        title = { Text("Clear all stored codes?") },
+                        text = { Text("This cannot be undone.") },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    showClearConfirm = false
+                                    scope.launch {
+                                        busy = true
+                                        dtcsText = "Clearing codes…"
+                                        val txt = ObdBluetoothTool.clearCodes()
+                                        dtcsText = txt
+                                        codes = emptyList(); explanation = ""; explanationFor = null
+                                        busy = false
+                                    }
+                                },
+                            ) { Text("Clear") }
+                        },
+                        dismissButton = {
+                            OutlinedButton(onClick = { showClearConfirm = false }) { Text("Cancel") }
+                        },
+                    )
                 }
             }
 

@@ -144,7 +144,7 @@ object ObdBluetoothTool {
         val sb = StringBuilder()
         val deadline = System.currentTimeMillis() + 4000L
         val buf = ByteArray(64)
-        while (System.currentTimeMillis() < deadline) {
+        while (System.currentTimeMillis() < deadline && sb.length <= 4096) {
             if (inp.available() > 0) {
                 val n = inp.read(buf)
                 if (n > 0) {

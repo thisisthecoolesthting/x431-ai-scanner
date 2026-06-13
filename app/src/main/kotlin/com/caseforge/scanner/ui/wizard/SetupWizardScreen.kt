@@ -24,17 +24,11 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.caseforge.scanner.BuildConfig
 import com.caseforge.scanner.R
 import androidx.compose.ui.res.stringResource
+import com.caseforge.scanner.oem.OemTabletCompat
 import com.caseforge.scanner.agent.ScannerAccessibilityService
 import com.caseforge.scanner.data.SettingsRepo
 
-private val OEM_DIAG_PACKAGES = listOf(
-    "com.cnlaunch.x431padv",
-    "com.cnlaunch.x431padv2",
-    "com.cnlaunch.diagnose.x431pro",
-    "com.cnlaunch.diagnosemodule",
-    "com.cnlaunch.x431pro",
-    "com.x431.diagnose",
-)
+private val OEM_DIAG_PACKAGES = OemTabletCompat.diagnosticAppPackages.toList()
 
 @Composable
 fun SetupWizardScreen(
