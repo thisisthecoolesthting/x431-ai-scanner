@@ -29,6 +29,7 @@ object DiagnosticConnector {
         val detail: String,
         val disconnect: () -> Unit,
         val readVin: suspend () -> String?,
+        val transport: VciTransport? = null,
     )
 
     enum class UserTransport {
@@ -139,6 +140,7 @@ object DiagnosticConnector {
                 detail = "OEM VCI USB",
                 disconnect = { usb.disconnect() },
                 readVin = { comm.readVin().getOrNull() },
+                transport = usb,
             )
         }
     }
@@ -159,6 +161,7 @@ object DiagnosticConnector {
                 detail = r.detail,
                 disconnect = { r.transport.disconnect() },
                 readVin = { comm.readVin().getOrNull() },
+                transport = r.transport,
             )
         }
         settings.vciTransportMode = prev

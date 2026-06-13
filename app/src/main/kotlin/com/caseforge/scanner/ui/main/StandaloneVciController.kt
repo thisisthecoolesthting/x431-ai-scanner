@@ -28,6 +28,7 @@ import kotlinx.coroutines.Job
 
 import kotlinx.coroutines.delay
 
+import com.caseforge.scanner.vci.VciTransport
 import kotlinx.coroutines.flow.collectLatest
 
 import kotlinx.coroutines.isActive
@@ -104,12 +105,14 @@ class StandaloneVciController(
     fun observeConnection(scope: CoroutineScope, intervalMs: Long = 3_000L) {
         linkWatchJob?.cancel()
         linkWatchJob = scope.launch(Dispatchers.IO) {
-            while (isActive) {
-                delay(intervalMs)
-                // Only fire when we believe we are connected and this isn't an intentional teardown.
-                if (!intentionalDisconnect && session.isConnected) {
-                    val live = session.isLinkLive()
-                    if (!live && !intentionalDisconnect) {
+            val flow = session.connectionStateFlow()
+            if (flow != null) {
+                // OEM VCI (USB or BT): reactive path — instant drop detection via StateFlow.
+                flow.collect { state ->
+                    if (!intentionalDisconnect &&
+                        (state == VciTransport.ConnectionState.DISCONNECTED ||
+                            state == VciTransport.ConnectionState.CLOSED)
+                    ) {
                         liveJob?.cancel()
                         liveJob = null
                         withContext(Dispatchers.Main) {
@@ -119,8 +122,30 @@ class StandaloneVciController(
                                 errorBanner = "Connection lost — tap Reconnect",
                             )
                         }
-                        // Stop polling; session is now in a disconnected state.
-                        break
+                        // Stop collecting; session is now in a disconnected state.
+                        return@collect
+                    }
+                }
+            } else {
+                // ELM327 (USB or BT): no transport StateFlow — fall back to 3-second poll.
+                while (isActive) {
+                    delay(intervalMs)
+                    // Only fire when we believe we are connected and this isn't an intentional teardown.
+                    if (!intentionalDisconnect && session.isConnected) {
+                        val live = session.isLinkLive()
+                        if (!live && !intentionalDisconnect) {
+                            liveJob?.cancel()
+                            liveJob = null
+                            withContext(Dispatchers.Main) {
+                                engineState.value = engineState.value.copy(
+                                    busy = false,
+                                    liveData = emptyMap(),
+                                    errorBanner = "Connection lost — tap Reconnect",
+                                )
+                            }
+                            // Stop polling; session is now in a disconnected state.
+                            break
+                        }
                     }
                 }
             }

@@ -7,6 +7,7 @@ import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.ScrapedDtc
 import com.caseforge.scanner.engine.ScreenKind
 import com.caseforge.scanner.engine.VciDiagnosticPort
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -30,6 +31,15 @@ class DirectVciSession(
     fun linkKind(): DiagnosticConnector.LinkKind? = activeLink?.kind
 
     fun adapterOrNull(): VciDiagnosticPort? = activeLink?.port
+
+    /**
+     * Returns the [VciTransport.connectionState] flow for the active link when it is an OEM VCI
+     * transport (USB or BT), or null for ELM327 paths which do not expose a transport.
+     *
+     * Callers can use this to reactively detect link drops instead of polling [isLinkLive].
+     */
+    fun connectionStateFlow(): StateFlow<VciTransport.ConnectionState>? =
+        activeLink?.transport?.connectionState
 
     /**
      * Returns true when the session believes the link is still live.
