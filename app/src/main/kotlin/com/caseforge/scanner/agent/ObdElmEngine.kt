@@ -8,6 +8,12 @@ interface ElmIo {
     suspend fun sendRaw(cmd: String): String
 }
 
+/** One I/M readiness monitor: whether the vehicle supports it and whether it has completed. */
+data class MonitorState(val name: String, val supported: Boolean, val ready: Boolean)
+
+/** Decoded OBD Mode 01 PID 01 result: MIL lamp, stored-code count, monitor readiness. */
+data class ReadinessStatus(val milOn: Boolean, val dtcCount: Int, val monitors: List<MonitorState>)
+
 /**
  * Shared ELM327 command, init, and response parsing for USB and Bluetooth dongles.
  */
@@ -181,5 +187,38 @@ class ObdElmEngine(private val io: ElmIo) {
         val chars = tokens.drop(idx + 2).map { it.toChar() }.filter { it.code in 32..126 }
         val vin = chars.joinToString("").filter { it.isLetterOrDigit() }
         return vin.takeIf { it.length >= 11 }
+    }
+
+    /**
+     * Read I/M readiness via OBD Mode 01 PID 01 (4 data bytes A,B,C,D per SAE J1979).
+     * A bit7 = MIL on, A bits0-6 = stored DTC count; B/C/D encode monitor support + readiness.
+     */
+    suspend fun readReadiness(): Result<ReadinessStatus> = runCatching {
+        val raw = ioMutex.withLock { io.sendRaw("0101") }
+        val d = parseObdResponse(raw, expectMode = 0x41, expectPid = "01")
+            ?: return@runCatching ReadinessStatus(false, 0, emptyList())
+        val a = d.getOrElse(0) { 0 }
+        val b = d.getOrElse(1) { 0 }
+        val c = d.getOrElse(2) { 0 }
+        val dd = d.getOrElse(3) { 0 }
+        val milOn = (a and 0x80) != 0
+        val dtcCount = a and 0x7F
+        val monitors = mutableListOf<MonitorState>()
+        fun add(name: String, supBit: Int, supByte: Int, incBit: Int, statByte: Int) {
+            val sup = (supByte and supBit) != 0
+            monitors.add(MonitorState(name, sup, sup && (statByte and incBit) == 0))
+        }
+        add("Misfire", 0x01, b, 0x10, b)
+        add("Fuel System", 0x02, b, 0x20, b)
+        add("Components", 0x04, b, 0x40, b)
+        add("Catalyst", 0x01, c, 0x01, dd)
+        add("Heated Catalyst", 0x02, c, 0x02, dd)
+        add("Evaporative System", 0x04, c, 0x04, dd)
+        add("Secondary Air System", 0x08, c, 0x08, dd)
+        add("A/C Refrigerant", 0x10, c, 0x10, dd)
+        add("Oxygen Sensor", 0x20, c, 0x20, dd)
+        add("Oxygen Sensor Heater", 0x40, c, 0x40, dd)
+        add("EGR System", 0x80, c, 0x80, dd)
+        ReadinessStatus(milOn, dtcCount, monitors)
     }
 }

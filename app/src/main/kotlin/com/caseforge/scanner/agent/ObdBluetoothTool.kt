@@ -104,6 +104,11 @@ object ObdBluetoothTool {
         return eng.readDtcsText()
     }
 
+    suspend fun readReadiness(): Result<ReadinessStatus> {
+        val eng = engine ?: return Result.failure(IllegalStateException("not connected"))
+        return eng.readReadiness()
+    }
+
     fun isConnected(): Boolean = socket != null && engine != null
     fun connectedDeviceName(): String? = deviceName
 

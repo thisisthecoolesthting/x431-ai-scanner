@@ -32,6 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import android.content.Context
 import com.caseforge.scanner.agent.ObdBluetoothTool
+import com.caseforge.scanner.agent.MonitorState
+import com.caseforge.scanner.agent.ReadinessStatus
 import com.caseforge.scanner.ai.ClaudeClient
 import com.caseforge.scanner.data.SettingsRepo
 import com.caseforge.scanner.offline.OfflineDtcLookup
@@ -73,6 +75,7 @@ fun ObdScanScreen(
     // Live data poll
     var liveOn by remember { mutableStateOf(false) }
     var live by remember { mutableStateOf(LiveSnapshot()) }
+    var readiness by remember { mutableStateOf<ReadinessStatus?>(null) }
 
     val btPermLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -245,6 +248,45 @@ fun ObdScanScreen(
                             OutlinedButton(onClick = { showClearConfirm = false }) { Text("Cancel") }
                         },
                     )
+                }
+            }
+
+            // I/M Readiness (Mode 01 PID 01)
+            Card(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(Icons.Default.Refresh, contentDescription = null)
+                        Text("I/M Readiness", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                        OutlinedButton(
+                            enabled = connected && !busy,
+                            onClick = {
+                                scope.launch {
+                                    busy = true
+                                    readiness = ObdBluetoothTool.readReadiness().getOrNull()
+                                    if (readiness == null) status = "Readiness read failed or unsupported."
+                                    busy = false
+                                }
+                            },
+                        ) { Text(if (busy) "Working" else "Check") }
+                    }
+                    val rdy = readiness
+                    if (rdy != null) {
+                        Text(
+                            "MIL lamp: " + (if (rdy.milOn) "ON" else "off") + "   Stored codes: " + rdy.dtcCount,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (rdy.milOn) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                        )
+                        rdy.monitors.forEach { m ->
+                            val stateLabel = if (!m.supported) "Not supported" else if (m.ready) "Ready" else "Not ready"
+                            val tint = if (!m.supported) MaterialTheme.colorScheme.outline else if (m.ready) Color(0xFF2E7D32) else MaterialTheme.colorScheme.error
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(m.name, style = MaterialTheme.typography.bodySmall)
+                                Text(stateLabel, style = MaterialTheme.typography.bodySmall, color = tint, fontWeight = FontWeight.Medium)
+                            }
+                        }
+                    } else {
+                        Text("Tap Check to read monitor readiness.", style = MaterialTheme.typography.bodySmall)
+                    }
                 }
             }
 
