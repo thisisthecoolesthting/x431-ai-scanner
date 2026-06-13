@@ -49,6 +49,7 @@ import com.caseforge.scanner.transfer.LanPushUploader
 import com.caseforge.scanner.transfer.Remediation
 import com.caseforge.scanner.transfer.SendState
 import com.caseforge.scanner.transfer.TransferDeliveryMode
+import com.caseforge.scanner.transfer.TransferLog
 import com.caseforge.scanner.transfer.VehicleDatabasePathResolver
 import com.caseforge.scanner.transfer.VehicleDatabaseShareExport
 import com.caseforge.scanner.transfer.VehicleDatabaseStorageAccess
