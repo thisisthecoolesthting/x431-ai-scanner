@@ -2,7 +2,7 @@ name: Build APK
 
 on:
   push:
-    branches: [ main, master, restyle-secondary ]
+    branches: [ main, master, restyle-secondary, connect-lab ]
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
