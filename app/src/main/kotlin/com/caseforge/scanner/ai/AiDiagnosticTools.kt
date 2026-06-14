@@ -1,6 +1,7 @@
 package com.caseforge.scanner.ai
 
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
@@ -53,7 +54,7 @@ object AiDiagnosticTools {
                 }
                 putJsonObject("samples") { put("type", "integer"); put("description", "How many samples to average, 1-10.") }
             }
-            putJsonArray("required") { add("pids") }
+            putJsonArray("required") { add(JsonPrimitive("pids")) }
         },
     )
 
@@ -72,7 +73,7 @@ object AiDiagnosticTools {
                 }
                 putJsonObject("speak") { put("type", "boolean"); put("description", "Speak the question out loud.") }
             }
-            putJsonArray("required") { add("question") }
+            putJsonArray("required") { add(JsonPrimitive("question")) }
         },
     )
 
@@ -92,7 +93,7 @@ object AiDiagnosticTools {
                     putJsonObject("items") { put("type", "string") }
                 }
             }
-            putJsonArray("required") { add("root_cause"); add("confidence"); add("recommended_repair") }
+            putJsonArray("required") { add(JsonPrimitive("root_cause")); add(JsonPrimitive("confidence")); add(JsonPrimitive("recommended_repair")) }
         },
     )
 
