@@ -279,8 +279,5 @@ fun TcwPresetCard(
 }
 
 // Tiny data class to avoid destructuring a List<Color>.
+// data class auto-generates component1()..component4() as member functions; no extensions needed.
 private data class Quad(val a: Color, val b: Color, val c: Color, val d: Color)
-private operator fun Quad.component1() = a
-private operator fun Quad.component2() = b
-private operator fun Quad.component3() = c
-private operator fun Quad.component4() = d
