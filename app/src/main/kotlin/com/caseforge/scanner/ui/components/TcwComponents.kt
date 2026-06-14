@@ -13,13 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForwardIos
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -34,23 +28,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.caseforge.scanner.ui.theme.TcwTokens
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TcwHeaderBar
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Premium top bar with brand area, optional vehicle/VIN context line,
- * and a connection status pill.
- *
- * @param title        Screen title (e.g. "Together Car Works").
- * @param vehicle      Vehicle descriptor shown beneath the title (e.g. "2019 F-150 · 5.0L").
- *                     Null hides the line.
- * @param connected    True → green "Connected" pill; false → grey "Not connected".
- * @param onMenu       Called when the user taps the menu area (left side of bar).
- */
 @Composable
 fun TcwHeaderBar(
     title: String,
@@ -58,6 +37,10 @@ fun TcwHeaderBar(
     connected: Boolean = false,
     onMenu: () -> Unit = {},
 ) {
+    val pillBg = if (connected) TcwTokens.GreenSubtle else MaterialTheme.colorScheme.surfaceVariant
+    val dotColor = if (connected) TcwTokens.Green else TcwTokens.Muted
+    val pillText = if (connected) "Connected" else "Not connected"
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surface,
@@ -74,14 +57,12 @@ fun TcwHeaderBar(
                 .padding(horizontal = TcwTokens.PadScreen, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Brand / title column
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = TcwTokens.Amber,
-                    ),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = TcwTokens.Amber,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -98,11 +79,6 @@ fun TcwHeaderBar(
 
             Spacer(modifier = Modifier.width(TcwTokens.Gap))
 
-            // Connection status pill
-            val pillBg = if (connected) TcwTokens.GreenSubtle else MaterialTheme.colorScheme.surfaceVariant
-            val dotColor = if (connected) TcwTokens.Green else TcwTokens.Muted
-            val pillText = if (connected) "Connected" else "Not connected"
-
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(TcwTokens.RadiusSmall))
@@ -114,8 +90,10 @@ fun TcwHeaderBar(
                 Box(
                     modifier = Modifier
                         .size(7.dp)
-                        .clip(CircleShape)
-                        .background(dotColor),
+                        .background(
+                            color = dotColor,
+                            shape = RoundedCornerShape(50),
+                        ),
                 )
                 Text(
                     text = pillText,
@@ -127,19 +105,6 @@ fun TcwHeaderBar(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TcwMetricCard
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Gauge-style metric card for live data values (RPM, coolant temp, battery, etc.).
- *
- * @param label        Metric label ("Engine RPM", "Battery", …).
- * @param value        Current reading as string ("1 250", "12.4").
- * @param unit         Unit label shown beside value ("rpm", "V", "°C").
- * @param fillFraction 0f–1f — how full the progress bar is (e.g. rpm / maxRpm).
- * @param color        Accent colour for the bar and value text; defaults to Amber.
- */
 @Composable
 fun TcwMetricCard(
     label: String,
@@ -148,10 +113,13 @@ fun TcwMetricCard(
     fillFraction: Float = 0f,
     color: Color = TcwTokens.Amber,
 ) {
-    Card(
+    val safeF = fillFraction.coerceIn(0f, 1f)
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(TcwTokens.RadiusMedium),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        shadowElevation = 1.dp,
     ) {
         Column(modifier = Modifier.padding(TcwTokens.PadCard)) {
             Text(
@@ -160,14 +128,13 @@ fun TcwMetricCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Row(verticalAlignment = Alignment.Baseline) {
+            Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     text = value,
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
-                        color = color,
-                    ),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace,
+                    color = color,
                 )
                 if (unit.isNotEmpty()) {
                     Spacer(modifier = Modifier.width(4.dp))
@@ -179,41 +146,29 @@ fun TcwMetricCard(
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
-            // Progress bar track
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(4.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(2.dp),
+                    ),
             ) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth(fraction = fillFraction.coerceIn(0f, 1f))
+                        .fillMaxWidth(fraction = safeF)
                         .height(4.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(color),
+                        .background(
+                            color = color,
+                            shape = RoundedCornerShape(2.dp),
+                        ),
                 )
             }
         }
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TcwPresetCard
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * One-tap workflow preset card.
- *
- * @param title    Primary label ("Quick Check", "Full Diagnostic", …).
- * @param subtitle Short description or estimated time.
- * @param icon     Icon representing the preset.
- * @param accent   If true, amber-fill style (CTA / primary action).
- * @param dark     If true, charcoal-fill style (secondary featured action).
- *                 accent takes precedence over dark.
- * @param onClick  Tap handler.
- */
 @Composable
 fun TcwPresetCard(
     title: String,
@@ -223,26 +178,46 @@ fun TcwPresetCard(
     dark: Boolean = false,
     onClick: () -> Unit = {},
 ) {
-    val (bgColor, textColor, iconColor, borderColor) = when {
-        accent -> Quad(TcwTokens.Amber,   TcwTokens.OnAmber, TcwTokens.OnAmber, Color.Transparent)
-        dark   -> Quad(TcwTokens.Ink,     TcwTokens.OnInk,   TcwTokens.Amber,   Color.Transparent)
-        else   -> Quad(
-            MaterialTheme.colorScheme.surface,
-            MaterialTheme.colorScheme.onSurface,
-            TcwTokens.Amber,
-            MaterialTheme.colorScheme.outlineVariant,
+    val bgColor: Color
+    val textColor: Color
+    val iconColor: Color
+    val showBorder: Boolean
+
+    when {
+        accent -> {
+            bgColor = TcwTokens.Amber
+            textColor = TcwTokens.OnAmber
+            iconColor = TcwTokens.OnAmber
+            showBorder = false
+        }
+        dark -> {
+            bgColor = TcwTokens.Ink
+            textColor = TcwTokens.OnInk
+            iconColor = TcwTokens.Amber
+            showBorder = false
+        }
+        else -> {
+            bgColor = MaterialTheme.colorScheme.surface
+            textColor = MaterialTheme.colorScheme.onSurface
+            iconColor = TcwTokens.Amber
+            showBorder = true
+        }
+    }
+
+    val borderMod = if (showBorder) {
+        Modifier.border(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant,
+            shape = RoundedCornerShape(TcwTokens.RadiusMedium),
         )
+    } else {
+        Modifier
     }
 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(TcwTokens.RadiusMedium))
-            .border(
-                width = if (borderColor == Color.Transparent) 0.dp else 1.dp,
-                color = borderColor,
-                shape = RoundedCornerShape(TcwTokens.RadiusMedium),
-            )
+            .then(borderMod)
             .clickable(onClick = onClick),
         color = bgColor,
         shape = RoundedCornerShape(TcwTokens.RadiusMedium),
@@ -261,10 +236,9 @@ fun TcwPresetCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        color = textColor,
-                    ),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = textColor,
                 )
                 if (subtitle.isNotEmpty()) {
                     Text(
@@ -277,7 +251,3 @@ fun TcwPresetCard(
         }
     }
 }
-
-// Tiny data class to avoid destructuring a List<Color>.
-// data class auto-generates component1()..component4() as member functions; no extensions needed.
-private data class Quad(val a: Color, val b: Color, val c: Color, val d: Color)

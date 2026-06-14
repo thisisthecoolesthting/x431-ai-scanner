@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -60,10 +61,10 @@ fun TcwHomeScreen(
 ) {
     Column(
         modifier = Modifier
+            .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(bottom = TcwTokens.PadScreen),
     ) {
-        // ── 1. Header bar ──────────────────────────────────────────────────────
         TcwHeaderBar(
             title = "Together Car Works",
             vehicle = vehicle,
@@ -78,7 +79,7 @@ fun TcwHomeScreen(
             verticalArrangement = Arrangement.spacedBy(TcwTokens.Gap),
         ) {
 
-            // ── 2. Connect CTA or live gauges ──────────────────────────────────
+            // Connect CTA or live gauges
             if (!connected) {
                 Button(
                     onClick = onConnect,
@@ -97,11 +98,11 @@ fun TcwHomeScreen(
                 }
             } else {
                 val liveData = engineState.liveData
-                val rpmRaw = liveData["RPM"] ?: liveData["rpm"] ?: liveData["ENGINE_RPM"]
-                val coolantRaw = liveData["COOLANT_TEMP"]
+                val rpmRaw: Double? = liveData["RPM"] ?: liveData["rpm"] ?: liveData["ENGINE_RPM"]
+                val coolantRaw: Double? = liveData["COOLANT_TEMP"]
                     ?: liveData["coolant_temp"]
                     ?: liveData["ENGINE_COOLANT_TEMP"]
-                val batteryRaw = liveData["BATTERY_VOLTAGE"]
+                val batteryRaw: Double? = liveData["BATTERY_VOLTAGE"]
                     ?: liveData["battery_voltage"]
                     ?: liveData["CONTROL_MODULE_VOLTAGE"]
 
@@ -114,7 +115,7 @@ fun TcwHomeScreen(
                             label = "Engine RPM",
                             value = if (rpmRaw != null) rpmRaw.toInt().toString() else "—",
                             unit = "rpm",
-                            fillFraction = if (rpmRaw != null) (rpmRaw / 7000.0).toFloat() else 0f,
+                            fillFraction = ((rpmRaw ?: 0.0).toFloat() / 7000f).coerceIn(0f, 1f),
                             color = TcwTokens.Amber,
                         )
                     }
@@ -123,7 +124,7 @@ fun TcwHomeScreen(
                             label = "Coolant",
                             value = if (coolantRaw != null) coolantRaw.toInt().toString() else "—",
                             unit = "°C",
-                            fillFraction = if (coolantRaw != null) (coolantRaw / 120.0).toFloat() else 0f,
+                            fillFraction = ((coolantRaw ?: 0.0).toFloat() / 120f).coerceIn(0f, 1f),
                             color = TcwTokens.Blue,
                         )
                     }
@@ -132,25 +133,24 @@ fun TcwHomeScreen(
                             label = "Battery",
                             value = if (batteryRaw != null) "%.1f".format(batteryRaw) else "—",
                             unit = "V",
-                            fillFraction = if (batteryRaw != null) ((batteryRaw - 10.0) / 4.5).toFloat() else 0f,
+                            fillFraction = (((batteryRaw ?: 10.0).toFloat() - 10f) / 4.5f).coerceIn(0f, 1f),
                             color = TcwTokens.Green,
                         )
                     }
                 }
             }
 
-            // ── 3. Resume bar ──────────────────────────────────────────────────
+            // Resume bar
             if (resumeText != null) {
                 TcwResumeBar(text = resumeText, onClick = onResume)
             }
 
-            // ── 4. One-tap jobs ────────────────────────────────────────────────
+            // One-tap jobs
             TcwSectionLabel(text = "One-tap jobs")
 
             val presets = PresetCatalog.all
-            // First 4 presets in a 2x2 grid
             val grid = presets.take(4)
-            // Row 1
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(TcwTokens.Gap),
@@ -176,7 +176,7 @@ fun TcwHomeScreen(
                     )
                 }
             }
-            // Row 2
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(TcwTokens.Gap),
@@ -202,7 +202,7 @@ fun TcwHomeScreen(
                     )
                 }
             }
-            // 5th preset — full width, dark
+
             val roadTest = presets[4]
             TcwPresetCard(
                 title = roadTest.title,
@@ -213,7 +213,7 @@ fun TcwHomeScreen(
                 onClick = { onRunPreset(roadTest.id) },
             )
 
-            // ── 5. Tools row ───────────────────────────────────────────────────
+            // Tools row
             TcwSectionLabel(text = "Tools")
 
             Row(
@@ -242,7 +242,6 @@ fun TcwHomeScreen(
                 )
             }
 
-            // ── 6. Hub buttons row ─────────────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
