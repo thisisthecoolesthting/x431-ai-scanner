@@ -77,4 +77,5 @@ jobs:
             Direct install URL: ${{ github.server_url }}/${{ github.repository }}/releases/download/latest/app-debug.apk
           files: |
             app/build/outputs/apk/debug/app-debug.apk
-            app/build/outputs/apk/debug/tcw-${{ githu
+            app/build/outputs/apk/debug/tcw-${{ github.run_number }}.apk
+          prerelease: true
