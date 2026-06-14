@@ -183,7 +183,9 @@ class MainActivity : ComponentActivity() {
                 var triageInput by remember { mutableStateOf(sharedReport.orEmpty()) }
                 var triageOutput by remember { mutableStateOf("") }
                 var busy by remember { mutableStateOf(false) }
-                var homeMode by remember { mutableStateOf(app.settings.homeMode) }
+                // Always land on the new premium scanner home (TcwHomeScreen).
+                // The AI copilot screen is reachable as a feature but is no longer the default landing.
+                var homeMode by remember { mutableStateOf(SettingsRepo.HOME_SCANNER_CONSOLE) }
                 var pendingCopilotSymptom by remember { mutableStateOf<String?>(null) }
                 var oemStoreReady by remember { mutableStateOf(OemDataIndex.lastSummary?.hasUsableData() == true) }
 
