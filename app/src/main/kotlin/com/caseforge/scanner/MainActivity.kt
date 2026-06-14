@@ -57,6 +57,7 @@ import com.caseforge.scanner.ui.main.AiCopilotHomeScreen
 import com.caseforge.scanner.ui.main.CopilotAction
 import com.caseforge.scanner.ui.main.MainScreen
 import com.caseforge.scanner.ui.main.RecallsScreen
+import com.caseforge.scanner.ui.main.TcwHomeScreen
 import com.caseforge.scanner.data.SettingsRepo
 import com.caseforge.scanner.ui.main.StandaloneVciController
 import com.caseforge.scanner.ui.notes.AgentNotesScreen
@@ -320,72 +321,42 @@ class MainActivity : ComponentActivity() {
                                 engineState = engineState,
                                 buildInfo = BuildConfig.BUILD_INFO,
                                 onCopilotAction = { handleCopilotAction(it) },
-                                onCheckUpdate = { checkForAppUpdate() },
+                                onCheckUpdate = { route = "update_center" },
                             )
-                        } else MainScreen(
-                            vciConnected = vci.isConnected,
-                            vin = engineState.vehicleVin,
-                            linkDetail = vci.linkKind()?.name?.replace('_', ' '),
-                            engineBusy = engineState.busy,
+                        } else TcwHomeScreen(
+                            vehicle = engineState.vehicleVin,
+                            connected = vci.isConnected,
                             engineState = engineState,
-                            settings = app.settings,
-                            usbDeviceCount = usbCount,
-                            selectedTransport = selectedTransport,
-                            onTransportSelected = { t ->
-                                selectedTransport = t
-                                app.settings.linkTransport = when (t) {
-                                    DiagnosticConnector.UserTransport.AUTO -> "auto"
-                                    DiagnosticConnector.UserTransport.ELM327_USB -> "elm327_usb"
-                                    DiagnosticConnector.UserTransport.OEM_USB -> "oem_usb"
-                                    DiagnosticConnector.UserTransport.OEM_BT -> "oem_bt"
-                                    DiagnosticConnector.UserTransport.ELM327_BT -> "elm327_bt"
+                            resumeText = null,
+                            onResume = {},
+                            onRunPreset = { id ->
+                                when (id) {
+                                    "quick_check", "full_diagnosis", "pre_purchase" ->
+                                        vci.runFullScan(lifecycleScope) { ok -> if (ok) route = "report" }
+                                    "clear_verify" -> route = "service"
+                                    "road_test" -> {
+                                        vci.startLiveData(lifecycleScope)
+                                        route = "live_data"
+                                    }
+                                    else -> vci.runFullScan(lifecycleScope) {}
                                 }
                             },
-                            bluetoothTransportEnabled = btEnabled,
-                            onBluetoothTransportToggle = { on ->
-                                btEnabled = on
-                                app.settings.bluetoothTransportEnabled = on
-                            },
-                            onOpenBluetoothSettings = {
-                                startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
-                            },
-                            bondedObdDevices = ObdBluetoothTool.listBondedObdDevices(),
-                            selectedBtAddress = app.settings.vciSelectedBtAddress,
-                            onSelectBtDevice = { app.settings.vciSelectedBtAddress = it },
-                            onConnectClick = {
+                            onConnect = {
                                 usbCount = ObdUsbTool(context).listDevices().size
                                 requestConnect()
                             },
-                            onDisconnect = { vci.disconnect() },
-                            onScan = {
-                                vci.runFullScan(lifecycleScope) { ok ->
-                                    if (ok) route = "report"
-                                }
+                            onOpenCodes = {
+                                vci.runFullScan(lifecycleScope) { ok -> if (ok) route = "report" }
                             },
-                            onLiveData = {
+                            onOpenLiveData = {
                                 vci.startLiveData(lifecycleScope)
                                 route = "live_data"
                             },
-                            onService = { route = "service" },
-                            onBidirectional = { route = "bidirectional" },
-                            onSecurity = { route = "security" },
-                            onRecalls = { route = "recalls" },
-                            onHistory = { route = "history" },
-                            onNotes = { route = "notes" },
-                            onSettings = { route = "settings" },
-                            onOpenExport = { route = "export_data" },
-                            onDiagnostics = { route = "vci_diagnostics" },
-                            onCheckUpdate = { checkForAppUpdate() },
-                            buildInfo = BuildConfig.BUILD_INFO,
-                            onAiPrompt = { symptom ->
-                                lifecycleScope.launch {
-                                    runStandaloneAgent(
-                                        vin = engineState.vehicleVin,
-                                        symptom = symptom,
-                                        dtcs = engineState.dtcs,
-                                    )
-                                }
-                            },
+                            onOpenVehicle = { route = "recalls" },
+                            onOpenReport = { route = "export_data" },
+                            onOpenAdvanced = { route = "security" },
+                            onOpenShop = { route = "history" },
+                            onOpenSettings = { route = "settings" },
                         )
                         "report" -> SubScreenScaffold(
                             title = "Scan results",
@@ -454,8 +425,44 @@ class MainActivity : ComponentActivity() {
                             onOpenDataExport = { route = "export_data" },
                             onOpenDirectVciProbe = { route = "direct_vci" },
                             onOpenVciDiagnostics = { route = "vci_diagnostics" },
-                            onCheckUpdate = { checkForAppUpdate() },
+                            onCheckUpdate = { route = "update_center" },
                         )
+                        "update_center" -> SubScreenScaffold(
+                            title = "Update Center",
+                            onBack = { route = "main" },
+                        ) {
+                            com.caseforge.scanner.ui.updates.UpdateCenterScreen(
+                                versionName = BuildConfig.VERSION_NAME,
+                                versionCode = BuildConfig.VERSION_CODE,
+                                buildSha = BuildConfig.BUILD_INFO,
+                                onCheckNow = {
+                                    lifecycleScope.launch(Dispatchers.IO) {
+                                        try { Updater.checkForUpdate(applicationContext) } catch (_: Throwable) {}
+                                    }
+                                },
+                                onInstall = { url ->
+                                    lifecycleScope.launch(Dispatchers.IO) {
+                                        try {
+                                            Updater.downloadAndInstall(applicationContext) { msg ->
+                                                AgentStatus.setActivity(msg)
+                                            }
+                                        } catch (_: Throwable) {}
+                                    }
+                                },
+                                onOpenPermissionSettings = {
+                                    Updater.openInstallPermissionSettings(this@MainActivity)
+                                },
+                                onRestartApp = {
+                                    val i = packageManager.getLaunchIntentForPackage(packageName)
+                                    if (i != null) {
+                                        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        startActivity(i)
+                                        finish()
+                                    }
+                                },
+                                phaseFlow = Updater.phase,
+                            )
+                        }
                         "vci_diagnostics" -> com.caseforge.scanner.ui.diag.VciDiagnosticsScreen(
                             settings = app.settings,
                             vin = engineState.vehicleVin,
@@ -835,6 +842,16 @@ private fun SubScreenScaffold(
                 IconButton(onClick = onBack) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                 }
+            },
+        )
+        Box(Modifier.weight(1f).fillMaxWidth()) {
+            content()
+        }
+    }
+}
+
+private val JsonPrimitive.contentOrNullSafe: String?
+    get() = try { if (this is kotlinx.serialization.json.JsonNull) null else content } catch (_: Throwable) { null }
             },
         )
         Box(Modifier.weight(1f).fillMaxWidth()) {
