@@ -93,7 +93,12 @@ fun UpdateCenterScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text("Update Center", style = MaterialTheme.typography.headlineSmall)
+        Text(
+            "Update Center",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = com.caseforge.scanner.ui.theme.TcwTokens.Ink,
+        )
         Text(
             "Current build $versionName ($versionCode) · $buildSha",
             style = MaterialTheme.typography.bodyMedium,
@@ -159,7 +164,7 @@ private fun OfflineBundleStatusCard(
                 Icon(
                     Icons.Default.Storage,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = com.caseforge.scanner.ui.theme.TcwTokens.Amber,
                     modifier = Modifier.size(22.dp),
                 )
                 Spacer(Modifier.width(8.dp))
@@ -315,7 +320,7 @@ private fun UpdateEverythingRow(
                 Icons.Default.CheckCircle,
                 contentDescription = null,
                 tint = if (enabled) {
-                    MaterialTheme.colorScheme.primary
+                    com.caseforge.scanner.ui.theme.TcwTokens.Amber
                 } else {
                     MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                 },
@@ -434,7 +439,7 @@ private fun UpdateStatusCard(
                         Icon(
                             Icons.Default.CheckCircle,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = com.caseforge.scanner.ui.theme.TcwTokens.Amber,
                             modifier = Modifier.size(24.dp),
                         )
                         Spacer(Modifier.width(8.dp))

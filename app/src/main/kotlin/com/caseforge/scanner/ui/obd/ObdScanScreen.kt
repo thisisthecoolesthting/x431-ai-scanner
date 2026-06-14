@@ -153,6 +153,11 @@ fun ObdScanScreen(
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                 }
             },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = com.caseforge.scanner.ui.theme.TcwTokens.Ink,
+                titleContentColor = com.caseforge.scanner.ui.theme.TcwTokens.OnInk,
+                navigationIconContentColor = com.caseforge.scanner.ui.theme.TcwTokens.Amber,
+            ),
         )
         Column(
             Modifier.fillMaxSize().padding(14.dp).verticalScroll(rememberScrollState()),
@@ -165,7 +170,7 @@ fun ObdScanScreen(
                         Icon(
                             if (connected) Icons.Default.Bluetooth else Icons.Default.BluetoothDisabled,
                             contentDescription = null,
-                            tint = if (connected) Color(0xFF2E7D32) else MaterialTheme.colorScheme.outline,
+                            tint = if (connected) com.caseforge.scanner.ui.theme.TcwTokens.Green else MaterialTheme.colorScheme.outline,
                         )
                         Text(
                             if (connected) "Connected" else "Not connected",
@@ -286,7 +291,7 @@ fun ObdScanScreen(
                         )
                         rdy.monitors.forEach { m ->
                             val stateLabel = if (!m.supported) "Not supported" else if (m.ready) "Ready" else "Not ready"
-                            val tint = if (!m.supported) MaterialTheme.colorScheme.outline else if (m.ready) Color(0xFF2E7D32) else MaterialTheme.colorScheme.error
+                            val tint = if (!m.supported) MaterialTheme.colorScheme.outline else if (m.ready) com.caseforge.scanner.ui.theme.TcwTokens.Green else MaterialTheme.colorScheme.error
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(m.name, style = MaterialTheme.typography.bodySmall)
                                 Text(stateLabel, style = MaterialTheme.typography.bodySmall, color = tint, fontWeight = FontWeight.Medium)
