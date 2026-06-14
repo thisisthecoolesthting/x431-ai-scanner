@@ -31,6 +31,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -124,6 +125,11 @@ fun SettingsScreen(
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                 }
             },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = com.caseforge.scanner.ui.theme.TcwTokens.Ink,
+                titleContentColor = com.caseforge.scanner.ui.theme.TcwTokens.OnInk,
+                navigationIconContentColor = com.caseforge.scanner.ui.theme.TcwTokens.Amber,
+            ),
         )
         Column(
             Modifier
@@ -419,6 +425,16 @@ fun SettingsScreen(
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Developer / Experimental", style = MaterialTheme.typography.titleSmall)
+                    Button(
+                        onClick = {
+                            context.startActivity(
+                                android.content.Intent(context, com.caseforge.scanner.ui.diag.ConnectLabActivity::class.java),
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                    ) {
+                        Text("Open Connect Lab (USB / BT / OEM test)")
+                    }
                     ListItem(
                         headlineContent = { Text("Direct VCI (experimental)") },
                         supportingContent = { Text("Bypass OEM diagnostic app; generic OBD-II over Bluetooth dongle.") },
