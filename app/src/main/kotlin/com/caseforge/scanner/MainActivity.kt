@@ -837,12 +837,19 @@ private fun SubScreenScaffold(
 ) {
     Column(Modifier.fillMaxSize()) {
         TopAppBar(
-            title = { Text(title) },
+            title = {
+                Text(title, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+            },
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                 }
             },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = com.caseforge.scanner.ui.theme.TcwTokens.Ink,
+                titleContentColor = com.caseforge.scanner.ui.theme.TcwTokens.OnInk,
+                navigationIconContentColor = com.caseforge.scanner.ui.theme.TcwTokens.Amber,
+            ),
         )
         Box(Modifier.weight(1f).fillMaxWidth()) {
             content()
