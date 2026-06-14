@@ -111,8 +111,11 @@ object DiagnosticConnector {
 
     private suspend fun connectElm327Usb(context: Context, usbDevice: UsbDevice?): Result<ActiveLink> {
         val tool = ObdUsbTool(context)
-        return tool.connect(usbDevice).map { detail ->
-            val eng = tool.engineOrNull()!!
+        return tool.connect(usbDevice).mapCatching { detail ->
+            // Guard instead of !! so a half-initialized adapter (e.g. an X431 DB15 device that
+            // isn't a clean ELM327) surfaces as Result.failure rather than crashing the app.
+            val eng = tool.engineOrNull()
+                ?: throw java.io.IOException("USB device connected but did not respond as an ELM327 adapter")
             val port = ObdEngineDriver(eng)
             ActiveLink(
                 kind = LinkKind.ELM327_USB,

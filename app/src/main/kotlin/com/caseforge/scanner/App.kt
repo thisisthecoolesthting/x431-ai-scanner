@@ -76,13 +76,21 @@ class App : Application() {
 
     private fun recordLastKnownStateBeforeCrash(throwable: Throwable) {
         runCatching {
-            val crashFile = File(cacheDir, "last_crash.txt")
-            val crashLog = "timestamp: " + System.currentTimeMillis() + "\n" +
-                "exception: " + throwable.javaClass.simpleName + "\n" +
-                "message: " + (throwable.message ?: "") + "\n" +
-                "service_running: " + FullScreenOverlayService.isRunning + "\n"
-            crashFile.writeText(crashLog)
-            Log.i(TAG, "Crash state recorded to " + crashFile.absolutePath)
+            val sw = java.io.StringWriter()
+            throwable.printStackTrace(java.io.PrintWriter(sw))
+            val ts = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).format(java.util.Date())
+            val crashLog = "=== TCW crash " + ts + " ===\n" +
+                "build: " + BuildConfig.BUILD_INFO + "\n" +
+                "device: " + android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL +
+                " / Android " + android.os.Build.VERSION.RELEASE + "\n" +
+                "exception: " + throwable.javaClass.name + "\n" +
+                "message: " + (throwable.message ?: "") + "\n\n" + sw.toString()
+            File(cacheDir, "last_crash.txt").writeText(crashLog)
+            runCatching {
+                val ext = getExternalFilesDir(null) ?: filesDir
+                File(ext, "TCW-last-crash.txt").writeText(crashLog)
+            }
+            Log.i(TAG, "Crash recorded:\n" + crashLog)
         }.onFailure { e ->
             Log.w(TAG, "Failed to record crash state: " + e.message)
         }

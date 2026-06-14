@@ -78,15 +78,15 @@ class AiDiagnosticController(
     fun startConnect() {
         _ui.value = _ui.value.copy(connectProgress = "Connecting…", error = null)
         scope.launch {
-            val r = vci.connect(scope)
+            val r = runCatching { vci.connect(scope) }.getOrElse { Result.failure(it) }
             if (r.isSuccess && vci.isConnected) {
                 _ui.value = _ui.value.copy(connectProgress = "Connected (${vci.linkKind()?.name ?: "link"})")
                 startDiagnosis()
             } else {
-                _ui.value = _ui.value.copy(
-                    connectProgress = null,
-                    error = vci.lastConnectError() ?: "Could not connect. Check the cable/adapter and ignition.",
-                )
+                val why = vci.lastConnectError()
+                    ?: r.exceptionOrNull()?.message
+                    ?: "Could not connect. Check the cable/adapter and ignition."
+                _ui.value = _ui.value.copy(connectProgress = null, error = why)
                 setPhase(AiDiagPhase.ERROR)
             }
         }

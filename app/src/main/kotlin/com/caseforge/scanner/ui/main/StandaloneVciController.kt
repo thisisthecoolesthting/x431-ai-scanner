@@ -207,11 +207,11 @@ class StandaloneVciController(
      */
     suspend fun connect(watchScope: CoroutineScope? = null): Result<Unit> {
 
-        val r = session.ensureConnected()
+        val r = runCatching { session.ensureConnected() }.getOrElse { Result.failure(it) }
 
         if (r.isSuccess) {
 
-            val vin = session.readVinOrNull()
+            val vin = runCatching { session.readVinOrNull() }.getOrNull()
 
             withContext(Dispatchers.Main) {
 
