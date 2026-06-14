@@ -425,6 +425,16 @@ fun SettingsScreen(
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Developer / Experimental", style = MaterialTheme.typography.titleSmall)
+                    Button(
+                        onClick = {
+                            context.startActivity(
+                                android.content.Intent(context, com.caseforge.scanner.ui.diag.ConnectLabActivity::class.java),
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                    ) {
+                        Text("Open Connect Lab (USB / BT / OEM test)")
+                    }
                     ListItem(
                         headlineContent = { Text("Direct VCI (experimental)") },
                         supportingContent = { Text("Bypass OEM diagnostic app; generic OBD-II over Bluetooth dongle.") },
