@@ -852,13 +852,3 @@ private fun SubScreenScaffold(
 
 private val JsonPrimitive.contentOrNullSafe: String?
     get() = try { if (this is kotlinx.serialization.json.JsonNull) null else content } catch (_: Throwable) { null }
-            },
-        )
-        Box(Modifier.weight(1f).fillMaxWidth()) {
-            content()
-        }
-    }
-}
-
-private val JsonPrimitive.contentOrNullSafe: String?
-    get() = try { if (this is kotlinx.serialization.json.JsonNull) null else content } catch (_: Throwable) { null }
