@@ -13,6 +13,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.filled.Autorenew
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Description
@@ -58,6 +61,7 @@ fun TcwHomeScreen(
     onOpenAdvanced: () -> Unit,
     onOpenShop: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenAiDiagnostic: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -212,6 +216,28 @@ fun TcwHomeScreen(
                 dark = true,
                 onClick = { onRunPreset(roadTest.id) },
             )
+
+            // AI Diagnostic Mode - headline feature
+            TcwSectionLabel(text = "AI Diagnostic")
+            androidx.compose.material3.Button(
+                onClick = onOpenAiDiagnostic,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = TcwTokens.PadScreen)
+                    .heightIn(min = 56.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(TcwTokens.RadiusMedium),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = TcwTokens.Amber, contentColor = TcwTokens.OnAmber,
+                ),
+            ) {
+                androidx.compose.material3.Icon(Icons.Default.AutoAwesome, contentDescription = null)
+                androidx.compose.foundation.layout.Spacer(Modifier.width(8.dp))
+                androidx.compose.material3.Text(
+                    "Start AI Diagnostic",
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                )
+            }
+            androidx.compose.foundation.layout.Spacer(Modifier.height(TcwTokens.Gap))
 
             // Tools row
             TcwSectionLabel(text = "Tools")

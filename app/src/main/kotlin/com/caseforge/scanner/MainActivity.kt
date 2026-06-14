@@ -209,6 +209,28 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                // ---- AI Diagnostic Mode wiring ----
+                val aiController = remember {
+                    com.caseforge.scanner.ai.AiDiagnosticController(
+                        context = this@MainActivity,
+                        scope = lifecycleScope,
+                        vci = vci,
+                        claude = com.caseforge.scanner.ai.ClaudeClient(
+                            apiKey = app.settings.claudeApiKey.ifBlank { BuildConfig.CLAUDE_API_KEY_DEFAULT },
+                        ),
+                        db = app.db,
+                        tts = app.tts,
+                    )
+                }
+                val aiVinLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.StartActivityForResult(),
+                ) { result ->
+                    val scan = VinCameraScanActivity.parseResult(result.data)
+                    aiController.onVinPhoto(
+                        scan?.let { com.caseforge.scanner.ai.VinPhotoCapture(it.vin, it.rawOcr, it.candidateCount) },
+                    )
+                }
+
                 fun shareShopExport() {
                     val transport = ShopExport.transportLabel(app.settings.linkTransport)
                         ?: vci.linkKind()?.name?.lowercase()
@@ -313,6 +335,23 @@ class MainActivity : ComponentActivity() {
 
                 Box(Modifier.fillMaxSize()) {
                     when (route) {
+                        "ai_diagnostic" -> com.caseforge.scanner.ui.ai.AiDiagnosticModeScreen(
+                            controller = aiController,
+                            onBack = { aiController.dispose(); route = "main" },
+                            onCaptureEngineBay = {
+                                lifecycleScope.launch {
+                                    val b64 = com.caseforge.scanner.agent.CameraTool.capturePhoto(this@MainActivity)
+                                    aiController.onEngineBayPhoto(b64)
+                                }
+                            },
+                            onCaptureVin = { aiVinLauncher.launch(VinCameraScanActivity.createIntent(context)) },
+                            onCaptureDash = {
+                                lifecycleScope.launch {
+                                    val b64 = com.caseforge.scanner.agent.CameraTool.capturePhoto(this@MainActivity)
+                                    aiController.onDashPhoto(b64)
+                                }
+                            },
+                        )
                         "main" -> if (homeMode == SettingsRepo.HOME_AI_COPILOT) {
                             AiCopilotHomeScreen(
                                 vciConnected = vci.isConnected,
@@ -359,6 +398,7 @@ class MainActivity : ComponentActivity() {
                             onOpenAdvanced = { route = "security" },
                             onOpenShop = { route = "history" },
                             onOpenSettings = { route = "settings" },
+                            onOpenAiDiagnostic = { route = "ai_diagnostic" },
                         )
                         "report" -> SubScreenScaffold(
                             title = "Scan results",

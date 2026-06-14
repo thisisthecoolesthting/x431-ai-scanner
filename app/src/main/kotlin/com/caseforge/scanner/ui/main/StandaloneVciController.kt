@@ -79,6 +79,9 @@ class StandaloneVciController(
 
     fun linkKind(): DiagnosticConnector.LinkKind? = session.linkKind()
 
+    /** The active diagnostic port (ELM327 or OEM adapter), or null if not connected. Used by AI Diagnostic Mode. */
+    fun diagnosticPort(): com.caseforge.scanner.engine.VciDiagnosticPort? = session.adapterOrNull()
+
 
 
     private var liveJob: Job? = null
