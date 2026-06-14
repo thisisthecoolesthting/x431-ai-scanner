@@ -130,7 +130,6 @@
 
         <service
             android:name=".overlay.OverlayService"
-            android:enabled="false"
             android:exported="false"
             android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
@@ -144,7 +143,6 @@
         -->
         <service
             android:name=".overlay.FullScreenOverlayService"
-            android:enabled="false"
             android:exported="false"
             android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
@@ -153,13 +151,11 @@
 
         <service
             android:name=".overlay.ScreenCaptureService"
-            android:enabled="false"
             android:exported="false"
             android:foregroundServiceType="mediaProjection" />
 
         <service
             android:name=".agent.ScannerAccessibilityService"
-            android:enabled="false"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:exported="true"
             android:label="Together Car Works Agent">
@@ -174,7 +170,6 @@
         <!-- D2: BootReceiver for persistent state restoration after crash/reboot -->
         <receiver
             android:name=".boot.BootReceiver"
-            android:enabled="false"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

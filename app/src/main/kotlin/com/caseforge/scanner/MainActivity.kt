@@ -182,8 +182,7 @@ class MainActivity : ComponentActivity() {
                 var triageInput by remember { mutableStateOf(sharedReport.orEmpty()) }
                 var triageOutput by remember { mutableStateOf("") }
                 var busy by remember { mutableStateOf(false) }
-                // Overlay/AI copilot hidden from build: home is always the scanner console.
-                var homeMode by remember { mutableStateOf(SettingsRepo.HOME_SCANNER_CONSOLE) }
+                var homeMode by remember { mutableStateOf(app.settings.homeMode) }
                 var pendingCopilotSymptom by remember { mutableStateOf<String?>(null) }
                 var oemStoreReady by remember { mutableStateOf(OemDataIndex.lastSummary?.hasUsableData() == true) }
 
