@@ -22,6 +22,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import com.caseforge.scanner.ui.theme.TcwTokens
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,12 +47,17 @@ fun SecurityFunctionsScreen(
 
     Column(Modifier.fillMaxSize()) {
         TopAppBar(
-            title = { Text("Security & Keys") },
+            title = { Text("Security & Keys", fontWeight = FontWeight.SemiBold) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                 }
             },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = TcwTokens.Ink,
+                titleContentColor = TcwTokens.OnInk,
+                navigationIconContentColor = TcwTokens.Amber,
+            ),
         )
         Column(
             Modifier
