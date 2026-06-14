@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#0F172A</color>
+    <color name="ic_launcher_background">#1A1A1A</color>
+    <color name="tcw_charcoal">#1A1A1A</color>
+    <color name="tcw_amber">#E07A1F</color>
+    <color name="tcw_blue">#185FA5</color>
+    <color name="splash_background">#1A1A1A</color>
 </resources>
