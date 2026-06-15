@@ -34,6 +34,7 @@ import threading
 import time
 import queue
 import urllib.request
+import urllib.parse
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 
@@ -76,7 +77,19 @@ def _load_dtc_db():
             continue
     return {}
 
-DTC_DB = _load_dtc_db()
+def _load_full_dtc():
+    """Prefer the bundled comprehensive DTC database (1500+ codes); fall back to JSON."""
+    try:
+        from dtc_database import DTC_DB as _FULL
+        if isinstance(_FULL, dict) and len(_FULL) > 100:
+            merged = dict(_FULL)
+            merged.update(_load_dtc_db())  # JSON entries override/augment if present
+            return merged
+    except Exception:
+        pass
+    return _load_dtc_db()
+
+DTC_DB = _load_full_dtc()
 
 
 # ----------------------------------------------------------------------------
@@ -84,7 +97,7 @@ DTC_DB = _load_dtc_db()
 # ----------------------------------------------------------------------------
 _CONFIG_PATH = os.path.join(os.path.expanduser("~"), ".tcw_scanner.json")
 _RELAY_ENDPOINT = "https://tcw.aiaffiliate.builders/api/relay/session"
-APP_VERSION = "1.1.0"
+APP_VERSION = "1.2.0"
 _VERSION_MANIFEST = "https://tcw.aiaffiliate.builders/tcw-exe-version.json"
 
 
@@ -412,6 +425,16 @@ class ScannerApp(tk.Tk):
         self.update_btn.pack(side="left", padx=6)
         self.ai_btn = ttk.Button(actions, text="AI Diagnose", command=self.ai_diagnose)
         self.ai_btn.pack(side="left", padx=6)
+        self.freeze_btn = ttk.Button(actions, text="Freeze Frame", command=self.read_freeze_frame, state="disabled")
+        self.freeze_btn.pack(side="left", padx=6)
+        self.perm_btn = ttk.Button(actions, text="Permanent DTCs", command=self.read_permanent, state="disabled")
+        self.perm_btn.pack(side="left", padx=6)
+        self.vehinfo_btn = ttk.Button(actions, text="Vehicle Info", command=self.read_vehicle_info, state="disabled")
+        self.vehinfo_btn.pack(side="left", padx=6)
+        self.recalls_btn = ttk.Button(actions, text="Recalls", command=self.check_recalls)
+        self.recalls_btn.pack(side="left", padx=6)
+        self.report_btn = ttk.Button(actions, text="Save Report", command=self.save_report)
+        self.report_btn.pack(side="left", padx=6)
 
         # API-key row
         cloud_row = ttk.Frame(self)
@@ -505,7 +528,8 @@ class ScannerApp(tk.Tk):
 
     def _set_connected(self, ok):
         state = "normal" if ok else "disabled"
-        for b in (self.scan_btn, self.clear_btn, self.live_btn, self.vin_btn, self.readiness_btn):
+        for b in (self.scan_btn, self.clear_btn, self.live_btn, self.vin_btn, self.readiness_btn,
+                  self.freeze_btn, self.perm_btn, self.vehinfo_btn):
             b.config(state=state)
         self.connect_btn.config(text="Disconnect" if ok else "Connect")
 
@@ -795,6 +819,196 @@ class ScannerApp(tk.Tk):
             self.api_key_hint.config(text="Paste your TCW API key here to enable cloud upload.")
 
     # ---- cloud upload ----
+    # ---- Wave 1: freeze frame (Mode 02) ----
+    def read_freeze_frame(self):
+        if not self._require():
+            return
+        threading.Thread(target=self._freeze_worker, daemon=True).start()
+
+    def _freeze_worker(self):
+        try:
+            self.set_status("Reading freeze frame (Mode 02)...")
+            # Mode 02 PID 02 returns the DTC that triggered the freeze frame
+            dtc_resp = self.elm.send("0202", timeout=4.0)
+            # Read a set of freeze-frame PIDs (frame 00): RPM, load, coolant, speed, STFT/LTFT, MAP
+            frame = {}
+            for pid, label, decoder, unit in [
+                ("020C", "RPM", dec_rpm, "rpm"),
+                ("0204", "Engine load", dec_load, "%"),
+                ("0205", "Coolant", dec_temp, "C"),
+                ("020D", "Speed", dec_speed, "km/h"),
+                ("0206", "STFT B1", dec_pct, "%"),
+                ("0207", "LTFT B1", dec_pct, "%"),
+                ("020B", "MAP", dec_map, "kPa"),
+                ("020F", "Intake temp", dec_temp, "C"),
+            ]:
+                try:
+                    r = self.elm.send(pid, timeout=2.0)
+                    b = _hex_bytes(r, "42" + pid[2:])
+                    v = decoder(b)
+                    if v is not None:
+                        frame[label] = "%g %s" % (v, unit)
+                except Exception:
+                    pass
+            lines = ["FREEZE FRAME (snapshot when fault set)"]
+            tokens = [t for t in dtc_resp.replace("\r", " ").split() if len(t) == 2]
+            lines.append("Triggered by DTC data: " + (dtc_resp.strip() or "(none)"))
+            if frame:
+                for k, v in frame.items():
+                    lines.append("  %-14s %s" % (k, v))
+            else:
+                lines.append("  (no freeze-frame data stored - no recent fault)")
+            self.ui_queue.put(("codes", "\n".join(lines)))
+            self.set_status("Freeze frame read.")
+        except Exception as e:
+            self.set_status("Freeze frame failed: " + str(e))
+
+    # ---- Wave 1: permanent DTCs (Mode 0A) ----
+    def read_permanent(self):
+        if not self._require():
+            return
+        threading.Thread(target=self._perm_worker, daemon=True).start()
+
+    def _perm_worker(self):
+        try:
+            self.set_status("Reading permanent DTCs (Mode 0A)...")
+            resp = self.elm.send("0A", timeout=5.0)
+            codes = decode_dtcs(resp, "4A")
+            if codes:
+                lines = ["PERMANENT DTCs (cannot be cleared until repair verified):"]
+                lines += ["   " + _dtc_line(c) for c in codes]
+            else:
+                lines = ["PERMANENT DTCs: none (good - nothing unverified)."]
+            self.ui_queue.put(("codes", "\n".join(lines)))
+            self.set_status("Permanent DTC read complete: %d code(s)." % len(codes))
+        except Exception as e:
+            self.set_status("Permanent DTC read failed: " + str(e))
+
+    # ---- Wave 1: vehicle info (Mode 09 CALID/CVN) ----
+    def read_vehicle_info(self):
+        if not self._require():
+            return
+        threading.Thread(target=self._vehinfo_worker, daemon=True).start()
+
+    def _vehinfo_worker(self):
+        try:
+            self.set_status("Reading ECU calibration info (Mode 09)...")
+            lines = ["VEHICLE / ECU INFO"]
+            # CALID (09 04) - ASCII calibration ID
+            cal = self.elm.send("0904", timeout=5.0)
+            cal_txt = self._ascii_from_hex(cal, "4904")
+            lines.append("  Calibration ID (CALID): " + (cal_txt or "(not reported)"))
+            # CVN (09 06) - calibration verification number (hex)
+            cvn = self.elm.send("0906", timeout=4.0)
+            cvn_hex = "".join(t for t in cvn.replace("\r", " ").split() if len(t) == 2)
+            lines.append("  Cal Verification (CVN): " + (cvn_hex[-8:].upper() or "(not reported)"))
+            if self._session_vin:
+                lines.append("  VIN: " + self._session_vin)
+            self.ui_queue.put(("codes", "\n".join(lines)))
+            self.set_status("Vehicle info read.")
+        except Exception as e:
+            self.set_status("Vehicle info failed: " + str(e))
+
+    def _ascii_from_hex(self, resp, echo):
+        joined = "".join(t for t in resp.replace("\r", " ").upper().split() if all(c in "0123456789ABCDEF" for c in t))
+        idx = joined.find(echo.upper())
+        if idx >= 0:
+            joined = joined[idx + len(echo):]
+        chars = []
+        for i in range(0, len(joined) - 1, 2):
+            try:
+                v = int(joined[i:i+2], 16)
+                if 32 <= v < 127:
+                    chars.append(chr(v))
+            except ValueError:
+                pass
+        return "".join(chars).strip()
+
+    # ---- Wave 1: NHTSA recalls + VIN decode ----
+    def check_recalls(self):
+        threading.Thread(target=self._recalls_worker, daemon=True).start()
+
+    def _recalls_worker(self):
+        import json as _json
+        try:
+            vin = self._session_vin
+            if not vin or len(vin) < 11:
+                self.set_status("Read the VIN first (Read VIN button), then check recalls.")
+                return
+            self.set_status("Decoding VIN + checking recalls (NHTSA)...")
+            # Decode VIN
+            url = "https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/" + vin + "?format=json"
+            with urllib.request.urlopen(url, timeout=20) as r:
+                dec = _json.loads(r.read().decode("utf-8"))
+            res = (dec.get("Results") or [{}])[0]
+            make = res.get("Make", ""); model = res.get("Model", ""); year = res.get("ModelYear", "")
+            lines = ["VEHICLE: %s %s %s" % (year, make, model)]
+            # Recalls by make/model/year
+            if make and model and year:
+                rurl = ("https://api.nhtsa.gov/recalls/recallsByVehicle?make=%s&model=%s&modelYear=%s"
+                        % (urllib.parse.quote(make), urllib.parse.quote(model), year))
+                try:
+                    with urllib.request.urlopen(rurl, timeout=20) as r2:
+                        rec = _json.loads(r2.read().decode("utf-8"))
+                    items = rec.get("results", [])
+                    if items:
+                        lines.append("")
+                        lines.append("OPEN RECALLS (%d):" % len(items))
+                        for it in items[:12]:
+                            lines.append("  - " + (it.get("Component", "") or "Recall") + ": " +
+                                         (it.get("Summary", "")[:120]))
+                    else:
+                        lines.append("No recalls found for this make/model/year.")
+                except Exception as e2:
+                    lines.append("Recall lookup error: " + str(e2))
+            self.ui_queue.put(("codes", "\n".join(lines)))
+            self.set_status("Recall check complete.")
+        except Exception as e:
+            self.set_status("Recall check failed: " + str(e))
+
+    # ---- Wave 1: save session report (HTML) ----
+    def save_report(self):
+        from tkinter import filedialog
+        path = filedialog.asksaveasfilename(
+            defaultextension=".html",
+            filetypes=[("HTML report", "*.html"), ("All files", "*.*")],
+            title="Save diagnostic report",
+        )
+        if not path:
+            return
+        try:
+            import html as _html, datetime as _dt
+            rows = ""
+            for c in self._session_stored:
+                rows += "<tr><td>%s</td><td>%s</td><td>stored</td></tr>" % (c, _html.escape(DTC_DB.get(c, "")))
+            for c in self._session_pending:
+                rows += "<tr><td>%s</td><td>%s</td><td>pending</td></tr>" % (c, _html.escape(DTC_DB.get(c, "")))
+            live = ""
+            for label, (value, unit) in self._live_snapshot.items():
+                live += "<tr><td>%s</td><td>%s %s</td></tr>" % (_html.escape(label), _html.escape(str(value)), _html.escape(unit))
+            doc = (
+                "<html><head><meta charset='utf-8'><title>TCW Diagnostic Report</title>"
+                "<style>body{font-family:Segoe UI,Arial,sans-serif;background:#0D1B14;color:#EAF7EF;padding:24px}"
+                "h1{color:#42FF91}table{border-collapse:collapse;width:100%%;margin:12px 0}"
+                "td,th{border:1px solid #244D36;padding:8px;text-align:left}th{background:#12261C;color:#42FF91}"
+                ".muted{color:#8FA99A}</style></head><body>"
+                "<h1>Together Car Works - Diagnostic Report</h1>"
+                "<p class='muted'>Generated %s</p>"
+                "<p><b>VIN:</b> %s</p>"
+                "<h2>Trouble Codes</h2><table><tr><th>Code</th><th>Description</th><th>Status</th></tr>%s</table>"
+                "<h2>Live Data Snapshot</h2><table><tr><th>Parameter</th><th>Value</th></tr>%s</table>"
+                "</body></html>"
+            ) % (_dt.datetime.now().strftime("%Y-%m-%d %H:%M"),
+                 self._session_vin or "(not read)",
+                 rows or "<tr><td colspan=3 class='muted'>No codes</td></tr>",
+                 live or "<tr><td colspan=2 class='muted'>No live data</td></tr>")
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(doc)
+            self.log("Report saved: " + path)
+            self.set_status("Report saved: " + path)
+        except Exception as e:
+            self.set_status("Report save failed: " + str(e))
+
     def ai_diagnose(self):
         self.ai_btn.config(state="disabled")
         self.set_status("Asking AI for a diagnosis...")
