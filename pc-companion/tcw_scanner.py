@@ -231,17 +231,38 @@ class Elm327:
 # OBD-II decoding (SAE J1979)
 # ----------------------------------------------------------------------------
 def _hex_bytes(resp, mode_echo):
-    """Strip whitespace/echo, return data byte ints after the mode echo (e.g. '41 0C')."""
-    tokens = resp.replace("\r", " ").replace("\n", " ").split()
-    hexes = [t for t in tokens if len(t) == 2 and all(ch in "0123456789ABCDEFabcdef" for ch in t)]
-    if mode_echo in resp.replace(" ", ""):
-        # find the echo position
-        joined = "".join(hexes)
-        idx = joined.find(mode_echo)
-        if idx >= 0:
-            rest = joined[idx + len(mode_echo):]
-            return [int(rest[i:i + 2], 16) for i in range(0, len(rest) - 1, 2)]
-    return [int(h, 16) for h in hexes]
+    """Strip whitespace/echo/framing, return data byte ints after the mode echo (e.g. '410C').
+
+    Robust to BOTH spaced ('41 0C 1A 2B') and unspaced ('410C1A2B') ELM327 output, to
+    multi-line CAN frames, and to leftover command echo. mode_echo is the response prefix
+    like '410C'. Returns the data bytes AFTER that prefix.
+    """
+    import re as _re
+    up = mode_echo.upper()
+    # Collapse the whole response to a continuous hex string (drop anything non-hex).
+    cleaned = resp.upper()
+    for junk in ("SEARCHING...", "SEARCHING", "NODATA", "NO DATA", "STOPPED", "UNABLE TO CONNECT", "?", ">"):
+        cleaned = cleaned.replace(junk, " ")
+    # keep only hex digits and spaces, then strip spaces to one blob
+    blob = "".join(ch for ch in cleaned if ch in "0123456789ABCDEF ")
+    blob = blob.replace(" ", "")
+    if not blob:
+        return []
+    idx = blob.find(up)
+    if idx >= 0:
+        rest = blob[idx + len(up):]
+        # multi-frame CAN can repeat the prefix; cut at the next prefix if present
+        nxt = rest.find(up)
+        if nxt > 0:
+            rest = rest[:nxt]
+        # trim to an even number of nibbles
+        if len(rest) % 2 == 1:
+            rest = rest[:-1]
+        return [int(rest[i:i + 2], 16) for i in range(0, len(rest), 2)]
+    # no echo found: fall back to any 2-char tokens
+    toks = [t for t in resp.replace("\r", " ").replace("\n", " ").split()
+            if len(t) == 2 and all(c in "0123456789ABCDEFabcdef" for c in t)]
+    return [int(t, 16) for t in toks]
 
 
 # PID definitions: pid_cmd -> (label, response_echo, decoder, unit)

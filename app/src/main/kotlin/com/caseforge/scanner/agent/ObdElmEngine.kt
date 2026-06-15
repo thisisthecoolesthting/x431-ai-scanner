@@ -100,9 +100,16 @@ class ObdElmEngine(private val io: ElmIo) {
             .replace("\n", " ")
             .trim()
         if (cleaned.isEmpty()) return null
-        val tokens = cleaned.split(Regex("\\s+"))
-            .filter { it.length == 2 && it.all { c -> c.isDigit() || c in 'A'..'F' || c in 'a'..'f' } }
-            .map { it.toInt(16) }
+        // Robust to BOTH spaced ("41 0C 0B B8") and unspaced ("410C0BB8") ELM327 output:
+        // collapse to one continuous hex string, then split into byte pairs.
+        val blob = cleaned.filter { it.isDigit() || it in 'A'..'F' || it in 'a'..'f' }
+        val tokens = if (blob.length % 2 == 0 && blob.length >= 2) {
+            (0 until blob.length step 2).map { blob.substring(it, it + 2).toInt(16) }
+        } else {
+            cleaned.split(Regex("\\s+"))
+                .filter { it.length == 2 && it.all { c -> c.isDigit() || c in 'A'..'F' || c in 'a'..'f' } }
+                .map { it.toInt(16) }
+        }
         if (tokens.size < 3) return null
         val modeIdx = tokens.indexOf(expectMode)
         if (modeIdx < 0 || modeIdx + 1 >= tokens.size) return null
