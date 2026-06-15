@@ -84,6 +84,8 @@ DTC_DB = _load_dtc_db()
 # ----------------------------------------------------------------------------
 _CONFIG_PATH = os.path.join(os.path.expanduser("~"), ".tcw_scanner.json")
 _RELAY_ENDPOINT = "https://tcw.aiaffiliate.builders/api/relay/session"
+APP_VERSION = "1.1.0"
+_VERSION_MANIFEST = "https://tcw.aiaffiliate.builders/tcw-exe-version.json"
 
 
 def _load_config():
@@ -326,7 +328,7 @@ def decode_dtcs(resp, mode_echo="43"):
 class ScannerApp(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("TCW OBD Scanner — ELM327 (USB / Bluetooth)")
+        self.title("TCW OBD Scanner v" + APP_VERSION + " — ELM327 (USB / Bluetooth)")
         self.geometry("720x600")
         self.minsize(640, 520)
         self.elm = None
@@ -406,6 +408,10 @@ class ScannerApp(tk.Tk):
         self.upload_btn.pack(side="left", padx=6)
         self.sendlogs_btn = ttk.Button(actions, text="Send Logs", command=self.send_logs)
         self.sendlogs_btn.pack(side="left", padx=6)
+        self.update_btn = ttk.Button(actions, text="Check for Updates", command=self.check_for_updates)
+        self.update_btn.pack(side="left", padx=6)
+        self.ai_btn = ttk.Button(actions, text="AI Diagnose", command=self.ai_diagnose)
+        self.ai_btn.pack(side="left", padx=6)
 
         # API-key row
         cloud_row = ttk.Frame(self)
@@ -483,6 +489,13 @@ class ScannerApp(tk.Tk):
                     self._set_connected(payload)
                 elif kind == "enable_sendlogs":
                     self.sendlogs_btn.config(state="normal")
+                elif kind == "enable_update":
+                    self.update_btn.config(state="normal")
+                elif kind == "enable_ai":
+                    self.ai_btn.config(state="normal")
+                elif kind == "ai_result":
+                    self.set_status("AI diagnosis ready.")
+                    self._show_ai_result(payload)
                 elif kind == "upload_done":
                     self.status_var.set(payload)
                     self.upload_btn.config(state="normal")
@@ -782,6 +795,101 @@ class ScannerApp(tk.Tk):
             self.api_key_hint.config(text="Paste your TCW API key here to enable cloud upload.")
 
     # ---- cloud upload ----
+    def ai_diagnose(self):
+        self.ai_btn.config(state="disabled")
+        self.set_status("Asking AI for a diagnosis...")
+        threading.Thread(target=self._ai_worker, daemon=True).start()
+
+    def _ai_worker(self):
+        import json as _json
+        try:
+            codes = list(self._session_stored) + ["(pending) " + c for c in self._session_pending]
+            live = {lbl: (str(v) + " " + u).strip() for lbl, (v, u) in self._live_snapshot.items()}
+            payload = {
+                "vin": self._session_vin or None,
+                "codes": codes,
+                "live": live or None,
+            }
+            body = _json.dumps(payload).encode("utf-8")
+            req = urllib.request.Request(
+                "https://tcw.aiaffiliate.builders/api/ai-diagnose",
+                data=body,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                out = _json.loads(resp.read().decode("utf-8"))
+            if out.get("ok"):
+                analysis = out.get("analysis", "(no analysis)")
+                self.ui_queue.put(("ai_result", analysis))
+            else:
+                self.ui_queue.put(("status", "AI error: " + str(out.get("error"))))
+        except Exception as e:
+            self.ui_queue.put(("status", "AI diagnose failed: " + str(e)))
+        finally:
+            self.ui_queue.put(("enable_ai", None))
+
+    def _show_ai_result(self, text):
+        win = tk.Toplevel(self)
+        win.title("AI Diagnosis")
+        win.geometry("560x460")
+        box = tk.Text(win, wrap="word", padx=10, pady=10)
+        box.insert("1.0", text)
+        box.config(state="disabled")
+        box.pack(fill="both", expand=True)
+        ttk.Button(win, text="Close", command=win.destroy).pack(pady=6)
+
+    def check_for_updates(self):
+        self.update_btn.config(state="disabled")
+        self.set_status("Checking for updates...")
+        threading.Thread(target=self._update_worker, daemon=True).start()
+
+    def _ver_tuple(self, v):
+        try:
+            return tuple(int(x) for x in str(v).strip().split("."))
+        except Exception:
+            return (0,)
+
+    def _update_worker(self):
+        import json as _json, tempfile, os, sys, subprocess
+        try:
+            req = urllib.request.Request(_VERSION_MANIFEST, headers={"Cache-Control": "no-cache"})
+            with urllib.request.urlopen(req, timeout=20) as r:
+                man = _json.loads(r.read().decode("utf-8"))
+            latest = man.get("version", "0")
+            url = man.get("url", "")
+            notes = man.get("notes", "")
+            if self._ver_tuple(latest) <= self._ver_tuple(APP_VERSION):
+                self.ui_queue.put(("status", "You are up to date (v%s)." % APP_VERSION))
+                self.ui_queue.put(("enable_update", None))
+                return
+            # download new exe to a temp file next to the current one
+            self.ui_queue.put(("status", "Downloading update v%s..." % latest))
+            cur = sys.executable if getattr(sys, "frozen", False) else os.path.abspath(__file__)
+            folder = os.path.dirname(cur)
+            new_path = os.path.join(folder, "TCW-OBD-Scanner-new.exe")
+            with urllib.request.urlopen(url, timeout=120) as resp, open(new_path, "wb") as out:
+                out.write(resp.read())
+            # write a small batch that waits, replaces the exe, and relaunches
+            if getattr(sys, "frozen", False):
+                bat = os.path.join(folder, "_tcw_update.bat")
+                with open(bat, "w") as b:
+                    b.write("@echo off\r\n")
+                    b.write("timeout /t 2 /nobreak >nul\r\n")
+                    b.write("move /y \"%s\" \"%s\" >nul\r\n" % (new_path, cur))
+                    b.write("start \"\" \"%s\"\r\n" % cur)
+                    b.write("del \"%%~f0\"\r\n")
+                self.ui_queue.put(("status", "Update ready (v%s) - restarting..." % latest))
+                subprocess.Popen(["cmd", "/c", bat], creationflags=0x00000008)
+                self.after(500, self.on_close)
+            else:
+                self.ui_queue.put(("status", "Downloaded v%s to %s" % (latest, new_path)))
+                self.ui_queue.put(("enable_update", None))
+        except Exception as e:
+            self.ui_queue.put(("status", "Update failed: " + str(e)))
+            self.ui_queue.put(("log", "Update check failed: " + str(e)))
+            self.ui_queue.put(("enable_update", None))
+
     def send_logs(self):
         """Upload the entire log box to the TCW debug endpoint so support can read it."""
         try:
