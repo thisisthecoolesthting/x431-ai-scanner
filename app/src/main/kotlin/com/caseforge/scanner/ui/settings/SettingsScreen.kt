@@ -39,6 +39,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.rememberCoroutineScope
+import android.widget.Toast
+import kotlinx.coroutines.launch
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -83,6 +86,7 @@ fun SettingsScreen(
     var transferMode by remember { mutableStateOf(settings.transferDeliveryMode) }
     var transferDropUrl by remember { mutableStateOf(settings.transferDropUrl) }
     val context = LocalContext.current
+    val logScope = rememberCoroutineScope()
     val recordAudioLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         voice = granted; settings.voiceEnabled = granted
     }
@@ -434,6 +438,19 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                     ) {
                         Text("Open Connect Lab (USB / BT / OEM test)")
+                    }
+                    OutlinedButton(
+                        onClick = {
+                            Toast.makeText(context, "Sending logs", Toast.LENGTH_SHORT).show()
+                            logScope.launch {
+                                val id = com.caseforge.scanner.diagnostics.LogUploader.send(context)
+                                val msg = if (id != null) "Logs sent. ID: $id" else "Send failed - check internet."
+                                Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                    ) {
+                        Text("Send Logs to Support")
                     }
                     ListItem(
                         headlineContent = { Text("Direct VCI (experimental)") },

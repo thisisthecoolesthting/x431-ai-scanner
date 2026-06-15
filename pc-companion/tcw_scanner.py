@@ -341,9 +341,9 @@ class ScannerApp(tk.Tk):
         ttk.Button(top, text="Refresh", command=self.refresh_ports).pack(side="left")
 
         ttk.Label(top, text="Baud:").pack(side="left", padx=(12, 2))
-        self.baud_var = tk.StringVar(value="38400")
+        self.baud_var = tk.StringVar(value="115200")
         ttk.Combobox(top, textvariable=self.baud_var, width=8, state="readonly",
-                     values=["38400", "9600", "115200", "57600", "500000"]).pack(side="left")
+                     values=["115200", "38400", "9600", "57600", "500000"]).pack(side="left")
 
         self.connect_btn = ttk.Button(top, text="Connect", command=self.toggle_connect)
         self.connect_btn.pack(side="left", padx=10)
@@ -383,6 +383,8 @@ class ScannerApp(tk.Tk):
         self.export_btn.pack(side="left", padx=6)
         self.upload_btn = ttk.Button(actions, text="Cloud upload", command=self.cloud_upload, state="disabled")
         self.upload_btn.pack(side="left", padx=6)
+        self.sendlogs_btn = ttk.Button(actions, text="Send Logs", command=self.send_logs)
+        self.sendlogs_btn.pack(side="left", padx=6)
 
         # API-key row
         cloud_row = ttk.Frame(self)
@@ -458,6 +460,8 @@ class ScannerApp(tk.Tk):
                     self.readiness_box.insert("end", payload)
                 elif kind == "connected":
                     self._set_connected(payload)
+                elif kind == "enable_sendlogs":
+                    self.sendlogs_btn.config(state="normal")
                 elif kind == "upload_done":
                     self.status_var.set(payload)
                     self.upload_btn.config(state="normal")
@@ -757,6 +761,46 @@ class ScannerApp(tk.Tk):
             self.api_key_hint.config(text="Paste your TCW API key here to enable cloud upload.")
 
     # ---- cloud upload ----
+    def send_logs(self):
+        """Upload the entire log box to the TCW debug endpoint so support can read it."""
+        try:
+            text = self.log_box.get("1.0", "end").strip()
+        except Exception:
+            text = ""
+        if not text:
+            text = "(log was empty)"
+        # include a little context
+        import platform
+        header = "TCW .exe log | %s | port=%s baud=%s\n\n" % (
+            platform.platform(),
+            getattr(self, "port_var", None).get() if hasattr(self, "port_var") else "?",
+            getattr(self, "baud_var", None).get() if hasattr(self, "baud_var") else "?",
+        )
+        self.sendlogs_btn.config(state="disabled")
+        self.set_status("Sending logs…")
+        threading.Thread(target=self._send_logs_worker, args=(header + text,), daemon=True).start()
+
+    def _send_logs_worker(self, text):
+        import json as _json
+        try:
+            body = _json.dumps({"source": "exe", "label": "send-logs", "text": text}).encode("utf-8")
+            req = urllib.request.Request(
+                "https://tcw.aiaffiliate.builders/api/debug-log",
+                data=body,
+                headers={"Content-Type": "application/json", "x-log-token": "tcwlogs2026"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                out = _json.loads(resp.read().decode("utf-8"))
+            log_id = out.get("id", "?")
+            self.ui_queue.put(("log", "Logs sent. ID: " + str(log_id)))
+            self.ui_queue.put(("status", "Logs sent - tell support the ID: " + str(log_id)))
+        except Exception as e:
+            self.ui_queue.put(("log", "Send logs failed: " + str(e)))
+            self.ui_queue.put(("status", "Send logs failed: " + str(e)))
+        finally:
+            self.ui_queue.put(("enable_sendlogs", None))
+
     def cloud_upload(self):
         key = self.api_key_var.get().strip()
         if not key:
