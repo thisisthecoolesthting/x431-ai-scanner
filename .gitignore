@@ -18,9 +18,14 @@ local.properties
 
 setup-github.log
 
+# Mail proof files (contain mailbox passwords)
+build/proof/
+
 # Share-zip decompile (binaries stay local)
 decompile/work/*
 !decompile/work/.gitkeep
 decompile/inbox/*.zip
+decompile/captures/*
+!decompile/captures/.gitkeep
 apks/
 

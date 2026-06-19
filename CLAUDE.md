@@ -100,6 +100,20 @@ The agent loop is the heart. Don't change it casually.
 - Phase 2c: UI translation overlay over the X431 app.
 - Phase 3: Live-data dashboard, voice control, pre/post-scan automation.
 
+## Mail server (factory VPS — Stalwart 0.16.5)
+
+Shared mail on **187.124.246.154**. Authoritative runbooks: `cursor-dispatch/runbooks/MAIL_SETUP_AND_HARDENING.md`, `EMAIL_new_domain_on_stalwart.md`.
+
+| Item | Value |
+|---|---|
+| Service | `stalwart.service` (User `stalwart`) |
+| Store | RocksDB `/var/lib/stalwart/` — bootstrap `/usr/local/etc/config.json` |
+| Admin JMAP | `http://127.0.0.1:8082/jmap` (recovery admin in `/usr/local/etc/stalwart.env`) |
+| Mail hostname / PTR / cert | `mail.phonecasesforcharity.com` |
+| App send | **465 SMTPS** + PLAIN (587 is OAuth-only) |
+
+**runmyvenue.com (2026-06-19):** domain `bv`, `hello@runmyvenue.com` id `e9`, lead service on PM2 (`www-data`, `PM2_HOME=/var/www/.pm2`). Proof: `build/proof/MAIL_RUNMYVENUE_2026-06-19.json` (gitignored). **Pending:** align OpenProvider DKIM selector with Stalwart `v1-ed25519-20260619`; SPF → `-all`.
+
 ## Environmental quirks (don't re-discover)
 
 - Cowork file links in chat (`computer://...`) preview files, they don't execute them. Don't expect Ricky to be able to double-click a .bat from chat.
