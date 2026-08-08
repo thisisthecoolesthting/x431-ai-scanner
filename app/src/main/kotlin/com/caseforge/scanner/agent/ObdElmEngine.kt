@@ -15,6 +15,16 @@ class ObdElmEngine(private val io: ElmIo) {
 
     private val ioMutex = Mutex()
 
+    /**
+     * Raw AT-command passthrough for callers that need direct adapter access beyond the
+     * parsed OBD helpers below (e.g. the J1850 VPW SKIM reader in
+     * [com.caseforge.scanner.obd.j1850.ElmEngineSerialTransport], which drives its own
+     * ATSP2/ATH1 bring-up sequence over this same already-connected transport). Uses the same
+     * [ioMutex] as every other method here, so callers stay serialized against concurrent
+     * OBD-II polling on this engine.
+     */
+    suspend fun sendRawCommand(cmd: String): String = ioMutex.withLock { io.sendRaw(cmd) }
+
     suspend fun initialize(): Result<String> = runCatching {
         ioMutex.withLock {
             io.sendRaw("ATZ")

@@ -649,6 +649,7 @@ class MainActivity : ComponentActivity() {
                                         ImmoInfoScreen(
                                             vehicleVin = engineState.vehicleVin,
                                             lastRecordedVin = app.settings.fastWorkflowState.lastVin,
+                                            elmEngine = vci.elmEngineOrNull(),
                                         )
                                     }
                             }

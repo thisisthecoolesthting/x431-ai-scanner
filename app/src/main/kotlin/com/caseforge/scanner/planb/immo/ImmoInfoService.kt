@@ -1,6 +1,7 @@
 package com.caseforge.scanner.planb.immo
 
 import android.content.Context
+import com.caseforge.scanner.agent.ObdElmEngine
 import com.caseforge.scanner.planb.PlanbMarque
 import com.caseforge.scanner.planb.coding.CodingChecklistLoader
 import com.caseforge.scanner.update.AssetOverlay
@@ -36,17 +37,24 @@ class ImmoInfoService(
         buildReadState(marque, banner = load(marque), live = null)
 
     /**
-     * Bundled immo info plus optional live gateway read when [vci] is connected and JSON defines [ImmoLiveReadConfig].
+     * Bundled immo info plus optional live read when connected: J1850 VPW SKIM/SKREEM
+     * ([elmEngine], pre-2008 Stellantis only - see [J1850SkreemBridge.isJ1850SkreemCandidate])
+     * takes priority when applicable, otherwise the existing CAN UDS gateway read ([vci],
+     * unchanged) when JSON defines [ImmoLiveReadConfig].
      */
     suspend fun readStateWithLive(
         marque: PlanbMarque,
         vci: VciCommunicator? = null,
+        vin: String? = null,
+        elmEngine: ObdElmEngine? = null,
     ): ImmoReadState {
         val banner = load(marque)
-        val live = if (vci != null && banner?.liveRead?.enabled == true) {
-            ImmoLiveReader.tryLiveRead(vci, marque, banner)
-        } else {
-            null
+        val live = when {
+            elmEngine != null && J1850SkreemBridge.isJ1850SkreemCandidate(marque, vin) ->
+                ImmoLiveReader.tryLiveReadJ1850(elmEngine, vin)
+            vci != null && banner?.liveRead?.enabled == true ->
+                ImmoLiveReader.tryLiveRead(vci, marque, banner)
+            else -> null
         }
         return buildReadState(marque, banner, live)
     }

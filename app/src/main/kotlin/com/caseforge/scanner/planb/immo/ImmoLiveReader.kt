@@ -1,9 +1,15 @@
 package com.caseforge.scanner.planb.immo
 
+import com.caseforge.scanner.agent.ObdElmEngine
+import com.caseforge.scanner.obd.j1850.ElmEngineSerialTransport
+import com.caseforge.scanner.obd.j1850.SkimReadOutcome
+import com.caseforge.scanner.obd.j1850.SkimVpwReader
+import com.caseforge.scanner.obd.j1850.SkreemReadResult
 import com.caseforge.scanner.planb.PlanbMarque
 import com.caseforge.scanner.planb.gateway.UdsNegativeResponse
 import com.caseforge.scanner.vci.ImmoUdsReadResult
 import com.caseforge.scanner.vci.VciCommunicator
+import kotlinx.coroutines.CancellationException
 
 /**
  * Plan B immobilizer live-read lane: marque JSON [ImmoLiveReadConfig] + read-only [VciCommunicator.readImmoStatus].
@@ -46,6 +52,43 @@ object ImmoLiveReader {
                 )
             },
         )
+    }
+
+    /**
+     * Plan B immobilizer live-read lane for pre-2008 Stellantis SKREEM vehicles: SAE J1850 VPW
+     * (Chrysler PCI-bus) over the app's existing ELM327 connection ([engine]), via the
+     * clean-room [com.caseforge.scanner.obd.j1850] read core. Parallel to [tryLiveRead] (CAN UDS
+     * 0x22 over [VciCommunicator]) - that function is completely unchanged by this addition.
+     * Callers decide whether to call this vs [tryLiveRead] via
+     * [J1850SkreemBridge.isJ1850SkreemCandidate] (see `ImmoInfoService.readStateWithLive`).
+     *
+     * Not `suspend`: [SkimVpwReader.readSkimStatus] and
+     * [com.caseforge.scanner.obd.j1850.ElmSerialTransport] are synchronous/blocking by design
+     * (clean-room core, no coroutines dependency) - callers must already be off the main thread
+     * (e.g. `Dispatchers.IO`, as `ImmoInfoScreen` already runs `ImmoInfoService.readStateWithLive`).
+     */
+    fun tryLiveReadJ1850(engine: ObdElmEngine, knownVin: String?): ImmoLiveStatus {
+        val transport = ElmEngineSerialTransport(engine)
+        val result = try {
+            SkimVpwReader(transport).readSkimStatus()
+        } catch (c: CancellationException) {
+            throw c
+        } catch (e: Exception) {
+            // SkimVpwReader.readSkimStatus() has no try/catch of its own around open()/
+            // elmInitVpw() (only a `finally { transport.close() }`) - fold any transport-level
+            // failure into the same SkreemReadResult shape so it flows through ONE mapping,
+            // uniformly with SkimResponseParser's own NO_RESPONSE cases.
+            SkreemReadResult(
+                modulePresent = false,
+                immobilizerStatus = "NO_RESPONSE",
+                keyCount = null,
+                vinEcho = null,
+                rawHex = "",
+                outcome = SkimReadOutcome.NO_RESPONSE,
+                detail = "J1850 VPW transport error: ${e.message}",
+            )
+        }
+        return J1850SkreemBridge.toImmoLiveStatus(result, knownVin)
     }
 
     internal fun parseUdsReadResponse(

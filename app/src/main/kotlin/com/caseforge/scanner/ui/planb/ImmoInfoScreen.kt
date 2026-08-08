@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.caseforge.scanner.agent.ObdElmEngine
 import com.caseforge.scanner.planb.PlanbMarque
 import com.caseforge.scanner.planb.displayName
 import com.caseforge.scanner.planb.immo.ImmoDataSource
@@ -34,6 +35,7 @@ fun ImmoInfoScreen(
     vehicleVin: String?,
     lastRecordedVin: String?,
     vciCommunicator: VciCommunicator? = null,
+    elmEngine: ObdElmEngine? = null,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -48,9 +50,9 @@ fun ImmoInfoScreen(
     var selectedMarque by remember(primaryVin) { mutableStateOf(vinSuggested ?: PlanbMarque.JEEP) }
     var state by remember { mutableStateOf<ImmoReadState?>(null) }
 
-    LaunchedEffect(selectedMarque, vciCommunicator) {
+    LaunchedEffect(selectedMarque, vciCommunicator, primaryVin, elmEngine) {
         state = withContext(Dispatchers.IO) {
-            service.readStateWithLive(selectedMarque, vciCommunicator)
+            service.readStateWithLive(selectedMarque, vciCommunicator, primaryVin, elmEngine)
         }
     }
 

@@ -2,6 +2,7 @@ package com.caseforge.scanner.vci
 
 import android.content.Context
 import android.hardware.usb.UsbDevice
+import com.caseforge.scanner.agent.ObdElmEngine
 import com.caseforge.scanner.data.SettingsRepo
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.ScrapedDtc
@@ -28,6 +29,9 @@ class DirectVciSession(
     fun linkKind(): DiagnosticConnector.LinkKind? = activeLink?.kind
 
     fun adapterOrNull(): VciDiagnosticPort? = activeLink?.port
+
+    /** ELM327 engine for the active link, when it's an ELM327 USB/BT connection (see [DiagnosticConnector.ActiveLink.elmEngine]). */
+    fun elmEngineOrNull(): ObdElmEngine? = activeLink?.elmEngine
 
     suspend fun ensureConnected(usbDevice: UsbDevice? = null): Result<Unit> = connectMutex.withLock {
         lastError = null

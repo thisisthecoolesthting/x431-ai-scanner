@@ -2,6 +2,7 @@ package com.caseforge.scanner.ui.main
 
 import android.content.Context
 import androidx.compose.runtime.mutableStateOf
+import com.caseforge.scanner.agent.ObdElmEngine
 import com.caseforge.scanner.data.SettingsRepo
 import com.caseforge.scanner.engine.EngineState
 import com.caseforge.scanner.engine.ScrapedDtc
@@ -36,6 +37,9 @@ class StandaloneVciController(
     fun lastConnectError(): String? = session.lastConnectError()
 
     fun linkKind(): DiagnosticConnector.LinkKind? = session.linkKind()
+
+    /** ELM327 engine for the active connection, if any (see [DirectVciSession.elmEngineOrNull]). */
+    fun elmEngineOrNull(): ObdElmEngine? = session.elmEngineOrNull()
 
     private var liveJob: Job? = null
 

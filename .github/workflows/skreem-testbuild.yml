@@ -1,0 +1,36 @@
+name: SKREEM test build
+on:
+  push:
+    branches: [ feat/j1850-skreem-read ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
+      - name: Cache Android debug keystore
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: tcw-debug-keystore-v1
+          restore-keys: tcw-debug-keystore-
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.13
+      - name: Build debug APK
+        run: gradle :app:assembleDebug --no-daemon --build-cache --parallel
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: skreem-test-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
