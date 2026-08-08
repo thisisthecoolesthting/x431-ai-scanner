@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "tieringSemantics": {
+    "tier0": "OBD-II trunk (PCM wedge)",
+    "tier1": "Body read — stub until golden logs",
+    "tier2": "Reversible coding — gated",
+    "tier3": "Immo info only — no key programming",
+    "obdOnlyDefault": "Jeep/Stellantis SGW uncertainty: OBD-first UX default; supportedTiers on this card are authoritative."
+  },
+  "gatewayNote": "Stellantis SGW may block or translate non-OBD diagnostics; treat PCM wedge IDs as policy-dependent until gateway session proves routing.",
+  "obdOnlyDefault": true,
+  "supportedTiers": [0, 1, 2, 3],
+  "platformCards": [
+    {
+      "id": "jl-wrangler-2018-2021",
+      "marque": "Jeep",
+      "platformCode": "JL",
+      "model": "Wrangler",
+      "modelYearStart": 2018,
+      "modelYearEnd": 2021,
+      "gatewayNote": "Stellantis SGW may block or translate non-OBD diagnostics; treat PCM wedge IDs as policy-dependent until gateway session proves routing.",
+      "obdOnlyDefault": true,
+      "supportedTiers": [0, 1, 2, 3],
+      "tierNotes": {
+        "0": "OBD trunk — validate on vehicle before expanding scope.",
+        "3": "Immo banner — information only per product gates."
+      }
+    }
+  ]
+}

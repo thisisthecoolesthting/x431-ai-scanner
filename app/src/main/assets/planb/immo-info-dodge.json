@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "marqueId": "dodge",
+  "bannerKind": "immo_info_only",
+  "title": "Immobilizer — information only",
+  "body": "Dodge / FCA immobilizer and SKIM/SKREEM-related modules are described at a high level for diagnostics context. No transponder programming, PIN entry, or security bypass is provided here.",
+  "footnote": "Dodge immo lane: reference text only until gateway-backed reads are validated.",
+  "skreemModule": {
+    "moduleName": "SKIM / SKREEM",
+    "role": "Sentry Key Immobilizer (SKIM) and SKREEM coordinate key authorization with the security gateway on supported model years. PIN-gated key learn is outside CU1 scope.",
+    "tier3Scope": "Tier 3 shows SKREEM module role and technician warnings only. Tier 4 programming screen lists partner/manual SKIM key-learn steps when enabled."
+  }
+}

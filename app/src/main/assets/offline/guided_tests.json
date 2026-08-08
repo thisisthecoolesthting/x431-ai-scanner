@@ -1,0 +1,215 @@
+{
+  "version": 1,
+  "tests": [
+    {
+      "id": "maf_sanity_idle",
+      "title": "MAF sensor sanity at idle",
+      "summary": "Confirm the mass airflow sensor reads plausible grams-per-second for engine size and idle RPM.",
+      "relatedCodes": ["P0101", "P0102", "P0103", "P0171", "P0174"],
+      "steps": [
+        "Warm engine to operating temperature with no load (A/C off).",
+        "Record MAF g/s, engine RPM, and calculated load on live data.",
+        "Compare MAF reading to service data or a known-good vehicle of similar displacement.",
+        "Snap throttle once and verify MAF rises smoothly without dropouts."
+      ],
+      "tools": ["Scan tool with live data"],
+      "caution": "Do not touch the MAF sensing element with fingers or shop towels."
+    },
+    {
+      "id": "fuel_trim_snapshot",
+      "title": "Fuel trim snapshot (bank 1 and 2)",
+      "summary": "Use short-term and long-term fuel trims to decide if the fault is fuel, air, or sensor related.",
+      "relatedCodes": ["P0171", "P0172", "P0174", "P0420"],
+      "steps": [
+        "At idle, record STFT and LTFT for each bank.",
+        "Hold 2500 RPM steady for 30 seconds and note trim movement.",
+        "If trims are strongly positive, suspect vacuum leak or weak MAF; strongly negative suggests rich condition.",
+        "Clear codes only after the underlying condition is repaired."
+      ],
+      "tools": ["Scan tool"],
+      "caution": null
+    },
+    {
+      "id": "misfire_coil_swap",
+      "title": "Misfire isolation — coil/plug swap",
+      "summary": "Move the ignition coil and plug to another cylinder to see if the misfire follows the part.",
+      "relatedCodes": ["P0300", "P0301", "P0302", "P0303", "P0304", "P0351"],
+      "steps": [
+        "Note which cylinder the ECM reports as misfiring.",
+        "Swap coil and plug with an adjacent cylinder.",
+        "Clear codes and run until the monitor completes or the code returns.",
+        "If the misfire moves with the coil, replace that coil; if it stays, inspect injector and compression."
+      ],
+      "tools": ["Basic hand tools", "Scan tool"],
+      "caution": "Disable ignition and fuel per OEM safe-power procedure before removing coils on live fuel systems."
+    },
+    {
+      "id": "compression_static",
+      "title": "Static compression test",
+      "summary": "Mechanical health check when misfire follows neither coil nor injector.",
+      "relatedCodes": ["P0300", "P0301", "P0302", "P0303", "P0304"],
+      "steps": [
+        "Disable fuel and ignition per service manual.",
+        "Remove all spark plugs and install compression gauge.",
+        "Crank engine for 5–7 seconds per cylinder and record PSI.",
+        "Compare cylinders; variation greater than about 15% warrants internal inspection."
+      ],
+      "tools": ["Compression tester", "Battery charger recommended"],
+      "caution": "Keep throttle wide open during crank unless OEM specifies otherwise."
+    },
+    {
+      "id": "o2_upstream_response",
+      "title": "Upstream O2 sensor response check",
+      "summary": "Verify the pre-cat oxygen sensor switches rich/lean when fuel trim is disturbed.",
+      "relatedCodes": ["P0135", "P0171", "P0172", "P0420"],
+      "steps": [
+        "Graph upstream O2 voltage or lambda at idle.",
+        "Introduce a controlled vacuum leak or propane enrichment briefly.",
+        "Confirm sensor crosses mid-range within a few seconds.",
+        "If flat-lined, test heater circuit then replace sensor if wiring is good."
+      ],
+      "tools": ["Scan tool graph", "Vacuum pump or propane (trained use only)"],
+      "caution": "Use enrichment sources safely; never spray propane near ignition sources."
+    },
+    {
+      "id": "catalyst_efficiency_o2",
+      "title": "Catalyst efficiency — O2 comparison",
+      "summary": "Compare upstream and downstream O2 activity before condemning a converter.",
+      "relatedCodes": ["P0420", "P0430"],
+      "steps": [
+        "Ensure no active misfire or rich codes.",
+        "Graph upstream and downstream O2 on the same screen at steady cruise.",
+        "Downstream should be steadier and lower amplitude than upstream on a healthy catalyst.",
+        "Repair exhaust leaks before converter replacement."
+      ],
+      "tools": ["Scan tool graph"],
+      "caution": null
+    },
+    {
+      "id": "evap_smoke_small",
+      "title": "EVAP small-leak smoke test",
+      "summary": "Locate very small vapor leaks after verifying the gas cap.",
+      "relatedCodes": ["P0440", "P0442", "P0455", "P0456"],
+      "steps": [
+        "Install a new OEM-spec gas cap or verify the current cap seals.",
+        "Close purge and vent valves per OEM test procedure.",
+        "Introduce low-pressure smoke at the canister service port.",
+        "Inspect hoses, filler neck, tank seal, and valve seats for smoke."
+      ],
+      "tools": ["EVAP smoke machine", "Scan tool bi-directional controls"],
+      "caution": "Do not pressurize the tank above OEM limits; use smoke, not shop air, on most systems."
+    },
+    {
+      "id": "thermostat_warmup",
+      "title": "Thermostat and warm-up verification",
+      "summary": "Confirm coolant reaches regulated temperature in the expected time.",
+      "relatedCodes": ["P0128"],
+      "steps": [
+        "Start cold engine and log ECT from ambient.",
+        "Note time to reach about 195°F (90°C) or OEM spec.",
+        "Compare upper and lower hose temperature after warm-up.",
+        "Replace thermostat if ECT plateaus low or warm-up takes excessive time."
+      ],
+      "tools": ["Scan tool", "Infrared thermometer optional"],
+      "caution": "Keep hands clear of cooling fans; fans may run after key off."
+    },
+    {
+      "id": "charging_system_load",
+      "title": "Charging system load test",
+      "summary": "Rule out low system voltage before chasing module or sensor codes.",
+      "relatedCodes": ["P0562", "P0606"],
+      "steps": [
+        "Measure battery voltage key-off (should be about 12.4–12.7 V).",
+        "Measure voltage at idle with headlights and blower on (about 13.5–14.8 V typical).",
+        "Raise engine to 2000 RPM and recheck voltage.",
+        "Load-test battery if voltage is low at rest or cranking."
+      ],
+      "tools": ["DVOM", "Battery load tester"],
+      "caution": null
+    },
+    {
+      "id": "boost_leak_pressure",
+      "title": "Boost leak pressure test",
+      "summary": "Find leaks in charge piping that cause underboost codes.",
+      "relatedCodes": ["P0299", "P0234"],
+      "steps": [
+        "Install boost leak tester at turbo inlet or intercooler service point per OEM.",
+        "Pressurize to low spec (often 5–10 psi) — never over-pressurize.",
+        "Listen and spray soapy water at couplers, intercooler tanks, and BOV hoses.",
+        "Repair leaks and verify commanded vs actual boost on a road test."
+      ],
+      "tools": ["Boost leak tester", "Soapy water"],
+      "caution": "Keep pressure low to avoid damaging MAP sensors or intercooler cores."
+    },
+    {
+      "id": "egr_flow_command",
+      "title": "EGR flow command test",
+      "summary": "Confirm the EGR valve opens and passages flow when commanded.",
+      "relatedCodes": ["P0401"],
+      "steps": [
+        "Locate EGR valve and differential pressure feedback if equipped.",
+        "Command EGR open with scan tool at idle (may cause rough idle or stall — expected).",
+        "If RPM does not change, remove valve and inspect carbon blockage.",
+        "Clean passages and retest monitor."
+      ],
+      "tools": ["Scan tool with bi-directional control"],
+      "caution": "Hot exhaust components; allow cooling before service."
+    },
+    {
+      "id": "parasitic_draw_bisect",
+      "title": "Parasitic draw — fuse bisection",
+      "summary": "Isolate battery drain by dividing the fuse panel until the offending circuit is found.",
+      "relatedCodes": ["P0562"],
+      "steps": [
+        "Ensure all modules are asleep (doors closed, key out, wait 20+ minutes).",
+        "Measure current at battery negative cable with ammeter.",
+        "If draw exceeds spec (often < 50 mA), remove fuses in groups to find the circuit.",
+        "Narrow to single fuse, then identify consumers on that circuit."
+      ],
+      "tools": ["Low-amp clamp or ammeter", "Fuse puller"],
+      "caution": "Use inductive clamp or memory saver so modules do not reset excessively during testing."
+    },
+    {
+      "id": "fuel_pressure_static",
+      "title": "Fuel pressure — key-on static pressure",
+      "summary": "Verify the pump and regulator deliver spec pressure before replacing injectors.",
+      "relatedCodes": ["P0087", "P0171", "P0172"],
+      "steps": [
+        "Install fuel pressure gauge on rail test port or adapter.",
+        "Key on engine off — note prime pressure and hold time.",
+        "Start engine and record pressure at idle and 2500 RPM.",
+        "Compare to service spec; low pressure points to pump, filter, or regulator."
+      ],
+      "tools": ["Fuel pressure gauge set"],
+      "caution": "Relieve fuel pressure safely; contain fuel spill; no open flame."
+    },
+    {
+      "id": "idle_vacuum_smoke",
+      "title": "Idle vacuum leak smoke test",
+      "summary": "Find unmetered air leaks that cause lean idle and high idle codes.",
+      "relatedCodes": ["P0171", "P0174", "P0505", "P0507"],
+      "steps": [
+        "Plug or cap the brake booster and PCV paths per OEM if required.",
+        "Introduce smoke at intake after MAF with engine off.",
+        "Inspect intake manifold gaskets, vacuum tees, and throttle gasket.",
+        "Repair leaks and perform idle relearn if needed."
+      ],
+      "tools": ["Smoke machine"],
+      "caution": null
+    },
+    {
+      "id": "ckp_cmp_correlation",
+      "title": "Cam/crank correlation check",
+      "summary": "Mechanical timing and sensor correlation for cam/crank DTCs.",
+      "relatedCodes": ["P0016", "P0335", "P0340"],
+      "steps": [
+        "Scope cam and crank patterns if lab scope is available.",
+        "Inspect sensor connectors for oil contamination.",
+        "If correlation is off, verify timing marks before replacing sensors.",
+        "Document chain/belt service history."
+      ],
+      "tools": ["Lab scope optional", "Scan tool PID for correlation if supported"],
+      "caution": "Do not crank engine with timing cover removed unless service procedure allows."
+    }
+  ]
+}

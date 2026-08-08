@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "marqueId": "dodge",
+  "entries": [
+    {
+      "id": "dodge-gateway-policy",
+      "title": "Security gateway routing review",
+      "description": "SGW may restrict diagnostics; routing and adapters must conform to authorized architecture before ECU exchanges.",
+      "applyMode": "blocked",
+      "partnerHandoff": true
+    },
+    {
+      "id": "dodge-abs-bleed-followup",
+      "title": "ABS configuration after hydraulic service",
+      "description": "Post-service routines can require module interaction; perform only within documented bleed and calibration sequences.",
+      "applyMode": "blocked",
+      "partnerHandoff": true
+    },
+    {
+      "id": "dodge-tipm-health",
+      "title": "TIPM logical configuration check",
+      "description": "Integrated power modules may combine fuse logic with variant coding; mismatches justify authorized reconfiguration only.",
+      "applyMode": "blocked",
+      "partnerHandoff": true
+    },
+    {
+      "id": "dodge-rfh-keys",
+      "title": "RFH / FOBIK alignment",
+      "description": "Key and wireless hub procedures rely on OEM-defined security steps; standby power and antennas must be validated.",
+      "applyMode": "blocked",
+      "partnerHandoff": true
+    },
+    {
+      "id": "dodge-skreem-key-learn-ref",
+      "capabilityId": "programming_skim_key_learn",
+      "title": "SKIM/SKREEM key learn (reference)",
+      "description": "Stellantis SKREEM key learn requires OEM PIN in authorized software. This entry links capability programming_skim_key_learn for checklist context only.",
+      "applyMode": "blocked",
+      "partnerHandoff": true
+    }
+  ]
+}

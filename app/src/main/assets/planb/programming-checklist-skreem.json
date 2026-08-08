@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "marqueId": "stellantis",
+  "capabilityId": "programming_skim_key_learn",
+  "entries": [
+    {
+      "id": "skreem-preconditions",
+      "capabilityId": "programming_skim_key_learn",
+      "title": "SKREEM / SKIM — preconditions",
+      "description": "Confirm battery support, ignition state, and that all existing keys are available before any security session. Document VIN and module IDs for the partner tool.",
+      "applyMode": "blocked",
+      "partnerHandoff": true
+    },
+    {
+      "id": "skreem-pin-oem-session",
+      "capabilityId": "programming_skim_key_learn",
+      "title": "OEM PIN entry (authorized tool only)",
+      "description": "PIN is required for SKIM access; enter only in licensed OEM or partner software — never in this app. Verify technician authorization and site policy before proceeding.",
+      "applyMode": "blocked",
+      "partnerHandoff": true
+    },
+    {
+      "id": "skreem-key-learn-procedure",
+      "capabilityId": "programming_skim_key_learn",
+      "title": "SKIM/SKREEM key learn sequence",
+      "description": "Follow Stellantis service information for transponder enrollment (FOBIK/proximity as applicable). Multiple keys supported per platform; no automated flash or bypass in CU1.",
+      "applyMode": "blocked",
+      "partnerHandoff": true
+    },
+    {
+      "id": "skreem-post-verify",
+      "capabilityId": "programming_skim_key_learn",
+      "title": "Post-learn verification",
+      "description": "Confirm start authorization, DTC clearance, and RF hub alignment per OEM checklist. Retain audit log from the authorized tool chain.",
+      "applyMode": "blocked",
+      "partnerHandoff": true
+    }
+  ]
+}

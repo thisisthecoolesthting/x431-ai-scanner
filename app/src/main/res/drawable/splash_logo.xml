@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="120dp"
+    android:viewportWidth="320"
+    android:viewportHeight="120">
+    <!-- Mark only; Compose splash renders wordmark text alongside -->
+    <path
+        android:fillColor="#0B5FFF"
+        android:strokeColor="#0F1620"
+        android:strokeWidth="1.5"
+        android:pathData="M10,35 L50,35 Q53,35 53,38 L53,48 Q53,51 50,51 L10,51 Q7,51 7,48 L7,38 Q7,35 10,35 Z" />
+    <path
+        android:fillColor="#FF7A1A"
+        android:strokeColor="#0F1620"
+        android:strokeWidth="1.5"
+        android:pathData="M28,35 L32,35 Q35,35 35,38 L35,82 Q35,85 32,85 L28,85 Q25,85 25,82 L25,38 Q25,35 28,35 Z" />
+    <path
+        android:fillColor="#0B5FFF"
+        android:strokeColor="#0F1620"
+        android:strokeWidth="1"
+        android:pathData="M10,40 A2.5,2.5 0 1,1 10,45 A2.5,2.5 0 1,1 10,40 Z" />
+    <path
+        android:fillColor="#0B5FFF"
+        android:strokeColor="#0F1620"
+        android:strokeWidth="1"
+        android:pathData="M50,40 A2.5,2.5 0 1,1 50,45 A2.5,2.5 0 1,1 50,40 Z" />
+    <path
+        android:fillColor="#FF7A1A"
+        android:strokeColor="#0F1620"
+        android:strokeWidth="1"
+        android:pathData="M30,79 A2.5,2.5 0 1,1 30,84 A2.5,2.5 0 1,1 30,79 Z" />
+</vector>

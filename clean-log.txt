@@ -1,0 +1,68 @@
+﻿To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.13/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :app:clean FAILED
+.\gradlew.bat : 
+At C:\Users\reasn\AppData\Local\Temp\ps-script-abeade0a-8c95-4450-9a0d-825d1056c79d.ps1:80 char:155
++ ... jdk-17.0.19.10-hotspot"; .\gradlew.bat clean --no-daemon 2>&1 | Out-F ...
++                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:clean'.
+> java.io.IOException: Unable to delete directory 
+'C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build'
+    Failed to delete some children. This might happen because a process has files open or has its working directory 
+set in the target directory.
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates\incremental\debug\mergeDebug
+Resources\merged.dir
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates\incremental\debug\mergeDebug
+Resources
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates\incremental\debug
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates\incremental
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates
+    New files were found. This might happen because a process is still writing to the target directory.
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates\incremental\debug\mergeDebug
+Resources\stripped.dir
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates\incremental\debug\mergeDebug
+Resources\merger.xml
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates\incremental\debug\mergeDebug
+Resources\merged.dir\values-pl
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates\incremental\debug\mergeDebug
+Resources\merged.dir\values-pl\values-pl.xml
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates\incremental\debug\mergeDebug
+Resources\merged.dir\values-pa
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates\incremental\debug\mergeDebug
+Resources\merged.dir\values-pa\values-pa.xml
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates\incremental\debug\mergeDebug
+Resources\merged.dir\values-or
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates\incremental\debug\mergeDebug
+Resources\merged.dir\values-or\values-or.xml
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates\incremental\debug\mergeDebug
+Resources\merged.dir\values-large-v4
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates\incremental\debug\mergeDebug
+Resources\merged.dir\values-large-v4\values-large-v4.xml
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates\incremental\debug\mergeDebug
+Resources\merged.dir\values-land
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates\incremental\debug\mergeDebug
+Resources\merged.dir\values-land\values-land.xml
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates\incremental\debug\mergeDebug
+Resources\merged.dir\values-hdpi-v4
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates\incremental\debug\mergeDebug
+Resources\merged.dir\values-hdpi-v4\values-hdpi-v4.xml
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates\incremental\debug\mergeDebug
+Resources\merged.dir\values-gu
+    - C:\Users\reasn\Documents\Claude\Projects\DEv1\_tcw-wave2\CU1\app\build\intermediates\incremental\debug\mergeDebug
+Resources\merged.dir\values-gu\values-gu.xml
+    - and more ...
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 4m 4s
+1 actionable task: 1 executed

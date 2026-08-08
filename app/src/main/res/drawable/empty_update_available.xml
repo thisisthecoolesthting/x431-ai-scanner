@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="240dp"
+    android:height="160dp"
+    android:viewportWidth="240"
+    android:viewportHeight="160">
+    <!-- App rectangle -->
+    <path
+        android:fillColor="#0B5FFF"
+        android:strokeColor="#0F1620"
+        android:strokeWidth="2"
+        android:pathData="M80,35 L160,35 Q170,35 170,45 L170,115 Q170,125 160,125 L80,125 Q70,125 70,115 L70,45 Q70,35 80,35 Z" />
+    <!-- App icon hint -->
+    <path
+        android:fillColor="#FF7A1A"
+        android:pathData="M95,55 L115,55 L115,75 L95,75 Z" />
+    <path
+        android:fillColor="#F4F6F8"
+        android:pathData="M125,55 L145,55 L145,65 L125,65 Z" />
+    <path
+        android:fillColor="#F4F6F8"
+        android:pathData="M125,72 L145,72 L145,82 L125,82 Z" />
+    <!-- Downward arrow -->
+    <path
+        android:fillColor="#FF7A1A"
+        android:pathData="M115,10 L130,30 L122,30 L122,50 L108,50 L108,30 L100,30 Z" />
+    <!-- Sparkle -->
+    <path
+        android:fillColor="#FF7A1A"
+        android:pathData="M185,45 L188,52 L195,55 L188,58 L185,65 L182,58 L175,55 L182,52 Z" />
+    <path
+        android:fillColor="#FF7A1A"
+        android:pathData="M195,90 L196.5,94 L200,95 L196.5,96 L195,100 L193.5,96 L190,95 L193.5,94 Z" />
+</vector>

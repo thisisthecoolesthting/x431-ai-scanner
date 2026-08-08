@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "marqueId": "jeep",
+  "entries": [
+    {
+      "id": "jeep-ecu-sw-match",
+      "title": "ECU software baseline verification",
+      "description": "Confirm current calibration part numbers against authorized release notes before any reflash workflow.",
+      "applyMode": "blocked",
+      "partnerHandoff": true
+    },
+    {
+      "id": "jeep-tcm-cal",
+      "title": "Transmission control module calibration",
+      "description": "TCM learns and calibrations are performed with OEM-approved procedures and subscription coverage where applicable.",
+      "applyMode": "blocked",
+      "partnerHandoff": true
+    },
+    {
+      "id": "jeep-bcm-config",
+      "title": "Body control module configuration set",
+      "description": "BCM variant programming requires correct as-built data and security policies; follow service information.",
+      "applyMode": "blocked",
+      "partnerHandoff": true
+    },
+    {
+      "id": "jeep-proximity-keys",
+      "title": "RF hub / key programming window",
+      "description": "Key and immobilizer procedures use manufacturer-defined steps; readiness checks precede writes.",
+      "applyMode": "blocked",
+      "partnerHandoff": true
+    },
+    {
+      "id": "jeep-skreem-key-learn-ref",
+      "capabilityId": "programming_skim_key_learn",
+      "title": "SKIM/SKREEM key learn (reference)",
+      "description": "See merged SKREEM runbook rows below for PIN-gated key learn. CU1 does not execute programming_skim_key_learn — partner/OEM procedure required.",
+      "applyMode": "blocked",
+      "partnerHandoff": true
+    }
+  ]
+}

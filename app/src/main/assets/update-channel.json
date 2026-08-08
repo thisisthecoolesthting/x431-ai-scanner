@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "channelLabel": "DEv1 monorepo main (Plan B bundles)",
+  "bundleManifestUrl": "https://raw.githubusercontent.com/thisisthecoolesthting/rickys-control-center/main/_tcw-wave2/CU1/app/src/main/assets/update-manifest.json",
+  "apk": {
+    "releaseApiUrl": "https://api.github.com/repos/thisisthecoolesthting/x431-ai-scanner/releases/tags/latest",
+    "downloadUrl": "https://github.com/thisisthecoolesthting/x431-ai-scanner/releases/download/latest/app-debug.apk"
+  }
+}

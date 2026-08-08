@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "marqueId": "ford",
+  "entries": [
+    {
+      "id": "ford-pt-can-auth",
+      "title": "PT network authentication & session timing",
+      "description": "High-speed programming buses require stable supply voltage and adherence to IDS or licensed tool session rules.",
+      "applyMode": "blocked",
+      "partnerHandoff": true
+    },
+    {
+      "id": "ford-pcm-flash-window",
+      "title": "PCM flash precondition checklist",
+      "description": "Confirm battery support, ignition state, and DTC prerequisites per service manual before initiating flash.",
+      "applyMode": "blocked",
+      "partnerHandoff": true
+    },
+    {
+      "id": "ford-abs-variant",
+      "title": "ABS module variant alignment",
+      "description": "Module replacement or configuration must match vehicle hardware index and regional build data.",
+      "applyMode": "blocked",
+      "partnerHandoff": true
+    },
+    {
+      "id": "ford-pats-relearn",
+      "title": "PATS / ignition key procedure scope",
+      "description": "Security-related programming is bounded by policy in the authorized tool chain; technician verification is mandatory.",
+      "applyMode": "blocked",
+      "partnerHandoff": true
+    }
+  ]
+}

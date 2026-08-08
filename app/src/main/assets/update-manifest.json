@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "revision": "bundled-seed",
+  "publishedAt": "2026-05-20",
+  "files": [
+    {
+      "path": "planb/vehicle-profiles/ford-windstar-2000.json",
+      "sha256": null
+    },
+    {
+      "path": "marque-wedge-matrix.json",
+      "sha256": null
+    },
+    {
+      "path": "oem-decompile-bundle.json",
+      "sha256": null
+    },
+    {
+      "path": "planb/programming-checklist-ford.json",
+      "sha256": null
+    },
+    {
+      "path": "planb/programming-checklist-skreem.json",
+      "sha256": null
+    },
+    {
+      "path": "planb/coding-checklist-ford.json",
+      "sha256": null
+    },
+    {
+      "path": "planb/immo-info-ford.json",
+      "sha256": null
+    }
+  ],
+  "apk": {
+    "versionCode": 0,
+    "versionName": "0.0.0",
+    "downloadUrl": "https://github.com/thisisthecoolesthting/x431-ai-scanner/releases/download/latest/app-debug.apk",
+    "sha256": null
+  }
+}

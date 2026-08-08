@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "ford-windstar-2000",
+  "marque": "Ford",
+  "model": "Windstar",
+  "modelYearStart": 2000,
+  "modelYearEnd": 2000,
+  "wedgeCardId": "ford-windstar-2000",
+  "obdLegislated": true,
+  "recommendedTier": 0,
+  "supportedTiers": [0, 1, 2, 3, 4],
+  "protocolNotes": "OBD-II legislated (1996+). Typical link: ISO 9141-2 or KWP2000 on PCM; some trims may expose early Ford CAN — start Tier 0 OBD trunk before body/gateway work.",
+  "immoNotes": "PATS era — Passive Anti-Theft System (no Stellantis SKREEM/SKIM). Tier 3 is information-only per immo-info-ford.json; no key programming in-app.",
+  "notSupported": ["DoIP", "Ethernet diagnostics"],
+  "adapterClasses": [
+    {
+      "id": "elm327_usb",
+      "label": "ELM327 USB (CH340 / FTDI / PL2303 / CP21xx)",
+      "recommended": true
+    },
+    {
+      "id": "elm327_bluetooth",
+      "label": "Bluetooth ELM327 (paired SPP)",
+      "recommended": true
+    }
+  ],
+  "linkHints": {
+    "transportMode": "elm327_usb",
+    "fallbackTransportMode": "auto",
+    "serial": {
+      "baud": 115200,
+      "dataBits": 8,
+      "parity": "none",
+      "stopBits": 1
+    }
+  },
+  "connectionRunbookRef": "024-windstar-2000-connection-agent",
+  "operatorSteps": [
+    "Ignition ON, engine off OK for link check; connect 16-pin DLC.",
+    "Prefer USB OTG + ELM327 cable; grant USB permission when Android prompts.",
+    "Settings → transport elm327_usb or auto; Tier 0 (Native OBD) on; tiers 1–4 off for first connect.",
+    "If USB empty: pair BT ELM327 in Android Bluetooth settings, enable BLUETOOTH_CONNECT for TCW.",
+    "Android cannot install Windows CH340 drivers — use OTG + in-app USB permission or a BT dongle."
+  ]
+}

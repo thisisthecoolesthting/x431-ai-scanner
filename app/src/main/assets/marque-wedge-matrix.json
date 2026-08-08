@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "tieringSemantics": {
+    "tierIndices": [0, 1, 2, 3, 4],
+    "tier0": "OBD-II trunk — PCM wedge (Mode 03/07/01 baseline)",
+    "tier1": "Body / comfort reads — gateway-dependent; stubs until oracle logs (G1)",
+    "tier2": "Reversible coding — requires documented gateway session (G2)",
+    "tier3": "Immobilizer information only — no key programming or security reset automation",
+    "tier4": "Programming / security partner workflows — manual or authorized partner procedure only (no in-app automation)",
+    "obdOnlyDefault": "Jeep uses OBD-first default while Stellantis gateway policy is uncertain. Ford and Dodge cards use full-diagnostic UX default. Card-level supportedTiers remain authoritative."
+  },
+  "gatewayNote": "Aftermarket baseline: functional request 0x7E0 / response 0x7E8 for PCM; active gateway or security policy may block routing from the OBD port.",
+  "obdOnlyDefault": true,
+  "supportedTiers": [0, 1, 2, 3, 4],
+  "platformCards": [
+    {
+      "id": "ford-windstar-2000",
+      "marque": "Ford",
+      "platformCode": "WIN",
+      "model": "Windstar",
+      "modelYearStart": 1999,
+      "modelYearEnd": 2003,
+      "gatewayNote": "Pre-SGW Ford minivan; Tier 0 OBD via ISO 9141-2 / KWP2000 on most trims. PATS era — no SKREEM.",
+      "obdOnlyDefault": true,
+      "supportedTiers": [0, 1, 2, 3, 4],
+      "tierNotes": {
+        "0": "OBD trunk — legislated 1996+; start here",
+        "1": "Body read — confirm bus path on vehicle",
+        "2": "Coding — reversible only; log pre/post",
+        "3": "Immo info — PATS guidance only (immo-info-ford.json)",
+        "4": "Programming partner / manual only"
+      }
+    },
+    {
+      "id": "ford-f150-2015-2020",
+      "marque": "Ford",
+      "platformCode": "F150",
+      "model": "F-150",
+      "modelYearStart": 2015,
+      "modelYearEnd": 2020,
+      "gatewayNote": "PCM/OBD tier-0 wedge default; gateway and module policy vary by model year and market.",
+      "obdOnlyDefault": false,
+      "supportedTiers": [0, 1, 2, 3, 4],
+      "tierNotes": {
+        "0": "OBD trunk",
+        "1": "Body read — confirm gateway path on vehicle",
+        "2": "Coding — reversible changes only; log pre/post",
+        "3": "Immo info — read-only guidance",
+        "4": "Programming partner / manual only"
+      }
+    },
+    {
+      "id": "ram-1500-dt-2019-2024",
+      "marque": "Dodge",
+      "platformCode": "DT",
+      "model": "Ram 1500",
+      "modelYearStart": 2019,
+      "modelYearEnd": 2024,
+      "gatewayNote": "Stellantis security gateway behavior varies; compare StellantisGatewayNotes before asserting coding routes.",
+      "obdOnlyDefault": false,
+      "supportedTiers": [0, 1, 2, 3, 4],
+      "tierNotes": {
+        "0": "OBD trunk",
+        "1": "Body read — stub-backed until oracle capture",
+        "2": "Coding — session stub; NRC-aware",
+        "3": "Immo info — no PATS/security automation",
+        "4": "Programming partner / manual only"
+      }
+    },
+    {
+      "id": "jeep-jl-wrangler-2018-2021",
+      "marque": "Jeep",
+      "platformCode": "JL",
+      "model": "Wrangler",
+      "modelYearStart": 2018,
+      "modelYearEnd": 2021,
+      "gatewayNote": "Stellantis SGW may block or translate non-OBD diagnostics; treat PCM wedge IDs as policy-dependent until gateway session proves routing.",
+      "obdOnlyDefault": true,
+      "supportedTiers": [0, 1, 2, 3, 4],
+      "tierNotes": {
+        "0": "OBD trunk",
+        "1": "Body read — gateway session required for non-OBD buses",
+        "2": "Coding — reversible checklist asset per marque",
+        "3": "Immo info banner — informational only",
+        "4": "Programming partner / manual only"
+      }
+    }
+  ]
+}

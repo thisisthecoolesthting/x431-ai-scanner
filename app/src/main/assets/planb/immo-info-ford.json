@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "marqueId": "ford",
+  "bannerKind": "pats_info_only",
+  "title": "PATS — information only",
+  "body": "Passive Anti-Theft System (PATS) status and module roles are shown for technician context. This app does not perform PATS key programming, parameter resets, or outcode/incode procedures.",
+  "footnote": "Ford PATS: info-only in Plan B. Programming requires OEM tooling and authorized workflow. SKIM/SKREEM (Stellantis) does not apply — use PATS checklists on Tier 4."
+}

@@ -1,0 +1,23 @@
+{
+  "engine_bay": {
+    "title": "Engine bay photo",
+    "hint": "Point the tablet at the engine compartment. Capture overall context — leaks, missing covers, obvious damage.",
+    "skip_label": "Skip"
+  },
+  "door_jamb": {
+    "title": "Door jamb VIN",
+    "hint": "Photograph the VIN sticker on the driver door jamb. Hold steady for OCR.",
+    "skip_warning": "Skipping VIN means prior visit history won't preload. You can enter VIN manually later.",
+    "manual_label": "Edit VIN",
+    "confirm_label": "Use this VIN"
+  },
+  "dashboard": {
+    "title": "Ignition ON — dashboard",
+    "instructions": [
+      "Turn the key to ON (accessory) — do not start the engine.",
+      "Wait for warning lamps to illuminate and the odometer to display.",
+      "Capture the instrument cluster: warning lights and mileage."
+    ],
+    "skip_note": "Optional — helps triage electrical and no-start concerns."
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "marqueId": "ford",
+  "entries": [
+    {
+      "id": "ford-tire-size-pcm",
+      "title": "Tire / axle ratio (PCM)",
+      "description": "Speedometer and shift strategy affected; capture As-Built or prior module snapshot before change.",
+      "rollbackSupported": true,
+      "applyMode": "stub"
+    },
+    {
+      "id": "ford-fuel-tank-size",
+      "title": "Fuel tank capacity calibration",
+      "description": "Range and gauge scaling; confirm strategy type (gas vs diesel) before coding.",
+      "rollbackSupported": true,
+      "applyMode": "stub"
+    },
+    {
+      "id": "ford-drl-policy",
+      "title": "Daytime running lamp configuration",
+      "description": "Lighting body/BCM policy; market and trim dependent.",
+      "rollbackSupported": true,
+      "applyMode": "stub"
+    },
+    {
+      "id": "ford-fog-logic",
+      "title": "Fog lamp logic with high beam",
+      "description": "Reversible lighting option when module supports the variant.",
+      "rollbackSupported": true,
+      "applyMode": "stub"
+    }
+  ]
+}

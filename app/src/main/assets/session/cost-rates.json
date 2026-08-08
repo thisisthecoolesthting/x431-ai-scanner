@@ -1,0 +1,7 @@
+{
+  "model": "claude-sonnet-4-6",
+  "comment": "Display-only advisory rates for Settings estimated cost line — not billing truth.",
+  "inputUsdPerMTok": 3.0,
+  "outputUsdPerMTok": 15.0,
+  "visionTokenEstimatePerImage": 1600
+}

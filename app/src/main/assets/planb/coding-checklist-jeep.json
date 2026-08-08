@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "marqueId": "jeep",
+  "entries": [
+    {
+      "id": "jeep-tpms-threshold",
+      "title": "TPMS low-pressure threshold (body module)",
+      "description": "Reversible when the BCM exposes a documented calibration DID; confirm SGW routing before write.",
+      "rollbackSupported": true,
+      "applyMode": "stub"
+    },
+    {
+      "id": "jeep-tire-size",
+      "title": "Tire circumference / tire size correction (PCM)",
+      "description": "PCM speedometer correction; pair with live data verification after change.",
+      "rollbackSupported": true,
+      "applyMode": "stub"
+    },
+    {
+      "id": "jeep-daytime-running",
+      "title": "Daytime running lamps policy",
+      "description": "Market-dependent configuration; read current coding before altering.",
+      "rollbackSupported": true,
+      "applyMode": "stub"
+    },
+    {
+      "id": "jeep-fog-with-high",
+      "title": "Fog lamps with high beam",
+      "description": "Lighting logic change; reversible if prior variant is stored or re-read.",
+      "rollbackSupported": true,
+      "applyMode": "stub"
+    },
+    {
+      "id": "jeep-bcm-comfort",
+      "title": "BCM comfort / remote window behavior",
+      "description": "Body convenience options; verify with customer before applying.",
+      "rollbackSupported": true,
+      "applyMode": "stub"
+    }
+  ]
+}

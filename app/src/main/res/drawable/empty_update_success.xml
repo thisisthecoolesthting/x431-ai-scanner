@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="240dp"
+    android:height="160dp"
+    android:viewportWidth="240"
+    android:viewportHeight="160">
+    <!-- Rounded square -->
+    <path
+        android:fillColor="#F4F6F8"
+        android:strokeColor="#0F1620"
+        android:strokeWidth="2"
+        android:pathData="M70,40 L170,40 Q185,40 185,55 L185,105 Q185,120 170,120 L70,120 Q55,120 55,105 L55,55 Q55,40 70,40 Z" />
+    <!-- Green checkmark -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#10A26A"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M85,80 L105,100 L155,55" />
+    <!-- Amber sparkles -->
+    <path
+        android:fillColor="#FF7A1A"
+        android:pathData="M195,50 L198,57 L205,60 L198,63 L195,70 L192,63 L185,60 L192,57 Z" />
+    <path
+        android:fillColor="#FF7A1A"
+        android:pathData="M40,95 L42,100 L47,102 L42,104 L40,109 L38,104 L33,102 L38,100 Z" />
+    <path
+        android:fillColor="#FF7A1A"
+        android:pathData="M200,110 L201.5,114 L205,115 L201.5,116 L200,120 L198.5,116 L195,115 L198.5,114 Z" />
+</vector>

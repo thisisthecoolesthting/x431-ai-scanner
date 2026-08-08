@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "marqueId": "dodge",
+  "entries": [
+    {
+      "id": "dodge-tire-pcm",
+      "title": "Tire size / axle ratio (PCM)",
+      "description": "FCA/Stellantis PCM correction; verify PRNDL and speed PIDs after coding.",
+      "rollbackSupported": true,
+      "applyMode": "stub"
+    },
+    {
+      "id": "dodge-tpms-bcm",
+      "title": "TPMS thresholds (BCM)",
+      "description": "Low-pressure thresholds where exposed; document pre-change values.",
+      "rollbackSupported": true,
+      "applyMode": "stub"
+    },
+    {
+      "id": "dodge-drl",
+      "title": "Daytime running lamps",
+      "description": "Lighting policy; confirm export vs domestic configuration set.",
+      "rollbackSupported": true,
+      "applyMode": "stub"
+    },
+    {
+      "id": "dodge-fog-high",
+      "title": "Fog with high beam",
+      "description": "Lighting combination option when supported by calibration.",
+      "rollbackSupported": true,
+      "applyMode": "stub"
+    },
+    {
+      "id": "dodge-bcm-lock",
+      "title": "Auto-lock / unlock behavior",
+      "description": "Body convenience; customer preference — keep rollback path documented.",
+      "rollbackSupported": true,
+      "applyMode": "stub"
+    }
+  ]
+}

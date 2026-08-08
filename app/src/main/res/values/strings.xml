@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Together AI</string>
+    <string name="app_tagline">Smarter diagnostics. Faster fixes.</string>
+    <string name="accessibility_service_description">
+        Lets the Together Car Works agent see and operate the vehicle diagnostic app: read the on-screen
+        diagnostic UI, tap menus, run scans, and respond to live data. The agent activates only
+        when the OEM diagnostic app is in the foreground.
+    </string>
+    <string name="accessibility_service_summary">Drives the OEM diagnostic app on your behalf</string>
+
+    <!-- Transfer data (zip + ES File USB) -->
+    <string name="transfer_screen_title">Transfer data</string>
+    <string name="transfer_card_title">Transfer data</string>
+    <string name="transfer_card_subtitle">Zip vehicle databases on this tablet, then copy the ZIP to a USB drive with ES File Explorer.</string>
+    <string name="transfer_zip_files">Zip files</string>
+    <string name="transfer_zip_again">Build new ZIP</string>
+    <string name="transfer_es_file_usb">Transfer with ES File Explorer + USB</string>
+    <string name="transfer_inventory_summary">%1$d files (~%2$s) from %3$s</string>
+    <string name="transfer_found_documents">Found documents:</string>
+    <string name="transfer_zip_ready">ZIP ready: %1$s</string>
+    <string name="transfer_open_zip_location">Open ZIP location</string>
+    <string name="transfer_share_zip">Share ZIP</string>
+    <string name="transfer_usb_guide_title">Copy ZIP to USB (ES File Explorer)</string>
+    <string name="transfer_usb_guide_need_zip">Tap Zip files first. Then use ES File Explorer to copy the ZIP to your USB drive.</string>
+    <string name="transfer_usb_guide_zip_path">ZIP path:\n%1$s</string>
+    <string name="transfer_usb_guide_steps">1) Open ES File Explorer\n2) Navigate to the ZIP path above\n3) Long-press the ZIP → Copy\n4) Open the USB drive → Paste\n5) Eject USB on the office PC</string>
+
+    <string name="export_screen_title">Transfer data</string>
+    <string name="export_one_tap_title">Vehicle databases → office PC</string>
+    <string name="export_one_tap_subtitle">One tap zips the vehicle database and sends to %1$s. No password.</string>
+    <string name="export_one_tap_button">Zip and send to %1$s</string>
+    <string name="export_send_done">Sent — you can leave this screen.</string>
+    <string name="export_send_done_short">Sent to %1$s</string>
+    <string name="export_inventory_summary">Ready: %1$d files (~%2$d MB)</string>
+    <string name="export_need_files_access">Allow All files access, then tap again.</string>
+    <string name="export_grant_files">Allow file access</string>
+    <string name="export_rescan">Rescan folder</string>
+    <string name="export_pc_receiver_once">PC once: run scripts\\lan-export-receiver.ps1 on 192.168.1.129</string>
+    <string name="export_screen_body">Zip vehicle databases on the tablet, then copy the ZIP to USB with ES File Explorer.</string>
+    <string name="export_pc_host_label">Receiving PC (hardcoded): %1$s</string>
+    <string name="export_pc_browser_hint">On that PC, open this address in Chrome:</string>
+    <string name="export_push_to_pc">Push to office PC now</string>
+    <string name="export_push_receiver_hint">On 192.168.1.129 run: powershell -File scripts\\lan-export-receiver.ps1</string>
+    <string name="export_push_busy">Pushing to office PC…</string>
+    <string name="export_push_ok">Push complete: %1$s</string>
+    <string name="export_push_fail">Push failed: %1$s</string>
+    <string name="check_for_update">Check for update</string>
+    <string name="sync_planb_data">Sync vehicle &amp; Plan B data</string>
+    <string name="harvest_and_upload">Harvest &amp; upload to PC</string>
+    <string name="harvest_upload_busy">Uploading…</string>
+    <string name="harvest_upload_started">Harvest started — check Send data to PC for progress.</string>
+    <string name="live_update_last_sync">Last data sync: %1$s</string>
+    <string name="live_update_last_sync_never">Last data sync: never</string>
+    <string name="live_update_channel">Channel: %1$s</string>
+    <string name="update_from_git_hint">Tier A: Sync data (JSON, no reinstall). Tier B: Check for update (APK — tap Install). Office PC: git pull + gradlew — BUILD_FETCH.md.</string>
+    <string name="build_info_label">Build %1$s</string>
+    <string name="api_key_source_embedded">API key: embedded (build)</string>
+    <string name="api_key_source_settings">API key: saved in Settings</string>
+    <string name="api_key_source_not_set">API key: not set</string>
+    <string name="export_start_server">Start export server</string>
+    <string name="export_stop_server">Stop server</string>
+    <string name="export_pass_code_label">Pass code: %1$s</string>
+    <string name="export_qr_content_description">QR code for export URL</string>
+    <string name="export_status_running">Server running — waiting for PC download.</string>
+    <string name="export_status_stopped">Server stopped.</string>
+    <string name="export_status_auto_stopped">Server stopped (idle timeout or download finished).</string>
+    <string name="export_error_no_wifi">Connect the tablet to Wi‑Fi (not cellular only) before exporting.</string>
+    <string name="export_error_no_vehicle_db">Vehicle database folder not found on tablet storage.</string>
+    <string name="export_error_start_failed">Could not start export server.</string>
+    <string name="export_wizard_title">Transfer data to office PC</string>
+    <string name="export_wizard_subtitle">Zip vehicle databases on the tablet, then copy the ZIP to a USB drive with ES File Explorer. You can do this later from Settings.</string>
+    <string name="export_wizard_action">Open transfer</string>
+    <string name="export_settings_entry">Transfer data (ZIP + USB)</string>
+    <string name="export_pick_ip">Pick the IP your PC can reach (same Wi‑Fi subnet):</string>
+    <string name="export_state_listening">LISTENING on %1$s:%2$d</string>
+    <string name="export_state_starting">STARTING…</string>
+    <string name="export_state_stopped">STOPPED</string>
+    <string name="export_state_error">ERROR: %1$s</string>
+    <string name="export_self_test">Test from this tablet</string>
+    <string name="export_self_test_fail">FAIL: %1$s</string>
+    <string name="export_firewall_hint">If the PC shows ERR_CONNECTION_TIMED_OUT, allow inbound TCP on the port shown above in Windows Firewall (create an inbound allow rule for that port).</string>
+    <string name="export_ap_isolation_hint">If the tablet self-test passes but the PC cannot connect, your router may have Wi‑Fi client isolation enabled.</string>
+
+    <!-- TCW K1: new strings — old strings above are kept for back-compat (K2 sweep will clean up) -->
+    <string name="tcw_export_screen_title">Transfer data</string>
+    <string name="tcw_export_card_title">Vehicle Data → Office PC</string>
+    <string name="tcw_export_one_tap_button">Send to PC</string>
+    <string name="tcw_export_send_again_button">Send again</string>
+    <string name="tcw_export_resume_button">Resume upload</string>
+    <string name="tcw_export_pc_ready">PC ready · %1$s · %2$d MB free · %3$dms</string>
+    <string name="tcw_export_pc_offline">PC offline (%1$s:%2$d)</string>
+    <string name="tcw_export_need_files_access">Together needs All files access to read the vehicle databases the OEM diagnostic app saved. Tap below and flip the switch for Together Car Works.</string>
+    <string name="tcw_export_allow_files">Allow file access</string>
+    <string name="tcw_export_rescan">Rescan</string>
+    <string name="tcw_export_no_databases">No vehicle databases on this tablet yet. Open the diagnostic app, connect to a vehicle, then try again.</string>
+    <string name="tcw_export_log_screen_title">Transfer Log</string>
+    <string name="tcw_export_log_copy_all">Copy all</string>
+    <string name="tcw_export_log_email">Email to support</string>
+    <string name="tcw_export_log_clear">Clear</string>
+    <string name="tcw_export_log_empty">No log entries yet.</string>
+
+    <string name="vin_scan_activity_label">Scan VIN</string>
+    <string name="vin_scan_no_vin_found">No valid 17-character VIN found in photo.</string>
+    <string name="vin_scan_ocr_failed">Could not read text from photo.</string>
+    <string name="session_camera_launch_failed">Could not open camera. Check permission and try again.</string>
+    <string name="session_camera_permission_denied">Camera permission is required for session photos.</string>
+    <string name="session_camera_cancelled">Camera closed without a photo. Tap Retake or Skip.</string>
+
+    <!-- Settings: app behavior & fast workflow (CU1) -->
+    <string name="settings_section_app_behavior">App behavior</string>
+    <string name="settings_home_mode_label">Home screen</string>
+    <string name="settings_home_mode_scanner">Scanner Console</string>
+    <string name="settings_home_mode_copilot">AI Copilot</string>
+    <string name="settings_section_fast_workflow">Fast workflow</string>
+    <string name="settings_fast_workflow_empty">No remembered session yet — connect and scan once.</string>
+    <string name="settings_fast_last_vin">Last VIN: %1$s</string>
+    <string name="obd_g1_smoke_ford_banner">G1 smoke: capture log per 023-ford-g1-smoke-runbook</string>
+    <string name="windstar_connection_banner">2000 Ford Windstar: Tier 0 OBD first (ISO 9141-2 / KWP). PATS era — no SKREEM. See 024-windstar connection runbook.</string>
+    <string name="wizard_low_lux_photo_hint">Low light tip: use shop lights or flash, hold steady, and avoid glare on VIN labels and cluster warning icons.</string>
+    <string name="settings_fast_last_transport">Last transport: %1$s</string>
+    <string name="settings_fast_last_battery">Last battery: %1$s V</string>
+    <string name="settings_fast_receiver_host">Receiver host: %1$s</string>
+    <string name="settings_fast_last_scan">Last scan: %1$s</string>
+    <string name="settings_fast_clear_memory">Clear fast memory</string>
+    <string name="settings_section_receiver_advanced">Export + upload settings</string>
+    <string name="settings_receiver_host_label">LAN receiver host (advanced)</string>
+    <string name="settings_receiver_port_label">Port</string>
+    <string name="settings_receiver_multipart">Use multipart upload fallback (advanced)</string>
+    <string name="settings_harvest_include_coarse_location">Include coarse location in PC upload manifest (opt-in)</string>
+    <string name="settings_show_advanced">Show advanced</string>
+    <string name="settings_hide_advanced">Hide advanced</string>
+    <string name="settings_launch_plan_a_bridge">Use Launch for vehicle link (Plan A)</string>
+    <string name="obd_plan_a_fallback_banner">Direct DB15/OEM USB link failed. Plan A is active: open Launch diagnostics and harvest accessibility logs; Together will read DTCs from that golden path.</string>
+
+    <!-- A11y — icon-only controls (CU1 pass) -->
+    <string name="a11y_nav_back">Back</string>
+    <string name="a11y_send_message">Send message</string>
+    <string name="a11y_collapse_gauge">Collapse gauge</string>
+    <string name="a11y_expand_gauge">Expand gauge</string>
+    <string name="a11y_close_gauge">Close gauge</string>
+
+    <!-- Session chat — link / ingest / errors -->
+    <string name="session_linking">Linking…</string>
+    <string name="session_init_error">Session init error — retrying may help</string>
+    <string name="session_assistant_internal_error">Session assistant hit an internal error. Please retry your last message.</string>
+    <string name="session_bootstrap_failed">Session bootstrap failed. You can still continue and send messages.</string>
+    <string name="shop_desk_upload_queued">Shop Desk upload queued for retry</string>
+    <string name="shop_desk_ingest_ok">Shop Desk session ingest OK (%1$s)</string>
+    <string name="shop_desk_ingest_failed_queued">Shop Desk ingest failed — queued for retry when connection is restored.</string>
+    <string name="shop_desk_ingest_failed_toast">Shop Desk ingest failed: %1$s</string>
+    <string name="shop_desk_ingest_failed_detail">Shop Desk ingest failed — %1$s. Check URL in Settings (default %2$s).</string>
+    <string name="shop_desk_queued_uploads_sent">Shop Desk: %1$d queued upload(s) sent.</string>
+    <string name="harvest_shop_desk_failed">Harvest started; Shop Desk ingest failed: %1$s</string>
+    <string name="harvest_shop_desk_queued">Harvest started; Shop Desk ingest queued for retry.</string>
+    <string name="harvest_lan_shop_desk_failed">LAN upload started; Shop Desk ingest failed: %1$s</string>
+
+    <!-- VCI diagnostics — connect / OEM USB -->
+    <string name="vci_oem_foreground_block">Last OEM foreground block: %1$s</string>
+    <string name="vci_oem_usb_opening">Opening OEM USB transport…</string>
+    <string name="vci_oem_usb_open_success">OEM USB open succeeded. Port opened and handshake path is available.</string>
+    <string name="vci_oem_usb_open_failed">OEM USB open failed: %1$s</string>
+    <string name="vci_unknown_error">unknown error</string>
+    <string name="vci_run_diagnostics_busy">Running…</string>
+    <string name="vci_run_diagnostics">Run diagnostics</string>
+    <string name="vci_test_oem_usb_open">Test OEM USB open</string>
+    <string name="vci_testing_oem_usb_open">Testing OEM USB open…</string>
+
+    <!-- Settings — Shop & link self-tests -->
+    <string name="settings_self_test_section_title">Shop &amp; link self-tests</string>
+    <string name="settings_self_test_section_hint">Operator diagnostics — ping Shop Desk and report link stack state. No adb required.</string>
+    <string name="settings_self_test_run_all">Run all</string>
+    <string name="settings_self_test_running">Running self-tests…</string>
+    <string name="settings_self_test_copy">Copy results</string>
+    <string name="settings_self_test_copied">Self-test results copied</string>
+    <string name="settings_self_test_result_line">%1$s — %2$s%3$s</string>
+    <string name="settings_self_test_pass">PASS</string>
+    <string name="settings_self_test_fail">FAIL</string>
+    <string name="settings_self_test_latency"> (%1$d ms)</string>
+    <string name="settings_self_test_last_run">Last run: %1$s</string>
+    <string name="settings_shop_desk_production_hint">Production default: %1$s</string>
+
+    <!-- Setup Live Wizard — AI assist per step -->
+    <string name="setup_ai_ask">Ask AI</string>
+    <string name="setup_ai_sheet_title">Help: %1$s</string>
+    <string name="setup_ai_fix_tips_heading">Quick fixes</string>
+    <string name="setup_ai_last_result_heading">Last run result</string>
+    <string name="setup_ai_deep_reply_heading">AI guidance</string>
+    <string name="setup_ai_deep_help">Deep help</string>
+    <string name="setup_ai_close">Close</string>
+    <string name="setup_ai_follow_up_label">Your question (optional)</string>
+    <string name="setup_ai_follow_up_hint">e.g. USB permission keeps failing</string>
+
+    <string name="setup_help_app_health_quick">Checks encrypted preferences, looks for a crash log, and confirms an API key is available (embedded build key or Settings).</string>
+    <string name="setup_help_app_health_fix">Clear app cache only if support asks. If last_crash.txt exists, note the first line and reinstall the latest APK. Add sk-ant key in Settings if missing.</string>
+
+    <string name="setup_help_shop_desk_quick">Pings your Shop Desk ingest URL (default http://PC-IP:8791). The office PC must run the Shop Desk receiver on the same Wi‑Fi.</string>
+    <string name="setup_help_shop_desk_fix">Verify PC IP in Settings → Shop Desk URL. On PC run the receiver script. Allow Windows Firewall inbound on port 8791. Retry GET /api/health in Chrome on the tablet.</string>
+
+    <string name="setup_help_link_transport_quick">Lists USB OBD adapters and runs a non-destructive detectUsbKind probe. No vehicle communication required for a pass when no cable is attached.</string>
+    <string name="setup_help_link_transport_fix">Grant USB permission when prompted. Reseat DB15 cable. If Launch/X431 hangs, force-stop the OEM app (Settings → Apps). Try Settings → Native OBD → Use VCI transport on Launch tablets.</string>
+
+    <string name="setup_help_camera_quick">Opens the same camera capture flow used in New Session. Saves one test JPEG to verify FileProvider and permission.</string>
+    <string name="setup_help_camera_fix">Allow camera permission. Tap capture manually — do not background the app mid-shot. Use shop lights; wipe lens. Skip with reason if hardware is unavailable.</string>
+
+    <string name="setup_help_session_bootstrap_quick">Runs a silent session link probe (Plan A Launch bridge vs direct path) without starting a customer session.</string>
+    <string name="setup_help_session_bootstrap_fix">Enable accessibility for Together Car Works. Open Launch once and dismiss splash. Check Settings → Use Launch for vehicle link (Plan A). Re-run after USB probe passes.</string>
+
+    <string name="setup_help_harvest_path_quick">Dry-run: confirms vehicle DB paths are readable and a harvest manifest can be built (no ZIP upload).</string>
+    <string name="setup_help_harvest_path_fix">Grant All files access. Open the OEM diagnostic app and connect to a vehicle once so DB folders exist. Then use Settings → Transfer data → Zip files.</string>
+
+    <string name="setup_help_tier4_trial_quick">Tier 4 trial enables programming reference checklists for Ford, Jeep, Dodge, Ram, and Chrysler only — not automated flash.</string>
+    <string name="setup_help_tier4_trial_fix">Read the trial notice and tap Accept. For GM/Toyota/Honda marques, Tier 4 stays disabled until a full license — use Plan B reference screens instead.</string>
+
+    <string name="tier4_trial_gate_title">Tier 4 trial — Ford &amp; Stellantis</string>
+    <string name="tier4_trial_terms">14-day evaluation trial for programming reference material only. You accept responsibility for OEM-licensed, authorized work. Misuse can brick modules. This app does not perform automated PCM flash, SKIM/SKREEM programming, or security provisioning.</string>
+    <string name="tier4_trial_marque_heading">Primary marque (trial scope)</string>
+    <string name="tier4_trial_vin_suggests">VIN WMI suggests: %1$s</string>
+    <string name="tier4_trial_included_heading">Included in trial</string>
+    <string name="tier4_trial_included_checklists">Bundled Ford / Stellantis programming checklists (reference steps)</string>
+    <string name="tier4_trial_included_runbook">Tier 4 manual flash runbook (partner handoff text)</string>
+    <string name="tier4_trial_included_plan_a">Plan A fallback — guide back into Launch/X431 for licensed flash when needed</string>
+    <string name="tier4_trial_excluded_flash">Not included: in-app automated flash, VCI write, or immobilizer key programming</string>
+    <string name="tier4_trial_accept_button">Accept Tier 4 trial terms</string>
+    <string name="tier4_trial_terms_acknowledge_action">I have read the trial terms</string>
+    <string name="tier4_trial_terms_acknowledged">Trial terms acknowledged</string>
+    <string name="tier4_trial_active_until">Trial active until %1$s</string>
+    <string name="tier4_trial_expired">Trial expired. Re-accept trial terms below or redeem an operator Tier 4 license in Settings.</string>
+    <string name="tier4_trial_enable_checklists_body">Trial accepted. Enable checklist access when you are ready for Ford / Stellantis programming reference on the shop floor.</string>
+    <string name="tier4_trial_enable_checklists_button">Enable programming checklists</string>
+    <string name="tier4_trial_checklists_ready">Programming checklists enabled for trial marques.</string>
+    <string name="tier4_license_path_hint">Long-press the build info line in Settings to enter an operator Tier 4 license code.</string>
+    <string name="tier4_license_active">Full Tier 4 license active (operator-issued).</string>
+    <string name="tier4_license_section_title">Operator — Tier 4 license</string>
+    <string name="tier4_license_dialog_title">Tier 4 operator license</string>
+    <string name="tier4_license_code_label">License code</string>
+    <string name="tier4_license_marques_hint">Optional marques (comma-separated)</string>
+    <string name="tier4_license_marques_active">Licensed marques: %1$s</string>
+    <string name="tier4_license_redeem">Redeem license</string>
+    <string name="tier4_license_redeem_success">Tier 4 license activated.</string>
+    <string name="tier4_license_redeem_failed">Invalid license code.</string>
+    <string name="tier4_license_clear">Clear operator license</string>
+    <string name="tier4_license_dialog_dismiss">Cancel</string>
+    <string name="tier4_compact_home_programming">Ford / Stellantis programming checklists (Tier 4 trial)</string>
+    <string name="tier4_gate_required">Accept the Tier 4 trial and enable checklists to open programming reference.</string>
+    <string name="tier4_trial_step_passed_detail">Tier 4 trial accepted — enable programming checklists from this step or compact home when ready.</string>
+
+    <string name="skreem_trial_gate_title">SKREEM trial — Stellantis immobilizer info</string>
+    <string name="skreem_trial_terms">14-day evaluation trial for SKIM/SKREEM informational access only (Jeep, Dodge, Ram, Chrysler). You accept responsibility for OEM-licensed, authorized work. This app does not capture PINs, program keys, or perform SKREEM writes.</string>
+    <string name="skreem_trial_marque_heading">Primary marque (Stellantis trial scope)</string>
+    <string name="skreem_trial_vin_suggests">VIN WMI suggests: %1$s</string>
+    <string name="skreem_trial_included_heading">Included in trial</string>
+    <string name="skreem_trial_included_module_role">SKIM/SKREEM module role and Tier 3 risk context per marque</string>
+    <string name="skreem_trial_included_risk">Immo info banners and state summaries from bundled assets</string>
+    <string name="skreem_trial_included_marque_banners">Stellantis marque-specific immobilizer reference (info only)</string>
+    <string name="skreem_trial_excluded_programming">Not included: key learn, PIN entry, VCI security writes, or Tier 4 programming checklists</string>
+    <string name="skreem_trial_accept_button">Accept SKREEM trial terms</string>
+    <string name="skreem_trial_terms_acknowledge_action">I have read the SKREEM trial terms</string>
+    <string name="skreem_trial_terms_acknowledged">SKREEM trial terms acknowledged</string>
+    <string name="skreem_trial_active_until">SKREEM trial active until %1$s</string>
+    <string name="skreem_trial_expired">SKREEM trial expired — re-accept terms or contact operator for a full license.</string>
+    <string name="skreem_trial_enable_immo_body">Trial accepted. Enable immobilizer info when you are ready for Stellantis SKREEM reference on the shop floor.</string>
+    <string name="skreem_trial_enable_immo_button">Enable immobilizer info</string>
+    <string name="skreem_trial_immo_ready">Immobilizer info enabled for Stellantis SKREEM trial marques.</string>
+    <string name="skreem_gate_required">Accept the SKREEM trial and enable immobilizer info to open Tier 3 immo screens.</string>
+
+    <string name="programming_flash_request_button">Request flash (scaffold — no VCI write)</string>
+    <string name="programming_flash_status_blocked">Status: blocked in-app</string>
+    <string name="programming_flash_status_partner_required">Status: partner tooling required</string>
+    <string name="programming_flash_status_queued_for_lab">Status: queued for lab partner</string>
+
+    <string name="setup_help_mark_complete_quick">Marks setup live complete and unlocks the compact shop-floor home. All prior steps must pass or be skipped with a logged reason.</string>
+    <string name="setup_help_mark_complete_fix">Resolve or skip remaining red steps. After Enter shop floor, use New Session on the main screen for customer intake and full Session Chat.</string>
+
+    <string name="home_connect_wizard_title">Vehicle connection</string>
+    <string name="home_connect_wizard_subtitle">One place to connect your OBD adapter. vLinker FS USB (FTDI) is tried first when auto-selecting.</string>
+    <string name="home_connect_step_detect">1 · Detect adapter</string>
+    <string name="home_connect_step_detect_ok">%1$d USB serial device(s) attached</string>
+    <string name="home_connect_step_detect_missing">Plug USB OBD cable into tablet OTG port</string>
+    <string name="home_connect_step_permission">2 · USB permission</string>
+    <string name="home_connect_step_permission_ready">Ready — tap Connect to grant if prompted</string>
+    <string name="home_connect_step_permission_wait">Waiting for USB device</string>
+    <string name="home_connect_step_probe">3 · Auto probe</string>
+    <string name="home_connect_step_probe_detail">vLinker FS / FTDI ELM327 first, then OEM VCI USB</string>
+    <string name="home_connect_step_test_read">4 · Test read</string>
+    <string name="home_connect_step_test_vin">VIN read OK: %1$s</string>
+    <string name="home_connect_step_test_ok">Mode 03 / link verified</string>
+    <string name="home_connect_step_test_running">Reading VIN or stored DTCs…</string>
+    <string name="home_connect_step_test_pending">Runs after connect succeeds</string>
+    <string name="home_connect_connect">Connect</string>
+    <string name="home_connect_connecting">Connecting…</string>
+    <string name="home_connect_disconnect">Disconnect</string>
+    <string name="home_connect_troubleshoot">Connection troubleshooting (advanced)</string>
+    <string name="home_connect_last_working">Last proven connect: %1$s</string>
+    <string name="setup_link_transport_home_hint">After setup, use the Vehicle connection card on the shop-floor home — one Connect button runs detect → permission → probe → test read and saves your last working adapter.</string>
+    <!-- Tuning dummy strings -->
+    <string name="tuning_oem_disclaimer">tuning_oem_disclaimer</string>
+    <string name="tuning_reference_empty">tuning_reference_empty</string>
+    <string name="tuning_disclaimer_title">tuning_disclaimer_title</string>
+    <string name="tuning_disclaimer_sgw_body">tuning_disclaimer_sgw_body</string>
+    <string name="tuning_disclaimer_tier4_body">tuning_disclaimer_tier4_body</string>
+    <string name="tuning_disclaimer_keys">tuning_disclaimer_keys</string>
+    <string name="tuning_read_only_banner">tuning_read_only_banner</string>
+    <string name="tuning_config_title">tuning_config_title</string>
+    <string name="tuning_config_as_built">tuning_config_as_built</string>
+    <string name="tuning_config_proxi">tuning_config_proxi</string>
+    <string name="tuning_config_partner_lab">tuning_config_partner_lab</string>
+    <string name="tuning_config_try_read">tuning_config_try_read</string>
+    <string name="tuning_config_connect">tuning_config_connect</string>
+    <string name="tuning_config_oem_only">tuning_config_oem_only</string>
+    <string name="tuning_custom_pid_title">tuning_custom_pid_title</string>
+    <string name="tuning_custom_pid_label">tuning_custom_pid_label</string>
+    <string name="tuning_custom_pid_disconnected">tuning_custom_pid_disconnected</string>
+    <string name="tuning_custom_pid_value">tuning_custom_pid_value</string>
+    <string name="tuning_custom_pid_stop">tuning_custom_pid_stop</string>
+    <string name="tuning_custom_pid_poll">tuning_custom_pid_poll</string>
+    <string name="tuning_diesel_title">tuning_diesel_title</string>
+    <string name="tuning_diesel_subtitle">tuning_diesel_subtitle</string>
+    <string name="tuning_diesel_ford_dpf_title">tuning_diesel_ford_dpf_title</string>
+    <string name="tuning_diesel_ford_dpf_body">tuning_diesel_ford_dpf_body</string>
+    <string name="tuning_diesel_ford_def_title">tuning_diesel_ford_def_title</string>
+    <string name="tuning_diesel_ford_def_body">tuning_diesel_ford_def_body</string>
+    <string name="tuning_diesel_ram_dpf_title">tuning_diesel_ram_dpf_title</string>
+    <string name="tuning_diesel_ram_dpf_body">tuning_diesel_ram_dpf_body</string>
+    <string name="tuning_diesel_ram_def_title">tuning_diesel_ram_def_title</string>
+    <string name="tuning_diesel_ram_def_body">tuning_diesel_ram_def_body</string>
+    <string name="tuning_requires_oem_launch">tuning_requires_oem_launch</string>
+    <string name="tuning_emissions_title">tuning_emissions_title</string>
+    <string name="tuning_emissions_readiness_body">tuning_emissions_readiness_body</string>
+    <string name="tuning_emissions_monitors_hint">tuning_emissions_monitors_hint</string>
+    <string name="tuning_emissions_connect_hint">tuning_emissions_connect_hint</string>
+    <string name="tuning_emissions_live_placeholder">tuning_emissions_live_placeholder</string>
+    <string name="tuning_live_pids_title">tuning_live_pids_title</string>
+    <string name="tuning_live_pids_disconnected">tuning_live_pids_disconnected</string>
+    <string name="tuning_live_pids_polling">tuning_live_pids_polling</string>
+    <string name="tuning_module_scan_gateway_note">tuning_module_scan_gateway_note</string>
+    <string name="tuning_module_scan_sgw_key">tuning_module_scan_sgw_key</string>
+    <string name="tuning_module_scan_oem_required">tuning_module_scan_oem_required</string>
+    <string name="tuning_module_scan_read_dtcs">tuning_module_scan_read_dtcs</string>
+    <string name="tuning_module_scan_disconnected">tuning_module_scan_disconnected</string>
+    <string name="tuning_module_scan_not_queried">tuning_module_scan_not_queried</string>
+    <string name="tuning_module_scan_no_dtcs">tuning_module_scan_no_dtcs</string>
+    <string name="tuning_programming_read_only">tuning_programming_read_only</string>
+    <string name="tuning_programming_loading">tuning_programming_loading</string>
+    <string name="tuning_programming_empty">tuning_programming_empty</string>
+    <string name="tuning_programming_blocked_badge">tuning_programming_blocked_badge</string>
+    <string name="tuning_session_tools_title">tuning_session_tools_title</string>
+    <string name="tuning_session_tools_subtitle">tuning_session_tools_subtitle</string>
+    <string name="tuning_session_history">tuning_session_history</string>
+    <string name="tuning_session_new">tuning_session_new</string>
+    <string name="tuning_tile_live_pids">tuning_tile_live_pids</string>
+    <string name="tuning_tile_live_pids_sub">tuning_tile_live_pids_sub</string>
+    <string name="tuning_tile_immo">tuning_tile_immo</string>
+    <string name="tuning_tile_immo_sub">tuning_tile_immo_sub</string>
+    <string name="tuning_tile_programming">tuning_tile_programming</string>
+    <string name="tuning_tile_programming_sub">tuning_tile_programming_sub</string>
+    <string name="tuning_tile_service_reset">tuning_tile_service_reset</string>
+    <string name="tuning_tile_service_reset_sub">tuning_tile_service_reset_sub</string>
+    <string name="tuning_tile_adaptation">tuning_tile_adaptation</string>
+    <string name="tuning_tile_adaptation_sub">tuning_tile_adaptation_sub</string>
+    <string name="tuning_tile_emissions">tuning_tile_emissions</string>
+    <string name="tuning_tile_emissions_sub">tuning_tile_emissions_sub</string>
+    <string name="tuning_tile_module_scan">tuning_tile_module_scan</string>
+    <string name="tuning_tile_module_scan_sub">tuning_tile_module_scan_sub</string>
+    <string name="tuning_tile_disclaimer">tuning_tile_disclaimer</string>
+    <string name="tuning_tile_disclaimer_sub">tuning_tile_disclaimer_sub</string>
+    <string name="tuning_tile_diesel">tuning_tile_diesel</string>
+    <string name="tuning_tile_diesel_sub">tuning_tile_diesel_sub</string>
+    <string name="tuning_tile_config_read">tuning_tile_config_read</string>
+    <string name="tuning_tile_config_read_sub">tuning_tile_config_read_sub</string>
+    <string name="tuning_tile_custom_pid">tuning_tile_custom_pid</string>
+    <string name="tuning_tile_custom_pid_sub">tuning_tile_custom_pid_sub</string>
+    <string name="tuning_tile_session_tools">tuning_tile_session_tools</string>
+    <string name="tuning_tile_session_tools_sub">tuning_tile_session_tools_sub</string>
+    <string name="tuning_hub_title">tuning_hub_title</string>
+    <string name="tuning_hub_subtitle">tuning_hub_subtitle</string>
+    <string name="tuning_hub_disconnected_hint">tuning_hub_disconnected_hint</string>
+    <string name="tuning_hub_marque_scope">tuning_hub_marque_scope</string>
+    <string name="tuning_tile_tier4_locked">tuning_tile_tier4_locked</string>
+    <string name="tuning_marque_heading">tuning_marque_heading</string>
+    <string name="tuning_marque_vin_hint">tuning_marque_vin_hint</string>
+</resources>

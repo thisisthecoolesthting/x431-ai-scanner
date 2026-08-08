@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "marqueId": "jeep",
+  "bannerKind": "neutral",
+  "title": "Immobilizer — information",
+  "body": "Jeep / Stellantis immobilizer behavior varies by platform and security gateway policy. This tier surfaces reference notes only: it does not add keys, program transponders, or bypass security.",
+  "footnote": "No key programming. Use OEM-approved security procedures for keys and modules.",
+  "skreemModule": {
+    "moduleName": "SKIM / SKREEM",
+    "role": "SKIM validates transponder keys; SKREEM integrates remote-entry and immobilizer policy with the PCM. Loss of all keys or module replacement requires dealer-level PIN and authorized tooling.",
+    "tier3Scope": "Info-only: module names, risk context, and catalog path programming/immobilizer/skim_key_learn — no PIN capture or automated key learn in this app."
+  }
+}

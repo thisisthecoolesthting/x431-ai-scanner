@@ -1,0 +1,12 @@
+{"ts": "2026-05-20T18:00:00.000Z", "dir": "TX", "canId": "0x7E0", "payload": "0203000000000000", "uiContext": "User clicks Read DTCs"}
+{"ts": "2026-05-20T18:00:00.010Z", "dir": "RX", "canId": "0x7E8", "payload": "0443010102030000", "uiContext": "ECU responds with 2 DTCs"}
+{"ts": "2026-05-20T18:00:01.000Z", "dir": "TX", "canId": "0x7E0", "payload": "0203000000000000", "uiContext": "Polling for updates"}
+{"ts": "2026-05-20T18:00:01.010Z", "dir": "RX", "canId": "0x7E8", "payload": "0443010102030000", "uiContext": "ECU response unchanged"}
+{"ts": "2026-05-20T18:00:02.000Z", "dir": "TX", "canId": "0x7E0", "payload": "0203000000000000", "uiContext": "Polling for updates"}
+{"ts": "2026-05-20T18:00:02.010Z", "dir": "RX", "canId": "0x7E8", "payload": "0443010102030000", "uiContext": "ECU response unchanged"}
+{"ts": "2026-05-20T18:00:03.000Z", "dir": "TX", "canId": "0x7E0", "payload": "0203000000000000", "uiContext": "Polling for updates"}
+{"ts": "2026-05-20T18:00:03.010Z", "dir": "RX", "canId": "0x7E8", "payload": "0443010102030000", "uiContext": "ECU response unchanged"}
+{"ts": "2026-05-20T18:00:04.000Z", "dir": "TX", "canId": "0x7E0", "payload": "0203000000000000", "uiContext": "Polling for updates"}
+{"ts": "2026-05-20T18:00:04.010Z", "dir": "RX", "canId": "0x7E8", "payload": "0443010102030000", "uiContext": "ECU response unchanged"}
+{"ts": "2026-05-20T18:00:05.000Z", "dir": "TX", "canId": "0x7E0", "payload": "0203000000000000", "uiContext": "Polling for updates"}
+{"ts": "2026-05-20T18:00:05.010Z", "dir": "RX", "canId": "0x7E8", "payload": "0443010102030000", "uiContext": "ECU response unchanged"}

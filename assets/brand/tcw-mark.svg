@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="256" height="256">
+  <!-- Together Car Works brand mark: two overlapping wrenches forming a stylized T -->
+  <!-- Horizontal bar (blue wrench) -->
+  <path fill="#0B5FFF" stroke="#0F1620" stroke-width="1.5"
+        d="M31,20 L77,20 Q80,20 80,23 L80,33 Q80,36 77,36 L31,36 Q28,36 28,33 L28,23 Q28,20 31,20 Z"/>
+  <!-- Vertical bar (amber wrench) -->
+  <path fill="#FF7A1A" stroke="#0F1620" stroke-width="1.5"
+        d="M49,20 L59,20 Q62,20 62,23 L62,77 Q62,80 59,80 L49,80 Q46,80 46,77 L46,23 Q46,20 49,20 Z"/>
+  <!-- Bolt heads -->
+  <circle cx="31" cy="28" r="3" fill="#0B5FFF" stroke="#0F1620" stroke-width="1"/>
+  <circle cx="77" cy="28" r="3" fill="#0B5FFF" stroke="#0F1620" stroke-width="1"/>
+  <circle cx="54" cy="77" r="3" fill="#FF7A1A" stroke="#0F1620" stroke-width="1"/>
+</svg>

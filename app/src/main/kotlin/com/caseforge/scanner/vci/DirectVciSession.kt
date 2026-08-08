@@ -1,0 +1,69 @@
+package com.caseforge.scanner.vci
+
+import android.content.Context
+import android.hardware.usb.UsbDevice
+import com.caseforge.scanner.data.SettingsRepo
+import com.caseforge.scanner.engine.EngineState
+import com.caseforge.scanner.engine.ScrapedDtc
+import com.caseforge.scanner.engine.ScreenKind
+import com.caseforge.scanner.engine.VciDiagnosticPort
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+
+/**
+ * Single diagnostic session for standalone flows (ELM327 USB primary, OEM VCI USB/BT optional).
+ */
+class DirectVciSession(
+    private val context: Context,
+    private val settings: SettingsRepo,
+) {
+    private val connectMutex = Mutex()
+    private var activeLink: DiagnosticConnector.ActiveLink? = null
+    private var lastError: String? = null
+
+    val isConnected: Boolean get() = activeLink != null
+
+    fun lastConnectError(): String? = lastError
+
+    fun linkKind(): DiagnosticConnector.LinkKind? = activeLink?.kind
+
+    fun adapterOrNull(): VciDiagnosticPort? = activeLink?.port
+
+    suspend fun ensureConnected(usbDevice: UsbDevice? = null): Result<Unit> = connectMutex.withLock {
+        lastError = null
+        if (activeLink != null) return Result.success(Unit)
+
+        try {
+            val connected = DiagnosticConnector.connect(context, settings, usbDevice)
+            return connected.fold(
+                onSuccess = { link ->
+                    val (verified, vin) = DiagnosticConnector.verifyProvenRead(link)
+                    if (!verified) {
+                        val msg = "Connected but VIN/Mode 03 read failed — check ignition and cable"
+                        lastError = msg
+                        link.disconnect()
+                        Result.failure(IllegalStateException(msg))
+                    } else {
+                        activeLink = link
+                        DiagnosticConnector.persistProvenConnect(settings, link, vin)
+                        Result.success(Unit)
+                    }
+                },
+                onFailure = { e ->
+                    lastError = e.message ?: e.javaClass.simpleName
+                    Result.failure(e)
+                },
+            )
+        } catch (t: Throwable) {
+            lastError = t.message ?: t.javaClass.simpleName
+            Result.failure(t)
+        }
+    }
+
+    fun disconnect() {
+        activeLink?.disconnect?.invoke()
+        activeLink = null
+    }
+
+    suspend fun readVinOrNull(): String? = activeLink?.readVin?.invoke()
+}
